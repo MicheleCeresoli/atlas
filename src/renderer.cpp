@@ -65,7 +65,9 @@ void Renderer::dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &tas
 void Renderer::generateRenderTasks(Camera& cam, World& w) {
     
     // List of pixels for each task
-    std::vector<Pixel> task; 
+    std::vector<Pixel> task;
+    task.reserve(batch_size); 
+
     Pixel pix; 
 
     // // Compute the total number of pixels that must be rendered. 
