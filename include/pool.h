@@ -21,7 +21,10 @@ class ThreadPool {
         ~ThreadPool();
 
         // Start the Pool by creating all the working threads
-        void start();
+        void startPool();
+    
+        // Stop the Pool. This will wait completion of all active tasks and then stop.
+        void stopPool(); 
 
         // Check whether the pool was started (i.e., workers were assigned )    
         bool isRunning(); 

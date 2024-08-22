@@ -50,21 +50,18 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
         output.push_back(rPix); 
 
     }
-    
+
     // Save the rendered pixels in the Rendeder class 
     saveRenderTaskOutput(output); 
 
 }
 
 // This function generates all the tasks required to render an image.
-void Renderer::generateRenderTasks(Camera& cam) {
+void Renderer::generateRenderTasks(Camera& cam, World& w) {
     
     // List of pixels for each task
     std::vector<Pixel> task; 
     Pixel pix; 
-
-    // This should not be necessary...
-    renderTasks.clear();
 
     // Compute the total number of pixels that must be rendered. 
     // int nPixels = cam.width * cam.height; 
@@ -85,7 +82,8 @@ void Renderer::generateRenderTasks(Camera& cam) {
 
         if (task.size() >= batch_size)
         {
-            renderTasks.push_back(task); 
+            // Add the task to the thread pool
+            pool.addTask([this, &cam, &w, task] { renderTask(cam, w, task); } );
             task.clear(); 
         }
 
@@ -100,6 +98,8 @@ std::vector<RenderedPixel> Renderer::processRenderOutput(Camera& cam)
 {
     // TODO: this function will need to be changed accordingly to how 
     // tasks are generated 
+
+    std::clog << "Processing Render Output" << std::endl;
 
     // Compute total number of pixels 
     int nPixels = cam.width * cam.height;
@@ -124,14 +124,16 @@ std::vector<RenderedPixel> Renderer::processRenderOutput(Camera& cam)
 // This is the high-level function called by the user
 std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
 
-    // Generate the list of pixels to be rendered; 
-    generateRenderTasks(cam); 
+    // Start the Thread pool
+    pool.startPool(); 
 
-    // Process each rendering task sequentially (for now)
-    for (int j = 0; j < renderTasks.size(); j++)
-    {
-        renderTask(cam, w, renderTasks[j]);
-    }
+    // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
+    generateRenderTasks(cam, w); 
+
+    // Wait until all the render tasks are completed.
+    while (pool.isBusy()) { }
+
+    std::clog << "All Rendering Tasks have been completed." << std::endl;
 
     // At this point we need to re-order all the pixels in the previous
     return processRenderOutput(cam);

@@ -24,9 +24,6 @@ class Renderer {
         // Mutex to synchronise access to shared data.
         std::mutex renderMutex; 
 
-        // TODO: this should then be moved to the renderer. 
-        std::vector<std::vector<Pixel>> renderTasks; 
-
         // List storing the output of each render task
         std::vector<std::vector<RenderedPixel>> renderedPixels; 
 
@@ -37,7 +34,7 @@ class Renderer {
         void renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels);
 
         // This function generates all the tasks required to render an image.
-        void generateRenderTasks(Camera& cam);
+        void generateRenderTasks(Camera& cam, World& w);
 
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.

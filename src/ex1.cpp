@@ -70,7 +70,7 @@ int main()
     // }
 
     // std::cout << "Starting Jobs Queue" << std::endl; 
-    // pool.start(); 
+    // pool.startPool(); 
 
     // unsigned int nthreads = std::thread::hardware_concurrency(); 
     // std::cout << "Number of available threads: " << nthreads << std::endl; 
