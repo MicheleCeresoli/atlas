@@ -25,10 +25,10 @@ class Renderer {
         std::mutex renderMutex; 
 
         // List storing the output of each render task
-        std::vector<std::vector<RenderedPixel>> renderedPixels; 
+        std::vector<RenderedPixel> renderedPixels; 
 
         // This function stores the output of each render task in the original class
-        void saveRenderTaskOutput(const std::vector<RenderedPixel> pixels); 
+        void saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels); 
  
         // This function renders a batch of pixels
         void renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels);
@@ -39,9 +39,13 @@ class Renderer {
         // This function generates all the tasks required to render an image.
         void generateRenderTasks(Camera& cam, World& w);
 
+        // Update the storing of the rendered pixels
+        void setupRenderOutput(Camera& cam); 
+
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.
-        std::vector<RenderedPixel> processRenderOutput(Camera& cam); 
+        void processRenderOutput(Camera& cam); 
+
 
 };
 

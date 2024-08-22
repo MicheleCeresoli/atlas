@@ -55,7 +55,6 @@ int main()
     Renderer renderer(6, 640);
 
     // Render the image
-
     auto t1 = std::chrono::high_resolution_clock::now();
     std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -67,7 +66,7 @@ int main()
     
     // To get the value of duration use the count()
     // member function on the duration object
-    std::clog << "The function took: " << duration.count() << " ms" << std::endl;
+    std::clog << "The rendering took: " << duration.count() << " ms" << std::endl;
 
     // ThreadPool pool(4); 
 
