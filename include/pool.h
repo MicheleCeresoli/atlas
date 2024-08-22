@@ -1,6 +1,7 @@
 #ifndef POOL_H 
 #define POOL_H
 
+#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -29,8 +30,12 @@ class ThreadPool {
         // Check whether the pool was started (i.e., workers were assigned )    
         bool isRunning(); 
     
-        // Check whether any of the workers in the pool are performing some operations.
+        // Check whether all the jobs have been completed
         bool isBusy(); 
+
+
+        // Wait until all the tasks are completed
+        void waitCompletion();
 
         // Enqueue a task to be executed by the thread pool
         void addTask(std::function<void()> task);
@@ -47,7 +52,13 @@ class ThreadPool {
         // Mutex to synchronize access to all the shared data.
         std::mutex queueMutex; 
         // Condition variable to notify workers
-        std::condition_variable cv; 
+        std::condition_variable task_cv; 
+        
+        // Number of pending/uncompleted tasks
+        std::atomic<int> pendingTasks = 0;
+        // Mutex and condition to wait for the task completion
+        std::mutex waitMutex;
+        std::condition_variable wait_cv; 
 
         // Flag that indicates whether the thread-pool should be stopped.
         bool stop = false;

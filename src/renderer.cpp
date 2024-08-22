@@ -131,11 +131,11 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
     generateRenderTasks(cam, w); 
 
     // Wait until all the render tasks are completed.
-    while (pool.isBusy()) { }
+    pool.waitCompletion();
 
     std::clog << "All Rendering Tasks have been completed." << std::endl;
 
-    // At this point we need to re-order all the pixels in the previous
+    // At this point we need to re-order all the rendered pixels.
     return processRenderOutput(cam);
 
 }

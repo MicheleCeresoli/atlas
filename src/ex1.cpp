@@ -13,6 +13,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
 {
@@ -31,7 +32,11 @@ void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
 
 int main()
 {
-    int    cam_res = 640;
+
+    // unsigned int nthreads = std::thread::hardware_concurrency(); 
+    // std::clog << "Number of available threads: " << nthreads << std::endl; 
+
+    int    cam_res = 10;
     double cam_fov = deg2rad(40); 
 
     double h = 1.5/std::sin(cam_fov/2);
@@ -47,13 +52,22 @@ int main()
     World w = World(); 
 
     // Create the Renderer (1 thread, batch size 64)
-    Renderer renderer(1, 64);
+    Renderer renderer(1, 10);
 
     // Render the image
+
+    auto t1 = std::chrono::high_resolution_clock::now();
     std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
+    auto t2 = std::chrono::high_resolution_clock::now();
 
     // Write the pixels to a PPM image file
     toImage(cam, pixels); 
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    
+    // To get the value of duration use the count()
+    // member function on the duration object
+    std::clog << "The function took: " << duration.count() << " ms" << std::endl;
 
     // ThreadPool pool(4); 
 
@@ -72,8 +86,6 @@ int main()
     // std::cout << "Starting Jobs Queue" << std::endl; 
     // pool.startPool(); 
 
-    // unsigned int nthreads = std::thread::hardware_concurrency(); 
-    // std::cout << "Number of available threads: " << nthreads << std::endl; 
 
     return 0;
 }

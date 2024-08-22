@@ -10,8 +10,7 @@ ThreadPool::ThreadPool(size_t nThreads) : nThreads(nThreads) {}
 ThreadPool::~ThreadPool() { stopPool(); }
 
 // Start the Pool by creating all the working threads
-void ThreadPool::startPool()
-{
+void ThreadPool::startPool() {
 
     if (isRunning()) {
         return; 
@@ -28,15 +27,14 @@ void ThreadPool::startPool()
 }
 
 // Stop the Pool. This will wait completion of all active tasks and then stop.
-void ThreadPool::stopPool()
-{
+void ThreadPool::stopPool() {
     {
         std::unique_lock<std::mutex> lock(queueMutex); 
         stop = true; 
         started = false;
     }
 
-    cv.notify_all();
+    task_cv.notify_all();
     
     // Joining all worker threads to ensure the have completed their tasks 
     for (std::thread& worker : workers) {
@@ -48,8 +46,7 @@ void ThreadPool::stopPool()
 }
 
 // Check whether the pool was started (i.e., workers were assigned )    
-bool ThreadPool::isRunning() 
-{ 
+bool ThreadPool::isRunning() { 
     bool run; 
     {
         std::unique_lock<std::mutex> lock(queueMutex); 
@@ -59,28 +56,26 @@ bool ThreadPool::isRunning()
 }
 
 // Check whether any of the workers in the pool are performing some operations.
-bool ThreadPool::isBusy()
-{
-    bool busy;
-    {
-        std::unique_lock<std::mutex> lock(queueMutex);
-        busy = !tasks.empty();
-    }
-    return busy;
+bool ThreadPool::isBusy() {
+    return pendingTasks != 0;
 }
 
+// Wait until all the tasks are completed
+void ThreadPool::waitCompletion() {
+    std::unique_lock<std::mutex> lock(waitMutex); 
+    wait_cv.wait(lock, [this] { return pendingTasks == 0; });
+}
 
 // Enqueue a task to be executed by the thread pool
-void ThreadPool::addTask(std::function<void()> task)
-{
+void ThreadPool::addTask(std::function<void()> task) {
     {
         std::unique_lock<std::mutex> lock(queueMutex); 
         tasks.emplace(std::move(task)); 
+        pendingTasks++;
     }
 
-    cv.notify_one();
-}   
-
+    task_cv.notify_one();
+} 
 
 void ThreadPool::workerLoop() {
     // The while loop keeps iterating to keep the thread alive. Only when the 
@@ -92,7 +87,7 @@ void ThreadPool::workerLoop() {
             // Lock the queue to allow data to be shared safely
             std::unique_lock<std::mutex> lock(queueMutex); 
             // Wait until there is a task to execute or the pool is stopped
-            cv.wait(lock, [this] { return (!tasks.empty() || stop); });
+            task_cv.wait(lock, [this] { return (!tasks.empty() || stop); });
 
             // If the pool has been stopped and there are no tasks, exit 
             if (stop && tasks.empty()) {
@@ -107,6 +102,12 @@ void ThreadPool::workerLoop() {
 
         // Execute the task
         task(); 
+
+        // Update the number of pending tasks
+        if (--pendingTasks == 0) {
+            wait_cv.notify_one();
+        }
+
     }
 }
 
