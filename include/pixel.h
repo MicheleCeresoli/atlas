@@ -11,7 +11,7 @@ struct Pixel {
 
 struct RenderedPixel {
     Pixel pixel; 
-    color color;
+    Color color;
 };
 
 #endif 

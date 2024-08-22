@@ -28,6 +28,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/dcm.cpp
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp
+    ${SOURCE_DIR}/renderer.cpp
     ${SOURCE_DIR}/utils.cpp
     ${SOURCE_DIR}/world.cpp
     ${SOURCE_DIR}/vec3.cpp

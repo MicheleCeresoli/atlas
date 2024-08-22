@@ -3,15 +3,34 @@
 #include "utils.h"
 #include "dcm.h"
 #include "camera.h"
+#include "renderer.h"
 #include "world.h"
 
 #include "pool.h"
+#include "pixel.h"
+#include "color.h"
 
 #include <cmath>
+#include <iostream>
+#include <vector>
+
+void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
+{
+
+    std::cout << "P3\n" << cam.width << ' ' << cam.height << "\n255\n"; 
+
+    for (int j = 0; j < pixels.size(); j++)
+    {
+        write_color(std::cout, pixels[j].color);
+    }
+
+    std::clog << "\rDone. \n";
+
+}
+
 
 int main()
 {
-
     int    cam_res = 640;
     double cam_fov = deg2rad(40); 
 
@@ -25,9 +44,16 @@ int main()
     cam.set_dcm(cam_dcm); 
     cam.set_pos(cam_pos); 
 
-    // Render the image
     World w = World(); 
-    cam.render(w); 
+
+    // Create the Renderer (1 thread, batch size 64)
+    Renderer renderer(1, 64);
+
+    // Render the image
+    std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
+
+    // Write the pixels to a PPM image file
+    toImage(cam, pixels); 
 
     // ThreadPool pool(4); 
 

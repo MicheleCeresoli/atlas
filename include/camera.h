@@ -27,7 +27,6 @@ class Camera {
         void set_pos(const point3& pos);
 
         Ray get_ray(int u, int v) const;
-        void render(World& world);
 
 
     private: 

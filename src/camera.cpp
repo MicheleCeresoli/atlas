@@ -42,28 +42,3 @@ Ray Camera::get_ray(int u, int v) const {
     vec3 direction = vec3(std::tan(beta), std::tan(alpha), 1.0);
     return Ray(center, A*direction);
 }
-
-void Camera::render(World& world)
-{
-    std::cout << "P3\n" << width << ' ' << height << "\n255\n"; 
-
-    for (int j = 0; j < height; j++)
-    {
-        for (int i = 0; i < width; i++)
-        {
-            Ray pixel_ray = get_ray(i, j);
-
-            if (world.trace_ray(pixel_ray))
-                write_color(std::cout, color(1,0,0)); 
-            else
-            {
-                write_color(std::cout, color()); 
-            }    
-            
-        }
-    }
-
-    std::clog << "\rDone. \n";
-
-}
-
