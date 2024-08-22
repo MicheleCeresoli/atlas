@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "world.h"
 
+#include <mutex>
 #include <vector>
 
 class Renderer {
@@ -20,8 +21,27 @@ class Renderer {
         ThreadPool pool; 
         size_t batch_size; 
 
-        std::vector<RenderedPixel> 
-        renderTask(Camera& cam, World& w, const std::vector<Pixel> pixels);
+        // Mutex to synchronise access to shared data.
+        std::mutex renderMutex; 
+
+        // TODO: this should then be moved to the renderer. 
+        std::vector<std::vector<Pixel>> renderTasks; 
+
+        // List storing the output of each render task
+        std::vector<std::vector<RenderedPixel>> renderedPixels; 
+
+        // This function stores the output of each render task in the original class
+        void saveRenderTaskOutput(const std::vector<RenderedPixel> pixels); 
+ 
+        // This function renders a batch of pixels
+        void renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels);
+
+        // This function generates all the tasks required to render an image.
+        void generateRenderTasks(Camera& cam);
+
+        // This function post-processes the outputs of all tasks to generated an 
+        // orderered list of pixels.
+        std::vector<RenderedPixel> processRenderOutput(Camera& cam); 
 
 
 };

@@ -1,79 +1,31 @@
 
 #include "renderer.h"
-#include <cmath>
 
+#include <cmath>
+#include <mutex>
+
+// Constructor
 Renderer::Renderer(size_t nThreads, size_t batch_size) : 
     pool(ThreadPool(nThreads)), batch_size(batch_size) {}
 
 
-// This is the high-level function called by the user
-std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
 
-    // Temporary batch size to determine the maximum number of pixels in each 
-    // render task.
-    size_t batch_size = 64; 
-
-    // Compute the total number of pixels that must be rendered. 
-    // int nPixels = cam.width * cam.height; 
-    // int nTasks = (int) ceil((double)nPixels / batch_size); 
-
-    // List of tasks
-    std::vector<std::vector<Pixel>> tasks; 
-    // List of pixels of each task
-    std::vector<Pixel> task_j; 
-
-    // Assign all the pixels to a specific rendering task.
-    int j = 0, i = 0;
-    while (j < cam.height)
+// This function stores the output of each render task in the original class
+void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel> pixels)
+{
     {
-        if (i >= cam.width)
-        {
-            j++; 
-            i = 0; 
-        } 
-
-        Pixel pix = {.u = i, .v = j};
-        task_j.push_back(pix);  
-
-        if (task_j.size() >= batch_size)
-        {
-            tasks.push_back(task_j); 
-            task_j.clear(); 
-        }
-
-        i++; 
+        std::unique_lock<std::mutex> lock(renderMutex); 
+        renderedPixels.push_back(pixels); 
     }
-
-    // Process each rendering task sequentially (for now)
-    std::vector<std::vector<RenderedPixel>> rendered;
-    std::vector<RenderedPixel> taskRender;
-
-    for (int j = 0; j < tasks.size(); j++)
-    {
-        taskRender = renderTask(cam, w, tasks[j]);
-        rendered.push_back(taskRender);
-    }
-
-    // At this point we need to re-order all the pixels in the previous
-    std::vector<RenderedPixel> output; 
-
-    for (int j = 0; j < rendered.size(); j++)
-    {
-        for (int i = 0; i < rendered[j].size(); i++)
-        {
-            output.push_back(rendered[j][i]);
-        }
-    }
-
-    return output;
-
 }
 
+// This function renders a batch of pixels
+void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels) {
 
-std::vector<RenderedPixel> 
-Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> pixels) {
+    // Create a vector storing the pixels to be rendered with the given memory
+    std::vector<RenderedPixel> output;
+    output.reserve(pixels.size()); 
 
-    std::vector<RenderedPixel> rendered;
     RenderedPixel rPix; 
 
     for (int j = 0; j < pixels.size(); j++)
@@ -95,10 +47,94 @@ Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> pixels) {
         }
 
         // Add the pixel to the list of computed pixels
-        rendered.push_back(rPix); 
+        output.push_back(rPix); 
 
     }
     
-    return rendered; 
+    // Save the rendered pixels in the Rendeder class 
+    saveRenderTaskOutput(output); 
 
 }
+
+// This function generates all the tasks required to render an image.
+void Renderer::generateRenderTasks(Camera& cam) {
+    
+    // List of pixels for each task
+    std::vector<Pixel> task; 
+    Pixel pix; 
+
+    // This should not be necessary...
+    renderTasks.clear();
+
+    // Compute the total number of pixels that must be rendered. 
+    // int nPixels = cam.width * cam.height; 
+    // int nTasks = (int) ceil((double)nPixels / batch_size); 
+
+    // Assign all the pixels to a specific rendering task.
+    int j = 0, i = 0;
+    while (j < cam.height)
+    {
+        if (i >= cam.width)
+        {
+            j++; 
+            i = 0; 
+        } 
+
+        pix = {.u = i, .v = j};
+        task.push_back(pix);  
+
+        if (task.size() >= batch_size)
+        {
+            renderTasks.push_back(task); 
+            task.clear(); 
+        }
+
+        i++; 
+    }
+
+}
+
+// This function post-processes the outputs of all tasks to generated an 
+// orderered list of pixels.
+std::vector<RenderedPixel> Renderer::processRenderOutput(Camera& cam)
+{
+    // TODO: this function will need to be changed accordingly to how 
+    // tasks are generated 
+
+    // Compute total number of pixels 
+    int nPixels = cam.width * cam.height;
+
+    // Create the output vector to match the expected number of pixels.
+    std::vector<RenderedPixel> output; 
+    output.reserve(nPixels);
+
+    for (int j = 0; j < renderedPixels.size(); j++)
+    {
+        for (int i = 0; i < renderedPixels[j].size(); i++)
+        {
+            output.push_back(renderedPixels[j][i]);
+        }
+    }
+
+    renderedPixels.clear(); 
+    return output;
+}
+
+
+// This is the high-level function called by the user
+std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
+
+    // Generate the list of pixels to be rendered; 
+    generateRenderTasks(cam); 
+
+    // Process each rendering task sequentially (for now)
+    for (int j = 0; j < renderTasks.size(); j++)
+    {
+        renderTask(cam, w, renderTasks[j]);
+    }
+
+    // At this point we need to re-order all the pixels in the previous
+    return processRenderOutput(cam);
+
+}
+
