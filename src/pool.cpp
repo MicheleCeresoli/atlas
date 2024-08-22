@@ -13,12 +13,13 @@ ThreadPool::~ThreadPool()
         // Lock the queue to update the stop flag safely 
         std::unique_lock<std::mutex> lock(queueMutex); 
         stop = true; 
+        started = false;
     }
 
     // Notify all threads 
     cv.notify_all(); 
 
-    // Joining all worker threads to ensure teh have completed their tasks 
+    // Joining all worker threads to ensure the have completed their tasks 
     for (std::thread& worker : workers) {
         worker.join(); 
     }
@@ -30,8 +31,26 @@ ThreadPool::~ThreadPool()
 // Start the Pool by creating all the working threads
 void ThreadPool::start()
 {
+    started = true; 
     for (size_t k = 0; k < nThreads; k++)
         workers.emplace_back(std::thread(&ThreadPool::workerLoop, this));
+}
+
+// Check whether the pool was started (i.e., workers were assigned )    
+bool ThreadPool::isRunning() 
+{ 
+    return started; 
+}
+
+// Check whether any of the workers in the pool are performing some operations.
+bool ThreadPool::isBusy()
+{
+    bool busy;
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        busy = !tasks.empty();
+    }
+    return busy;
 }
 
 // Enqueue a task to be executed by the thread pool

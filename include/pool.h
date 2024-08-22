@@ -23,6 +23,12 @@ class ThreadPool {
         // Start the Pool by creating all the working threads
         void start();
 
+        // Check whether the pool was started (i.e., workers were assigned )    
+        bool isRunning(); 
+    
+        // Check whether any of the workers in the pool are performing some operations.
+        bool isBusy(); 
+
         // Enqueue a task to be executed by the thread pool
         void addTask(std::function<void()> task);
 
