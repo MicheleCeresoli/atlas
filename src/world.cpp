@@ -3,7 +3,16 @@
 
 World::World() {}
 
-bool World::trace_ray(Ray r) {
-    return r.min_distance() <= RADIUS;
+Color World::trace_ray(Ray r) {
+    
+    if (r.min_distance() <= RADIUS)
+    {
+        return Color(1, 0, 0);
+    }
+    else 
+    {
+        return Color(); 
+    }
+
 }
 
