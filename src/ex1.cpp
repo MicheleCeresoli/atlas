@@ -22,7 +22,7 @@ void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
 
     for (int j = 0; j < pixels.size(); j++)
     {
-        write_color(std::cout, pixels[j].color);
+        write_color(std::cout, pixels[j].c);
     }
 
     std::clog << "\rDone. \n";
@@ -36,7 +36,7 @@ int main()
     // unsigned int nthreads = std::thread::hardware_concurrency(); 
     // std::clog << "Number of available threads: " << nthreads << std::endl; 
 
-    int    cam_res = 10;
+    int    cam_res = 640;
     double cam_fov = deg2rad(40); 
 
     double h = 1.5/std::sin(cam_fov/2);
@@ -52,7 +52,7 @@ int main()
     World w = World(); 
 
     // Create the Renderer (1 thread, batch size 64)
-    Renderer renderer(1, 10);
+    Renderer renderer(6, 640);
 
     // Render the image
 

@@ -27,6 +27,11 @@ void Camera::set_pos(const point3& pos) {
     center = pos; 
 }
 
+// Return the pixel ID number
+int Camera::pixel_id(const Pixel& p) {
+    return p.u + width*p.v; 
+}
+
 Ray Camera::get_ray(int u, int v) const {
 
     // u is the pixel number along the horizontal coordinate

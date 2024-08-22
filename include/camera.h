@@ -3,6 +3,7 @@
 
 #include "vec3.h"
 #include "dcm.h"
+#include "pixel.h"
 #include "ray.h"
 #include "world.h"
 
@@ -25,6 +26,8 @@ class Camera {
 
         void set_dcm(const dcm& orientation);
         void set_pos(const point3& pos);
+
+        int pixel_id(const Pixel& p);
 
         Ray get_ray(int u, int v) const;
 

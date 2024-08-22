@@ -1,6 +1,7 @@
 
 #include "renderer.h"
 
+#include <algorithm>
 #include <cmath>
 #include <mutex>
 
@@ -31,7 +32,7 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
     for (int j = 0; j < pixels.size(); j++)
     {
         Pixel pix = pixels[j]; 
-        rPix = {.pixel = pix}; 
+        rPix = {.p = pix}; 
         
         // Retrieve camera ray for this pixel
         Ray ray = cam.get_ray(pix.u, pix.v); 
@@ -39,12 +40,8 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
         // Compute pixel color
         if (w.trace_ray(ray)) 
         {
-            rPix.color = Color(1,0,0);
+            rPix.c = Color(1,0,0);
         } 
-        else 
-        {
-            rPix.color = Color(); 
-        }
 
         // Add the pixel to the list of computed pixels
         output.push_back(rPix); 
@@ -54,6 +51,11 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
     // Save the rendered pixels in the Rendeder class 
     saveRenderTaskOutput(output); 
 
+}
+
+void Renderer::dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &task)
+{
+    pool.addTask([this, &cam, &w, task] { renderTask(cam, w, task); } );
 }
 
 // This function generates all the tasks required to render an image.
@@ -83,7 +85,7 @@ void Renderer::generateRenderTasks(Camera& cam, World& w) {
         if (task.size() >= batch_size)
         {
             // Add the task to the thread pool
-            pool.addTask([this, &cam, &w, task] { renderTask(cam, w, task); } );
+            dispatchTask(cam, w, task);
             task.clear(); 
         }
 
@@ -115,8 +117,15 @@ std::vector<RenderedPixel> Renderer::processRenderOutput(Camera& cam)
             output.push_back(renderedPixels[j][i]);
         }
     }
-
+    
     renderedPixels.clear(); 
+
+    // Now we sort this vector to have increasing pixel IDs; 
+    std::sort(output.begin(), output.end(), 
+        [&cam] (const RenderedPixel &p1, const RenderedPixel &p2) { 
+            return cam.pixel_id(p1.p) < cam.pixel_id(p2.p);
+    });
+
     return output;
 }
 
