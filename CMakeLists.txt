@@ -3,12 +3,20 @@ cmake_minimum_required ( VERSION 3.1.0...3.27.0)
 
 project ( RAYTRACING_DEMO LANGUAGES CXX )
 
+find_package(GDAL CONFIG)
+if (NOT GDAL_FOUND) 
+    find_package(GDAL REQUIRED)
+endif()
+
+# This is to automatically update the vs-code settings
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # Source 
 set ( HEADER_DIR include )
 set ( SOURCE_DIR src )
 
 set ( HEADER_FILES 
+    ${HEADER_DIR}/affine.h
     ${HEADER_DIR}/camera.h
     ${HEADER_DIR}/dcm.h
     ${HEADER_DIR}/pixel.h
@@ -17,10 +25,12 @@ set ( HEADER_FILES
     ${HEADER_DIR}/renderer.h
     ${HEADER_DIR}/utils.h
     ${HEADER_DIR}/world.h
+    ${HEADER_DIR}/vec2.h
     ${HEADER_DIR}/vec3.h
 )
 
 set ( SRC_FILES 
+    ${SOURCE_DIR}/affine.cpp
     ${SOURCE_DIR}/ex1.cpp
     ${SOURCE_DIR}/camera.cpp
     ${SOURCE_DIR}/dcm.cpp
@@ -29,10 +39,11 @@ set ( SRC_FILES
     ${SOURCE_DIR}/renderer.cpp
     ${SOURCE_DIR}/utils.cpp
     ${SOURCE_DIR}/world.cpp
+    ${SOURCE_DIR}/vec2.cpp
     ${SOURCE_DIR}/vec3.cpp
 )
 
-include_directories(${HEADER_DIR})
+
 
 # ----- Compiler Flags 
 
@@ -47,4 +58,8 @@ endif()
 # Executables 
 add_executable(ex1 ${SRC_FILES} ${HEADER_FILES})
 
+target_link_libraries(ex1 PRIVATE GDAL::GDAL)
 
+# Include header files
+target_include_directories(ex1 PRIVATE ${HEADER_DIR})
+target_include_directories(ex1 PRIVATE ${GDAL_INCLUDE_DIR})
