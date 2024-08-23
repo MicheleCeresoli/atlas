@@ -2,7 +2,7 @@
 #define WORLD_H 
 
 #include "ray.h"
-#include "color.h"
+#include "pixel.h"
 
 #define RADIUS 1.0
 
@@ -11,7 +11,7 @@ class World {
     public: 
 
         World();
-        Color trace_ray(Ray r);
+        PixelData trace_ray(Ray r);
 
 };
 

@@ -1,4 +1,5 @@
 
+
 #include "vec3.h"
 #include "utils.h"
 #include "dcm.h"
@@ -8,12 +9,27 @@
 
 #include "pool.h"
 #include "pixel.h"
-#include "color.h"
 
 #include <cmath>
 #include <iostream>
 #include <vector>
 #include <chrono>
+
+void write_pixel(std::ostream& out, const PixelData& data) {
+    
+    auto r = data.t; 
+    auto g = data.lat;
+    auto b = data.lon;
+
+    // Translate the [0,1] component values to the byte range [0,255]
+    int rbyte = int(255.999*r);
+    int gbyte = int(255.999*g);
+    int bbyte = int(255.999*b);
+
+    // Write out the pixel color components. 
+    out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n'; 
+
+}
 
 void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
 {
@@ -22,7 +38,7 @@ void toImage(Camera& cam, const std::vector<RenderedPixel> pixels)
 
     for (int j = 0; j < pixels.size(); j++)
     {
-        write_color(std::cout, pixels[j].c);
+        write_pixel(std::cout, pixels[j].d);
     }
 
     std::clog << "\rDone. \n";

@@ -3,15 +3,15 @@
 
 World::World() {}
 
-Color World::trace_ray(Ray r) {
+PixelData World::trace_ray(Ray r) {
     
     if (r.min_distance() <= RADIUS)
     {
-        return Color(1, 0, 0);
+        return PixelData {1.0, 0.0, 0.0};
     }
     else 
     {
-        return Color(); 
+        return PixelData {0.0, 0.0, 0.0};
     }
 
 }

@@ -40,8 +40,8 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
         // Retrieve camera ray for this pixel
         Ray ray = cam.get_ray(pix.u, pix.v); 
 
-        // Compute pixel color
-        rPix.c = w.trace_ray(ray); 
+        // Compute pixel data
+        rPix.d = w.trace_ray(ray); 
 
         // Add the pixel to the list of computed pixels
         output.push_back(rPix); 

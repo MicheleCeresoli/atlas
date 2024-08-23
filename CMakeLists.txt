@@ -10,7 +10,6 @@ set ( SOURCE_DIR src )
 
 set ( HEADER_FILES 
     ${HEADER_DIR}/camera.h
-    ${HEADER_DIR}/color.h
     ${HEADER_DIR}/dcm.h
     ${HEADER_DIR}/pixel.h
     ${HEADER_DIR}/pool.h
@@ -24,7 +23,6 @@ set ( HEADER_FILES
 set ( SRC_FILES 
     ${SOURCE_DIR}/ex1.cpp
     ${SOURCE_DIR}/camera.cpp
-    ${SOURCE_DIR}/color.cpp
     ${SOURCE_DIR}/dcm.cpp
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp

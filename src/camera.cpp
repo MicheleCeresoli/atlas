@@ -1,6 +1,5 @@
 
 #include "camera.h"
-#include "color.h"
 
 #include <cmath>
 #include <iostream>
