@@ -4,8 +4,6 @@
 #include "ray.h"
 #include "pixel.h"
 
-#define RADIUS 1.0
-
 class World {
 
     public: 
