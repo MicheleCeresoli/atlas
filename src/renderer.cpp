@@ -24,7 +24,9 @@ void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels)
 }
 
 // This function renders a batch of pixels
-void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels) {
+void Renderer::renderTask(
+    const ThreadWorker& wk, Camera& cam, World& w, const std::vector<Pixel> &pixels
+) {
 
     // Create a vector storing the pixels to be rendered with the given memory
     std::vector<RenderedPixel> output;
@@ -55,7 +57,11 @@ void Renderer::renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixel
 
 void Renderer::dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &task)
 {
-    pool.addTask([this, &cam, &w, task] { renderTask(cam, w, task); } );
+    pool.addTask(
+        [this, &cam, &w, task] (const ThreadWorker& worker) { 
+            renderTask(worker, cam, w, task); 
+        } 
+    );
 }
 
 // This function generates all the tasks required to render an image.

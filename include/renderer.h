@@ -31,7 +31,9 @@ class Renderer {
         void saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels); 
  
         // This function renders a batch of pixels
-        void renderTask(Camera& cam, World& w, const std::vector<Pixel> &pixels);
+        void renderTask(
+            const ThreadWorker&, Camera& cam, World& w, const std::vector<Pixel> &pixels
+        );
 
         // Add a rendering task to the thread pool
         void dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &task);

@@ -1,6 +1,10 @@
 
 #include "pool.h" 
 
+ThreadWorker::ThreadWorker(int id) : _id(id) {}
+int ThreadWorker::id() const { return _id; }
+
+
 // Constructor. This does not start the pool, but only creates an instance of this 
 // class with an assigned number of workers. The `start` function is added to 
 // allow defining a set of jobs before actually starting them.
@@ -22,8 +26,14 @@ void ThreadPool::startPool() {
         stop = false;
     }
 
-    for (size_t k = 0; k < nThreads; k++)
-        workers.emplace_back(std::thread(&ThreadPool::workerLoop, this));
+    for (int k = 0; k < nThreads; k++)
+    {
+        // Create a new thread worker
+        ThreadWorker wk = ThreadWorker(k);
+        // Add the worker to the thread pool 
+        workers.emplace_back(std::thread(&ThreadPool::workerLoop, this, wk));
+    }
+        
 }
 
 // Stop the Pool. This will wait completion of all active tasks and then stop.
@@ -67,7 +77,7 @@ void ThreadPool::waitCompletion() {
 }
 
 // Enqueue a task to be executed by the thread pool
-void ThreadPool::addTask(std::function<void()> task) {
+void ThreadPool::addTask(std::function<void(const ThreadWorker&)> task) {
     {
         std::unique_lock<std::mutex> lock(queueMutex); 
         tasks.emplace(std::move(task)); 
@@ -77,12 +87,12 @@ void ThreadPool::addTask(std::function<void()> task) {
     task_cv.notify_one();
 } 
 
-void ThreadPool::workerLoop() {
+void ThreadPool::workerLoop(ThreadWorker wk) {
     // The while loop keeps iterating to keep the thread alive. Only when the 
     // thread-pool is effectively stopped and the task list is empty the function 
     // is closed.
     while (true) {
-        std::function<void()> task; 
+        std::function<void(const ThreadWorker&)> task; 
         {
             // Lock the queue to allow data to be shared safely
             std::unique_lock<std::mutex> lock(queueMutex); 
@@ -101,7 +111,7 @@ void ThreadPool::workerLoop() {
         }
 
         // Execute the task
-        task(); 
+        task(wk); 
 
         // Update the number of pending tasks
         if (--pendingTasks == 0) {

@@ -9,6 +9,19 @@
 #include <thread>
 #include <vector>
 
+class ThreadWorker {
+
+    public: 
+        ThreadWorker(int id); 
+
+        // Return the thread id
+        int id() const; 
+
+    private: 
+        int _id; 
+
+};
+
 
 class ThreadPool {
     public: 
@@ -38,7 +51,7 @@ class ThreadPool {
         void waitCompletion();
 
         // Enqueue a task to be executed by the thread pool
-        void addTask(std::function<void()> task);
+        void addTask(std::function<void(const ThreadWorker&)> task);
 
     private: 
 
@@ -48,7 +61,8 @@ class ThreadPool {
         // List of worker threads
         std::vector<std::thread> workers; 
         // Queue storing all the jobs that need to be performed. 
-        std::queue<std::function<void()>> tasks; 
+        std::queue<std::function<void(const ThreadWorker&)>> tasks; 
+
         // Mutex to synchronize access to all the shared data.
         std::mutex queueMutex; 
         // Condition variable to notify workers
@@ -67,7 +81,7 @@ class ThreadPool {
         // starting to process them.
         bool started = false;
 
-        void workerLoop();
+        void workerLoop(ThreadWorker wk);
 };
 
 #endif
