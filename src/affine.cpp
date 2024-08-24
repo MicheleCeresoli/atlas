@@ -9,7 +9,7 @@ Affine::Affine(double e0, double e1, double e2, double e3, double e4,
     double e5) : e{e0, e1, e2, e3, e4, e5} {}
 
 // Be carefull, this constructor does not check whether enough memory was allocated in p! 
-Affine::Affine(double *p) : Affine(p[0], p[1], p[2], p[3], p[4], p[5]) {}
+Affine::Affine(double *p) : Affine(p[1], p[2], p[0], p[4], p[5], p[3]) {}
 
 // Operation Overloads 
 
@@ -57,8 +57,8 @@ Affine Affine::scale(double s1, double s2) {
 
 // Stream 
 std::ostream& operator<<(std::ostream& out, const Affine& a) {
-    return out << a[0] << ' ' << a[1] << ' ' << a[2] << std::endl 
-               << a[3] << ' ' << a[4] << ' ' << a[5];
+    return out << "Affine(" << a[0] << ", " << a[1] << ", " << a[2] << std::endl 
+               << "       " << a[3] << ", " << a[4] << ", " << a[5] << ")";
 }
 
 // Matrix / Vector utilities
