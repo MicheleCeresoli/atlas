@@ -1,6 +1,6 @@
 
 #include "pool.h" 
-#include <iostream>
+
 ThreadWorker::ThreadWorker(int id) : _id(id) {}
 int ThreadWorker::id() const { return _id; }
 
@@ -109,8 +109,6 @@ void ThreadPool::workerLoop(ThreadWorker wk) {
             tasks.pop(); 
 
         }
-
-        std::cout << "In worker loop: " <<  wk.id() << std::endl; 
 
         // Execute the task
         task(wk); 
