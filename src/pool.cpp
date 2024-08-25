@@ -1,6 +1,6 @@
 
 #include "pool.h" 
-
+#include <iostream>
 ThreadWorker::ThreadWorker(int id) : _id(id) {}
 int ThreadWorker::id() const { return _id; }
 
@@ -8,7 +8,7 @@ int ThreadWorker::id() const { return _id; }
 // Constructor. This does not start the pool, but only creates an instance of this 
 // class with an assigned number of workers. The `start` function is added to 
 // allow defining a set of jobs before actually starting them.
-ThreadPool::ThreadPool(size_t nThreads) : nThreads(nThreads) {}
+ThreadPool::ThreadPool(int nThreads) : _nThreads(nThreads) {}
 
 // Destructor to stop the thread pool
 ThreadPool::~ThreadPool() { stopPool(); }
@@ -26,7 +26,7 @@ void ThreadPool::startPool() {
         stop = false;
     }
 
-    for (int k = 0; k < nThreads; k++)
+    for (int k = 0; k < _nThreads; k++)
     {
         // Create a new thread worker
         ThreadWorker wk = ThreadWorker(k);
@@ -110,6 +110,8 @@ void ThreadPool::workerLoop(ThreadWorker wk) {
 
         }
 
+        std::cout << "In worker loop: " <<  wk.id() << std::endl; 
+
         // Execute the task
         task(wk); 
 
@@ -121,3 +123,4 @@ void ThreadPool::workerLoop(ThreadWorker wk) {
     }
 }
 
+int ThreadPool::nThreads() const { return _nThreads; }

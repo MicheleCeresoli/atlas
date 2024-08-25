@@ -29,10 +29,13 @@ class ThreadPool {
         // Constructor. This does not start the pool, but only creates an instance of this 
         // class with an assigned number of workers. The `start` function is added to 
         // allow defining a set of jobs before actually starting them.
-        ThreadPool(size_t nThreads);
+        ThreadPool(int nThreads);
 
         // Destructor to stop the thread pool
         ~ThreadPool();
+
+        // Retrieve the number of threads in the pool.
+        int nThreads() const; 
 
         // Start the Pool by creating all the working threads
         void startPool();
@@ -46,7 +49,6 @@ class ThreadPool {
         // Check whether all the jobs have been completed
         bool isBusy(); 
 
-
         // Wait until all the tasks are completed
         void waitCompletion();
 
@@ -56,7 +58,7 @@ class ThreadPool {
     private: 
 
         // Number of workers available to the pool
-        size_t nThreads;
+        int _nThreads;
 
         // List of worker threads
         std::vector<std::thread> workers; 
