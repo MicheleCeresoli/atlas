@@ -11,6 +11,8 @@
 
 #include "pool.h"
 #include "pixel.h"
+#include "dataset.h"
+#include "crsutils.h"
 
 #include "gdal_priv.h"
 
@@ -20,6 +22,7 @@
 #include <iomanip>
 #include <vector>
 #include <chrono>
+#include <thread>
 
 #define CAM_FOV (40) 
 
@@ -65,6 +68,11 @@ void test_size(double *x) {
     std::cout << sizeof(&x) / sizeof(x[0]) << std::endl;
 }
 
+void tryReferenceDC(DatasetContainer& dc) {
+    point2 pj = dc.pix2sph(point2(0.0, 0.0), 0); 
+    std::cout << pj << std::endl;
+}
+
 
 int main(int argc, const char* argv[])
 {
@@ -95,10 +103,59 @@ int main(int argc, const char* argv[])
     // a*=inverse(a);
     // std::cout << a << std::endl;
 
-    // const char* pszFilename = "../CE2_GRAS_DEM_50m_B001_77N158W_A.tif";
+    const char* pszFilename = "../CE2_GRAS_DEM_50m_B001_77N158W_A.tif";
     // double adfGeoTransform[6];
 
-    // GDALAllRegister(); 
+    GDALAllRegister();
+
+    ThreadPool pool = ThreadPool(4); 
+    DatasetContainer dc = DatasetContainer(pszFilename, pool.nThreads()); 
+
+    std::cout << pool.nThreads() << std::endl; 
+
+    std::cout << dc.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+    std::cout << dc.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+    std::cout << dc.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+
+    DatasetContainer dc2 = dc; 
+    std::cout << dc2.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+    std::cout << dc2.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+    std::cout << dc2.pix2sph(point2(0.0, 0.0), 0) << std::endl;
+    std::cout << "\n -------- Outside thread-pool everything works fine...\n\n"; 
+
+
+    for (int j = 0; j < 5; j++)
+        tryReferenceDC(dc); 
+
+    std::cout << "\n -------- With simple reference it works...\n\n";
+
+    // // Enqueue tasks for execution 
+    for (int j = 0; j < 50; j++)
+    {
+        pool.addTask([j, &dc] (const ThreadWorker& wk) {
+
+            std::cout << "In task: " << 0 << " with threads: " << wk.id() << std::endl; 
+            std::cout << dc.width() << std::endl;
+
+            point2 pj = dc.pix2sph(point2(0.0, 0.0), wk.id()); 
+            std::cout << pj << std::endl;
+        });
+    }
+
+    pool.startPool(); 
+    pool.stopPool();
+
+    // std::cout << dc.getFilename() << std::endl; 
+    // std::cout << dc.getAffine() << std::endl; 
+    // std::cout << dc.getInvAffine() << std::endl; 
+    // std::cout << dc.height() << "x" << dc.width() << "x" << dc.rasterCount() << std::endl; 
+    // std::cout << dc.top() << std::endl; 
+    // std::cout << dc.bottom() << std::endl; 
+    // std::cout << dc.right() << std::endl; 
+    // std::cout << dc.left() << std::endl; 
+
+    // std::cout << "\n\n ---------------------------------------------- \n"; 
+
     // const GDALAccess eAccess = GA_ReadOnly; 
 
     // GDALDataset *poDataset = (GDALDataset *) GDALOpen(pszFilename, eAccess); 
@@ -109,6 +166,7 @@ int main(int argc, const char* argv[])
     // else
     // {
     //     std::cout << "Dataset successfully opened." << std::endl; 
+    //     std::cout << "Dataset desc: " << poDataset->GetDescription() << std::endl; 
     //     std::cout << "Format: " << poDataset->GetDriver()->GetDescription() << std::endl; 
         
     //     // Retrieve General Raster Properties
@@ -320,26 +378,74 @@ int main(int argc, const char* argv[])
 
     // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
     
-    // // To get the value of duration use the count()
-    // // member function on the duration object
-    // std::clog << "The rendering took: " << duration.count() << " ms" << std::endl;
+    // // // To get the value of duration use the count()
+    // // // member function on the duration object
+    // // std::clog << "The rendering took: " << duration.count() << " ms" << std::endl;
 
-    // ThreadPool pool(4); 
+    // GDALAllRegister(); 
+    // // ThreadPool pool(7); 
+
+    // DatasetContainer dc = DatasetContainer(pszFilename);
+
+    // OGRSpatialReference* crs = dc.crs()->Clone(); 
+    // OGRSpatialReference nCRS = *crs; 
+
+    // char *pszWKT = NULL; 
+    // nCRS.exportToWkt(&pszWKT); 
+    // std::cout << "CRS: " << pszWKT << std::endl; 
+    // CPLFree(pszWKT); 
+
+    // nCRS.SetGeogCS( 
+    //     "GCS_Moon_2000",
+    //     "BELLA", 
+    //     "CIAO", 
+    //     1737400.0, 0.0, 
+    //     "Reference Meridian", 0.0, 
+    //     SRS_UA_DEGREE, atof(SRS_UA_DEGREE_CONV)
+    // );
+
+    // nCRS.exportToWkt(&pszWKT); 
+    // std::cout << "CRS: " << pszWKT << std::endl; 
+    // CPLFree(pszWKT); 
+
+    // crs->exportToWkt(&pszWKT); 
+    // std::cout << "CRS: " << pszWKT << std::endl; 
+    // CPLFree(pszWKT); 
 
     // // Enqueue tasks for execution 
-    // for (int j = 0; j < 7; j++)
+    // for (int j = 0; j < 1000; j++)
     // {
-    //     pool.addTask([j]() {
-    //         std::cout << "Task " << j << " is running on thread " 
-    //              << std::this_thread::get_id() << std::endl;
+    //     pool.addTask([j, &dc]() {
 
-    //         // Simulate some work 
-    //         std::this_thread::sleep_for(std::chrono::milliseconds(100));  
+    //         std::cout << "Task " << j << ": " << dc.pix2sph(point2(j % 2, 0.0)) << std::endl;
+
+    //         // std::cout << "Task " << j << " is running on thread " 
+    //         //      << std::this_thread::get_id() << std::endl;
+
+    //         // // Simulate some work 
+    //         // std::this_thread::sleep_for(std::chrono::milliseconds(100));  
     //     });
     // }
 
     // std::cout << "Starting Jobs Queue" << std::endl; 
     // pool.startPool(); 
+
+
+    // // Render the image
+    // auto t1 = std::chrono::high_resolution_clock::now();
+    
+    // std::thread::id id;
+    // int n = 100000; 
+    // for (int j = 0; j < n; j++)
+    //     id = std::this_thread::get_id();
+    
+    // auto t2 = std::chrono::high_resolution_clock::now();
+
+    // // // Write the pixels to a PPM image file
+    // // toImage(cam, pixels); 
+
+    // auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1);
+    // std::clog << "The function took: " << ((double)duration.count())/n << " ns" << std::endl;
 
 
     return 0;

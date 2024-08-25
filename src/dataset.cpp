@@ -4,13 +4,13 @@
 
 #include <stdexcept>
 #include <errno.h>
-#include <thread>
+#include <iostream>
 
 /* -------------------------------------------------------
                         RASTER BAND
 ---------------------------------------------------------- */
 
-RasterBand::RasterBand(GDALDataset* pd, int i) {
+RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
 
     if (i > pd->GetRasterCount()) {
         std::range_error("the dataset does not contain the desired raster band.");
@@ -53,11 +53,6 @@ RasterBand::RasterBand(GDALDataset* pd, int i) {
 
 }
 
-RasterBand::~RasterBand() {
-    if (loaded) {
-        CPLFree(data);
-    }
-}
 
 double RasterBand::min() const { return _vMin; }
 double RasterBand::max() const { return _vMax; }
@@ -70,24 +65,23 @@ double RasterBand::noDataVal() const { return _noDataVal; }
 void RasterBand::loadData() {
 
     nLoadedElements = _width*_height;
-    data = (float *) CPLMalloc(sizeof(float)*nLoadedElements); 
+    data = std::make_shared<float>(nLoadedElements);
 
     CPLErr err = pBand->RasterIO(
-        GF_Read, 0, 0, _width, _height, data, _width, _height, GDT_Float32, 0, 0
+        GF_Read, 0, 0, _width, _height, data.get(), _width, _height, GDT_Float32, 0, 0
     );
 
     if (err != CE_None) {
         std::runtime_error("failed to retrieve raster band data");
     } 
 
-    loaded = true;
     return; 
 }
 
 double RasterBand::getData(int i) const {
 
     if (i < nLoadedElements) {
-        return _scale*(double)data[i] + _offset;
+        return _scale*(double)data.get()[i] + _offset;
     } else {
         std::range_error("raster band data does not have enough elements");
         return _noDataVal;
@@ -103,16 +97,20 @@ double RasterBand::getData(int u, int v) const {
                     DATASET CONTAINER 
 ---------------------------------------------------------- */
 
-DatasetContainer::DatasetContainer(const char *filename, int nThreads) : filename(filename) {
+DatasetContainer::DatasetContainer(std::string filename, int nThreads) : 
+    filename(filename), _nThreads(nThreads)
+{
 
-    pDataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly); 
+    pDataset = std::shared_ptr<GDALDataset>(
+        (GDALDataset *) GDALOpen(filename.c_str(), GA_ReadOnly), GDALClose
+    );
 
     // Check whether it is a valid Dataset pointer
     if (pDataset == NULL) {
         std::runtime_error("failed to open the dataset");
     }
 
-
+    // Retrieve dataset parameters. 
     _width  = pDataset->GetRasterXSize(); 
     _height = pDataset->GetRasterYSize(); 
     _rasterCount  = pDataset->GetRasterCount(); 
@@ -120,7 +118,7 @@ DatasetContainer::DatasetContainer(const char *filename, int nThreads) : filenam
     // Retrieve all raster bands
     bands.reserve(_rasterCount); 
     for (int k = 0; k < _rasterCount; k++) {
-        bands[k] = RasterBand(pDataset, k+1);
+        bands.push_back(RasterBand(pDataset, k+1));
     }
 
     // Retrieve the Affine transformation of the projection
@@ -149,7 +147,7 @@ DatasetContainer::DatasetContainer(const char *filename, int nThreads) : filenam
     m2sT.reserve(nThreads);
     
     // Retrieve the map spatial reference system 
-    const OGRSpatialReference *mCRS = pDataset->GetSpatialRef(); 
+    const OGRSpatialReference mCRS = *pDataset->GetSpatialRef(); 
 
     // Generate a Moon's spherical reference system (with longitude first)
     OGRSpatialReference sCRS = MoonGeographicCRS();
@@ -157,26 +155,28 @@ DatasetContainer::DatasetContainer(const char *filename, int nThreads) : filenam
     // Compute the transformation between a geographic and projected map and its inverse.
     for (int k = 0; k < nThreads; k++) 
     {
-        s2mT[k] = OGRCreateCoordinateTransformation(sCRS.Clone(), mCRS->Clone()); 
-        m2sT[k] = OGRCreateCoordinateTransformation(mCRS->Clone(), sCRS.Clone());
+        s2mT.push_back(
+            std::shared_ptr<OGRCoordinateTransformation>(
+                OGRCreateCoordinateTransformation(&sCRS, &mCRS)
+            )
+        ); 
+
+        m2sT.push_back(
+            std::shared_ptr<OGRCoordinateTransformation>(
+                OGRCreateCoordinateTransformation(&mCRS, &sCRS)
+            )
+        );
     }
 
 }
 
-DatasetContainer::DatasetContainer(std::string filename, int nThreads) : 
-    DatasetContainer(filename.c_str(), nThreads) {}
-
-
-DatasetContainer::~DatasetContainer() {
-    // Close the GDAL dataset
-    GDALClose(pDataset); 
-}
-
-const char* DatasetContainer::getFilename() const { return filename; }
+std::string DatasetContainer::getFilename() const { return filename; }
 
 int DatasetContainer::width() const { return _width; }
 int DatasetContainer::height() const { return _height; }
 int DatasetContainer::rasterCount() const { return _rasterCount; }
+
+int DatasetContainer::nThreads() const { return _nThreads; }
 
 double DatasetContainer::top() const { return _top; }
 double DatasetContainer::bottom() const { return _bottom; }
@@ -206,22 +206,25 @@ point2 DatasetContainer::map2pix(const point2& m) const {
 }
 
 point2 DatasetContainer::sph2map(const point2& s, int threadid) const {
-    point2 m = point2(s.x(), s.y()); 
 
-    if (!s2mT[threadid]->Transform(1, &m.e[0], &m.e[1])) {
-       std::clog << "Transformation failed." << std::endl;
-    }
+    int flags[1]; 
+    point2 m(s.x(), s.y()); 
+
+    if(!s2mT[threadid]->Transform(1, &m.e[0], &m.e[1], nullptr, flags))
+        std::clog << "Transformation failed." << std::endl; 
     
     return m;
 }
 
 point2 DatasetContainer::map2sph(const point2& m, int threadid) const {
-    point2 s = point2(m.x(), m.y()); 
+
+    int flags[1]; 
+    point2 s(m.x(), m.y()); 
+
+    if(!m2sT[threadid]->Transform(1, &s.e[0], &s.e[1], nullptr, flags))
+        std::clog << "Transformation failed." << std::endl; 
     
-    if (!m2sT[threadid]->Transform(1, &s.e[0], &s.e[1])) {
-       std::clog << "Transformation failed." << std::endl;
-    }
-    return s; 
+    return s;
 
 }
 

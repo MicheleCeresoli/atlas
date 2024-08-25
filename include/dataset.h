@@ -1,12 +1,10 @@
-#ifndef DATASETCONTAINER_H 
-#define DATASETCONTAINER_H 
+#ifndef DatasetContainer_H 
+#define DatasetContainer_H 
 
 #include "affine.h"
-#include "pool.h"
-#include "vec2.h"
-
 #include "gdal_priv.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -18,8 +16,7 @@ class RasterBand {
 
     public: 
 
-        RasterBand(GDALDataset* pd, int i);
-        ~RasterBand();
+        RasterBand(std::shared_ptr<GDALDataset> pd, int i);
 
         // Retrieve the minimum raster value; 
         double min() const; 
@@ -40,6 +37,7 @@ class RasterBand {
     private: 
 
         GDALRasterBand* pBand;
+        std::shared_ptr<float> data;
 
         int _xBlock, _yBlock;      
         int _width, _height; 
@@ -49,9 +47,7 @@ class RasterBand {
 
         double _noDataVal;
 
-        float* data; 
         int nLoadedElements = 0; 
-        bool loaded = false;
 };
 
 
@@ -66,45 +62,44 @@ class DatasetContainer {
     public: 
 
         DatasetContainer(std::string filename, int nThreads = 1);
-        DatasetContainer(const char* filename, int nThreads = 1);
 
-        ~DatasetContainer(); // Destructor
-
-        const char* getFilename() const; 
+        std::string getFilename() const; 
 
         int width() const; 
         int height() const; 
         int rasterCount() const; 
+
+        int nThreads() const; 
 
         double top() const; 
         double bottom() const; 
         double left() const; 
         double right() const; 
 
-        const RasterBand* getRasterBand(int i) const;
-
         Affine getAffine() const; 
         Affine getInvAffine() const; 
+
+        const RasterBand* getRasterBand(int i) const;
 
         // Transformation Functions
 
         point2 map2pix(const point2& m) const;
         point2 pix2map(const point2& p) const;
 
-        point2 sph2map(const point2& s) const;
+        point2 sph2map(const point2& s, int threadid = 0) const;
+        point2 map2sph(const point2& m, int threadid = 0) const; 
 
-        point2 sph2map(const point2& s, int threadid = 1) const;
-        point2 map2sph(const point2& m, int threadid = 1) const; 
+        point2 sph2pix(const point2& s, int threadid = 0) const;
+        point2 pix2sph(const point2& p, int threadid = 0) const; 
 
-        point2 sph2pix(const point2& s, int threadid = 1) const;
-        point2 pix2sph(const point2& p, int threadid = 1) const; 
-
-        const OGRSpatialReference* crs() const; 
+        const OGRSpatialReference* crs() const;
 
     private: 
 
-        const char* filename; 
-        GDALDataset* pDataset;
+        std::string filename;
+        std::shared_ptr<GDALDataset> pDataset;
+
+        int _nThreads; // Number of assigned threads
 
         int _width;  // Raster width
         int _height; // Raster height
@@ -119,10 +114,11 @@ class DatasetContainer {
         // A vector is used to store coordinate transformation objects so that each 
         // thread can safely access its own object.
 
-        // Transformation between a geographic (long\lat) and the projected system
-        std::vector<OGRCoordinateTransformation*> s2mT;
+        // // Transformation between a geographic (long\lat) and the projected system
+        std::vector<std::shared_ptr<OGRCoordinateTransformation>> s2mT;
+
         // Inverse transformation (from projected to geographic) 
-        std::vector<OGRCoordinateTransformation*> m2sT; 
+        std::vector<std::shared_ptr<OGRCoordinateTransformation>> m2sT; 
 
         // Store raster bands 
         std::vector<RasterBand> bands;
