@@ -138,6 +138,7 @@ void Renderer::displayRenderStatus(const Camera& cam) {
 
     int nPixels = cam.width*cam.height; 
     int nTasks = pool.nPendingTasks(); 
+    int nThreads = pool.nThreads(); 
 
     int pTasks = nTasks; 
     while (nTasks > 0)
@@ -145,8 +146,8 @@ void Renderer::displayRenderStatus(const Camera& cam) {
         nTasks = pool.nPendingTasks(); 
 
         // Update the rendering status only when some tasks are completed.
-        if (nTasks != pTasks) {
-            pTasks = nTasks; 
+        if ((pTasks - nTasks) >= nThreads) {
+            pTasks = nTasks;
 
             progress = int(100*(1 - (double)nTasks*batch_size/nPixels));
             std::clog << "\r[" <<  std::setw(3) << progress 
