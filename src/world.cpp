@@ -28,7 +28,7 @@ PixelData World::trace_ray(Ray ray, int threadid)
     double tvals[2]; 
     ray.get_parameter(tvals, maxRadius); 
 
-    double tk = tvals[0]; 
+    double tk = tvals[0] < 0.0 ? 0.0 : tvals[0]; 
     double hk;
 
     point3 pos, sph; 
