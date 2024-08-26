@@ -27,7 +27,7 @@ void Camera::set_pos(const point3& pos) {
 }
 
 // Return the pixel ID number
-int Camera::pixel_id(const Pixel& p) {
+int Camera::pixel_id(const Pixel& p) const {
     return p.u + width*p.v; 
 }
 

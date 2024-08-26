@@ -26,7 +26,7 @@ class Camera {
         void set_dcm(const dcm& orientation);
         void set_pos(const point3& pos);
 
-        int pixel_id(const Pixel& p);
+        int pixel_id(const Pixel& p) const;
 
         Ray get_ray(int u, int v) const;
 
