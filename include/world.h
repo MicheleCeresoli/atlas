@@ -1,20 +1,23 @@
 #ifndef WORLD_H 
 #define WORLD_H 
 
-#include "raster.h"
+#include "dem.h"
 #include "ray.h"
 #include "pixel.h"
+
 
 class World {
 
     public: 
 
-        World(RasterFile &dc);
-        PixelData trace_ray(Ray r, int threaid);
-
-        RasterFile dc; 
+        World(DEM &dem);
+        PixelData trace_ray(Ray r, int threaid); 
 
     private: 
+        DEM dem;
+
+        double maxRadius; 
+        double meanRadius;
 
 };
 

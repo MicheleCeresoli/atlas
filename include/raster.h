@@ -86,6 +86,8 @@ class RasterFile {
         void getLongitudeBounds(double* bounds) const; 
         void getLatitudeBounds(double* bounds) const;
 
+        bool isWithinGeographicBounds(double lon, double lat) const; 
+
         // Raster Bands Interfaces 
         
         void loadBand(int i);

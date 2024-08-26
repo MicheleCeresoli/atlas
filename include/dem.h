@@ -1,3 +1,5 @@
+#ifndef DEM_H 
+#define DEM_H 
 
 #include "raster.h"
 #include "vec3.h"
@@ -20,7 +22,7 @@ class DEM {
         double getMinAltitude() const; 
         double getMaxAltitude() const; 
 
-        double getAltitude(point3 pos) const; 
+        double getAltitude(double lon, double lat, int threadid = 0) const; 
 
     private: 
 
@@ -30,3 +32,5 @@ class DEM {
         double _meanRadius; 
 
 };
+
+#endif 

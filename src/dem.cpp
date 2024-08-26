@@ -65,6 +65,19 @@ RasterFile DEM::getRasterFile(int i) const {
     return rasters[i];
 }
 
-double DEM::getAltitude(point3 pos) const {
-    return _meanRadius;
+double DEM::getAltitude(double lon, double lat, int threadid) const {
+
+    point2 s(lon, lat); 
+    point2 pix;  
+
+    for (auto raster : rasters) 
+    {
+        if (raster.isWithinGeographicBounds(lon, lat)) {
+            pix = raster.sph2pix(s, threadid);
+            return raster.getBandData(pix[0], pix[1], 0);
+        }
+
+    }
+
+    return -inf;
 }

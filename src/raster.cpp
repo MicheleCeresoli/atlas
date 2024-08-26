@@ -186,6 +186,13 @@ void RasterFile::getLatitudeBounds(double* bounds) const {
     bounds[1] = lat_bounds[1];
 }
 
+bool RasterFile::isWithinGeographicBounds(double lon, double lat) const {
+
+    return ((lon_bounds[0] <= lon && lon <= lon_bounds[1]) && 
+            (lat_bounds[0] <= lat && lat <= lat_bounds[1]));
+
+}
+
 
 // Raster Bands Interfaces 
 
