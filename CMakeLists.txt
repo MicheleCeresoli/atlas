@@ -21,6 +21,7 @@ set ( HEADER_FILES
     ${HEADER_DIR}/crsutils.h
     ${HEADER_DIR}/raster.h
     ${HEADER_DIR}/dcm.h
+    ${HEADER_DIR}/dem.h
     ${HEADER_DIR}/pixel.h
     ${HEADER_DIR}/pool.h
     ${HEADER_DIR}/ray.h
@@ -37,6 +38,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/crsutils.cpp
     ${SOURCE_DIR}/raster.cpp
     ${SOURCE_DIR}/dcm.cpp
+    ${SOURCE_DIR}/dem.cpp
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp
     ${SOURCE_DIR}/renderer.cpp
