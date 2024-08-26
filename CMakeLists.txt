@@ -19,7 +19,7 @@ set ( HEADER_FILES
     ${HEADER_DIR}/affine.h
     ${HEADER_DIR}/camera.h
     ${HEADER_DIR}/crsutils.h
-    ${HEADER_DIR}/dataset.h
+    ${HEADER_DIR}/raster.h
     ${HEADER_DIR}/dcm.h
     ${HEADER_DIR}/pixel.h
     ${HEADER_DIR}/pool.h
@@ -35,7 +35,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/affine.cpp
     ${SOURCE_DIR}/camera.cpp
     ${SOURCE_DIR}/crsutils.cpp
-    ${SOURCE_DIR}/dataset.cpp
+    ${SOURCE_DIR}/raster.cpp
     ${SOURCE_DIR}/dcm.cpp
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp

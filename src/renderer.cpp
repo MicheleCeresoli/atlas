@@ -43,7 +43,7 @@ void Renderer::renderTask(
         Ray ray = cam.get_ray(pix.u, pix.v); 
 
         // Compute pixel data
-        rPix.d = w.trace_ray(ray); 
+        rPix.d = w.trace_ray(ray, wk.id()); 
 
         // Add the pixel to the list of computed pixels
         output.push_back(rPix); 

@@ -1,6 +1,7 @@
 #ifndef WORLD_H 
 #define WORLD_H 
 
+#include "raster.h"
 #include "ray.h"
 #include "pixel.h"
 
@@ -8,8 +9,12 @@ class World {
 
     public: 
 
-        World();
-        PixelData trace_ray(Ray r);
+        World(RasterFile &dc);
+        PixelData trace_ray(Ray r, int threaid);
+
+        RasterFile dc; 
+
+    private: 
 
 };
 

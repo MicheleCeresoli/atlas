@@ -1,10 +1,12 @@
 
-#include "dataset.h"
+#include "raster.h"
 #include "crsutils.h"
+#include "utils.h"
 
-#include <stdexcept>
 #include <errno.h>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 
 /* -------------------------------------------------------
                         RASTER BAND
@@ -65,8 +67,13 @@ double RasterBand::noDataVal() const { return _noDataVal; }
 void RasterBand::loadData() {
 
     nLoadedElements = _width*_height;
-    data = std::make_shared<float>(nLoadedElements);
 
+    // Create a shared pointer
+    data = std::shared_ptr<float>(
+        new float[nLoadedElements], std::default_delete<float[]>()
+    );
+
+    // Load the data into the
     CPLErr err = pBand->RasterIO(
         GF_Read, 0, 0, _width, _height, data.get(), _width, _height, GDT_Float32, 0, 0
     );
@@ -97,7 +104,7 @@ double RasterBand::getData(int u, int v) const {
                     DATASET CONTAINER 
 ---------------------------------------------------------- */
 
-DatasetContainer::DatasetContainer(std::string filename, int nThreads) : 
+RasterFile::RasterFile(const std::string& filename, int nThreads) : 
     filename(filename), _nThreads(nThreads)
 {
 
@@ -142,10 +149,117 @@ DatasetContainer::DatasetContainer(std::string filename, int nThreads) :
     _right  = p[0];
     _bottom = p[1];
 
-    // Reserve enough space for all our threads
-    s2mT.reserve(nThreads); 
-    m2sT.reserve(nThreads);
+    // Update the raster's reference system projection
+    updateReferenceSystem();
+
+    // Setup the map projection to geographic transformations.
+    setupTransformations(); 
+
+}
+
+
+std::string RasterFile::getFilename() const { return filename; }
+
+int RasterFile::width() const { return _width; }
+int RasterFile::height() const { return _height; }
+int RasterFile::rasterCount() const { return _rasterCount; }
+
+int RasterFile::nThreads() const { return _nThreads; }
+
+double RasterFile::top() const { return _top; }
+double RasterFile::bottom() const { return _bottom; }
+double RasterFile::left() const { return _left; }
+double RasterFile::right() const { return _right; }
+
+void RasterFile::loadBand(int i) {
+    bands[i].loadData();
+}
+
+void RasterFile::loadBands() {
+    for (int k = 0; k < _rasterCount; k++) {
+        loadBand(k); 
+    }
+}
+
+double RasterFile::getBandData(int u, int v, int bandid) const {
+    return bands[bandid].getData(u, v);  
+}
+
+
+Affine RasterFile::getAffine() const { return transform; }
+Affine RasterFile::getInvAffine() const { return iTransform; }
+
+const RasterBand* RasterFile::getRasterBand(int i) const {
+    return &(bands[i]);
+}
+
+const OGRSpatialReference* RasterFile::crs() const {
+    return pDataset->GetSpatialRef(); 
+}
+
+
+// Conversion Functions
+
+point2 RasterFile::pix2map(const point2& p) const {
+    return transform*p;
+}
+
+point2 RasterFile::map2pix(const point2& m) const {
+    return iTransform*m;
+}
+
+point2 RasterFile::sph2map(const point2& s, int threadid) const {
+
+    int flags[1]; 
+    point2 m(s.x(), s.y()); 
+
+    if(!s2mT[threadid]->Transform(1, &m.e[0], &m.e[1], nullptr, flags))
+        std::clog << "Transformation failed." << std::endl; 
     
+    return m;
+}
+
+point2 RasterFile::map2sph(const point2& m, int threadid) const {
+
+    int flags[1]; 
+    point2 s(m.x(), m.y()); 
+
+    if(!m2sT[threadid]->Transform(1, &s.e[0], &s.e[1], nullptr, flags))
+        std::clog << "Transformation failed." << std::endl; 
+    
+    return s;
+
+}
+
+point2 RasterFile::sph2pix(const point2& s, int threadid) const {
+    return map2pix(sph2map(s, threadid)); 
+}
+
+point2 RasterFile::pix2sph(const point2& p, int threadid) const {
+    return map2sph(pix2map(p), threadid);
+}
+
+
+// Private functions 
+
+void RasterFile::updateReferenceSystem() {
+
+    // Read the map projection information from the associated .PRJ file
+    std::string projFile = filename.substr(0, filename.size() - 3) + "prj";
+    std::string wkt = readFileContent(projFile);  
+    
+    // Update the dataset reference system
+    OGRSpatialReference mCRS(wkt.c_str());
+    pDataset->SetSpatialRef(&mCRS);
+
+}
+
+void RasterFile::setupTransformations() {
+
+    // Reserve enough space for all our threads
+    s2mT.reserve(_nThreads); 
+    m2sT.reserve(_nThreads);
+
     // Retrieve the map spatial reference system 
     const OGRSpatialReference mCRS = *pDataset->GetSpatialRef(); 
 
@@ -153,7 +267,7 @@ DatasetContainer::DatasetContainer(std::string filename, int nThreads) :
     OGRSpatialReference sCRS = MoonGeographicCRS();
 
     // Compute the transformation between a geographic and projected map and its inverse.
-    for (int k = 0; k < nThreads; k++) 
+    for (int k = 0; k < _nThreads; k++) 
     {
         s2mT.push_back(
             std::shared_ptr<OGRCoordinateTransformation>(
@@ -168,70 +282,4 @@ DatasetContainer::DatasetContainer(std::string filename, int nThreads) :
         );
     }
 
-}
-
-std::string DatasetContainer::getFilename() const { return filename; }
-
-int DatasetContainer::width() const { return _width; }
-int DatasetContainer::height() const { return _height; }
-int DatasetContainer::rasterCount() const { return _rasterCount; }
-
-int DatasetContainer::nThreads() const { return _nThreads; }
-
-double DatasetContainer::top() const { return _top; }
-double DatasetContainer::bottom() const { return _bottom; }
-double DatasetContainer::left() const { return _left; }
-double DatasetContainer::right() const { return _right; }
-
-Affine DatasetContainer::getAffine() const { return transform; }
-Affine DatasetContainer::getInvAffine() const { return iTransform; }
-
-const RasterBand* DatasetContainer::getRasterBand(int i) const {
-    return &(bands[i]);
-}
-
-const OGRSpatialReference* DatasetContainer::crs() const {
-    return pDataset->GetSpatialRef(); 
-}
-
-
-// Conversion Functions
-
-point2 DatasetContainer::pix2map(const point2& p) const {
-    return transform*p;
-}
-
-point2 DatasetContainer::map2pix(const point2& m) const {
-    return iTransform*m;
-}
-
-point2 DatasetContainer::sph2map(const point2& s, int threadid) const {
-
-    int flags[1]; 
-    point2 m(s.x(), s.y()); 
-
-    if(!s2mT[threadid]->Transform(1, &m.e[0], &m.e[1], nullptr, flags))
-        std::clog << "Transformation failed." << std::endl; 
-    
-    return m;
-}
-
-point2 DatasetContainer::map2sph(const point2& m, int threadid) const {
-
-    int flags[1]; 
-    point2 s(m.x(), m.y()); 
-
-    if(!m2sT[threadid]->Transform(1, &s.e[0], &s.e[1], nullptr, flags))
-        std::clog << "Transformation failed." << std::endl; 
-    
-    return s;
-
-}
-
-point2 DatasetContainer::sph2pix(const point2& s, int threadid) const {
-    return map2pix(sph2map(s, threadid)); 
-}
-
-point2 DatasetContainer::pix2sph(const point2& p, int threadid) const {
-    return map2sph(pix2map(p), threadid);
 }

@@ -1,5 +1,5 @@
-#ifndef DatasetContainer_H 
-#define DatasetContainer_H 
+#ifndef RasterFile_H 
+#define RasterFile_H 
 
 #include "affine.h"
 #include "gdal_priv.h"
@@ -36,6 +36,8 @@ class RasterBand {
 
     private: 
 
+        // We can't make this a shared_ptr because when the band is destroyed
+        // it interferes with the original GDALDataset that container it, i guess..
         GDALRasterBand* pBand;
         std::shared_ptr<float> data;
 
@@ -53,15 +55,15 @@ class RasterBand {
 
 
 /* -------------------------------------------------------
-                    DATASET CONTAINER 
+                    RASTER CONTAINER 
 ---------------------------------------------------------- */
 
 
-class DatasetContainer {
+class RasterFile {
 
     public: 
 
-        DatasetContainer(std::string filename, int nThreads = 1);
+        RasterFile(const std::string& filename, int nThreads = 1);
 
         std::string getFilename() const; 
 
@@ -78,6 +80,13 @@ class DatasetContainer {
 
         Affine getAffine() const; 
         Affine getInvAffine() const; 
+
+        // Raster Bands Interfaces 
+        
+        void loadBand(int i);
+        void loadBands(); 
+
+        double getBandData(int u, int v, int bandid = 0) const; 
 
         const RasterBand* getRasterBand(int i) const;
 
@@ -122,6 +131,10 @@ class DatasetContainer {
 
         // Store raster bands 
         std::vector<RasterBand> bands;
+
+        void updateReferenceSystem(); 
+
+        void setupTransformations(); 
 
 };
 
