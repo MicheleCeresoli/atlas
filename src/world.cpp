@@ -7,8 +7,7 @@ World::World(RasterFile &dc) : dc(dc) {}
 PixelData World::trace_ray(Ray ray, int threadid) 
 {
 
-    const double MAX_RADIUS = 1740e3; 
-    // const double MIN_RADIUS = 1736e3; 
+    const double MAX_RADIUS = 1741e3; 
     const double RADIUS = 1737400;
 
     const double dt = 20; 
