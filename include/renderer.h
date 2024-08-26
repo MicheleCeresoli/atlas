@@ -14,7 +14,7 @@ class Renderer {
     public: 
 
         Renderer(size_t nThreads, size_t batch_size = 64); 
-        std::vector<RenderedPixel> render(Camera& cam, World& w);
+        std::vector<RenderedPixel> render(Camera& cam, World& w, bool displayInfo=true);
 
     private: 
 
@@ -42,11 +42,14 @@ class Renderer {
         void generateRenderTasks(Camera& cam, World& w);
 
         // Update the storing of the rendered pixels
-        void setupRenderOutput(Camera& cam); 
+        void setupRenderOutput(const Camera& cam); 
 
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.
-        void processRenderOutput(Camera& cam); 
+        void processRenderOutput(const Camera& cam); 
+
+        // Display the real-time rendering status on the terminal.
+        void displayRenderStatus(const Camera& cam); 
 
 
 };

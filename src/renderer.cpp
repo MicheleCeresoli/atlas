@@ -2,6 +2,7 @@
 #include "renderer.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <mutex>
 
@@ -104,7 +105,7 @@ void Renderer::generateRenderTasks(Camera& cam, World& w) {
 
 // This function post-processes the outputs of all tasks to generated an 
 // orderered list of pixels.
-void Renderer::processRenderOutput(Camera& cam)
+void Renderer::processRenderOutput(const Camera& cam)
 {
     // Sort the rendered pixel vector to have increasing pixel IDs; 
     std::sort(renderedPixels.begin(), renderedPixels.end(), 
@@ -114,7 +115,7 @@ void Renderer::processRenderOutput(Camera& cam)
 
 }
 
-void Renderer::setupRenderOutput(Camera& cam) {
+void Renderer::setupRenderOutput(const Camera& cam) {
 
     // Clear the previous output
     renderedPixels.clear();
@@ -125,9 +126,47 @@ void Renderer::setupRenderOutput(Camera& cam) {
 
 }
 
+#include <iomanip>
+
+void Renderer::displayRenderStatus(const Camera& cam) {
+
+    // Store current time
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    // Display rendering status
+    int progress;
+
+    int nPixels = cam.width*cam.height; 
+    int nTasks = pool.nPendingTasks(); 
+
+    int pTasks = nTasks; 
+    while (nTasks > 0)
+    {
+        nTasks = pool.nPendingTasks(); 
+
+        // Update the rendering status only when some tasks are completed.
+        if (nTasks != pTasks) {
+            pTasks = nTasks; 
+
+            progress = int(100*(1 - (double)nTasks*batch_size/nPixels));
+            std::clog << "\r[" <<  std::setw(3) << progress 
+                      << "%] \033[32mRay-tracing image\033[0m " << std::flush;
+        }
+        
+    }
+
+    // Retrieve time to compute rendering duration
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+    
+    std::clog << std::endl << "[100%] Ray-tracing completed in " 
+              << duration.count() << " seconds." << std::endl; 
+
+}
+
 
 // This is the high-level function called by the user
-std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
+std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayInfo) {
 
     // Start the Thread pool, if not started already.
     pool.startPool(); 
@@ -138,7 +177,12 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
     // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
     generateRenderTasks(cam, w); 
 
-    // Wait until all the render tasks are completed.
+    // Display the rendering status
+    if (displayInfo) {
+        displayRenderStatus(cam); 
+    }
+    
+    // Wait for the completion of all jobs
     pool.waitCompletion();
 
     // At this point we need to re-order all the rendered pixels.
