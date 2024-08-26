@@ -37,6 +37,9 @@ class ThreadPool {
         // Retrieve the number of threads in the pool.
         int nThreads() const; 
 
+        // Return the number of remaining tasks
+        int nPendingTasks() const; 
+
         // Start the Pool by creating all the working threads
         void startPool();
     

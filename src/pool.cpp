@@ -122,3 +122,5 @@ void ThreadPool::workerLoop(ThreadWorker wk) {
 }
 
 int ThreadPool::nThreads() const { return _nThreads; }
+
+int ThreadPool::nPendingTasks() const { return pendingTasks.load(); }
