@@ -45,7 +45,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/vec2.cpp
     ${SOURCE_DIR}/vec3.cpp
     
-    ${SOURCE_DIR}/ex1.cpp
+    ${SOURCE_DIR}/main.cpp
 )
 
 
