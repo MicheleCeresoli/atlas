@@ -5,7 +5,6 @@
 #include "dcm.h"
 #include "pixel.h"
 #include "ray.h"
-#include "world.h"
 
 class Camera {
     
