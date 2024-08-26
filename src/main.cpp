@@ -20,6 +20,7 @@
 #define CAM_FOV (40) 
 
 void writePixel(std::ostream& out, double x) {
+
     // Translate the [0,1] component values to the byte range [0,255]
     int rbyte = int(255.999*x);
     int gbyte = int(255.999*x);
@@ -40,27 +41,41 @@ void writeImage(const Camera& cam, const std::vector<double>& data)
 
 void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 {
-    // First, we retrieve the minimum and maximum values of the data 
-    auto minmax = std::minmax_element(
-        pixels.begin(), pixels.end(),
-        [](const RenderedPixel& p1, const RenderedPixel& p2) {
-            return p1.d.s[0] < p2.d.s[0]; 
-        }
-    );
+    /* First, we retrieve the minimum and maximum values of the data. We do it 
+       manually because we have to exclude pixels that have invalid data. */    
 
-    std::clog << "The min height is: " << (*minmax.first).d.s[0] << std::endl; 
-    std::clog << "The max height is: " << (*minmax.second).d.s[0] << std::endl; 
+    double min = inf, max = -inf; 
+    double r;
 
-    double min = minmax.first->d.s[0]; 
-    double max = minmax.second->d.s[0]; 
+    for (size_t j = 0; j < pixels.size(); j++) {
+        r = pixels[j].d.s[0]; 
+
+        if (r > max) {
+            max = r; 
+        } else if ((r < min) && (r != 0.0)) {
+            min = r;
+        } 
+
+    }
+
+    std::clog << "The min height is: " << min << std::endl; 
+    std::clog << "The max height is: " << max << std::endl; 
 
     std::vector<double> imgData; 
     imgData.reserve(pixels.size());
 
     double t; 
     for (auto p : pixels) {
-        t = (p.d.s[0] - min)/(max - min);  
+        
+        if (p.d.t == inf) { 
+            t = 0.0;
+        }
+        else {
+            t = (p.d.s[0] - min)/(max - min);
+        }
+
         imgData.push_back(t); 
+
     }
 
     writeImage(cam, imgData); 
@@ -70,27 +85,39 @@ void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 {
 
-    // First, we retrieve the minimum and maximum values of the data 
-    auto minmax = std::minmax_element(
-        pixels.begin(), pixels.end(),
-        [](const RenderedPixel& p1, const RenderedPixel& p2) {
-            return p1.d.t < p2.d.t; 
-        }
-    );
+    /* First, we retrieve the minimum and maximum values of the data. We do it 
+       manually because we have to exclude pixels that have invalid data. */    
 
-    std::clog << "The minimum altitude is: " << (*minmax.first).d.t << std::endl; 
-    std::clog << "The maximum altitude is: " << (*minmax.second).d.t << std::endl; 
+    double min = inf, max = -inf; 
+    double t;
 
-    double min = minmax.first->d.t; 
-    double max = minmax.second->d.t; 
+    for (size_t j = 0; j < pixels.size(); j++) {
+        t = pixels[j].d.t; 
+
+        if ((t > max) && (t != inf)) {
+            max = t; 
+        } else if (t < min) {
+            min = t;
+        } 
+
+    }
+
+    std::clog << "The min distance is: " << min << std::endl; 
+    std::clog << "The max distance is: " << max << std::endl; 
 
     std::vector<double> imgData; 
     imgData.reserve(pixels.size());
 
-    double t; 
     for (auto p : pixels) {
-        t = (p.d.t - min)/(max - min);  
+        if (p.d.t == inf) {
+            t = 0.0;
+        }
+        else {
+            t = (p.d.t - min)/(max - min);  
+        }
+
         imgData.push_back(t); 
+
     }
 
     writeImage(cam, imgData); 
@@ -185,7 +212,8 @@ int main(int argc, const char* argv[])
 
     // double h = 1.1*1738e3/std::sin(cam_fov/2);
 
-    double h = 40e3 + 1737400;
+    // double h = 40e3 + 1737400;
+    double h = 1000e3 + 1737400;
     double lon = deg2rad(-165);
     double lat = deg2rad(62);
 
@@ -206,10 +234,22 @@ int main(int argc, const char* argv[])
 
     int nThreads = 7;   
 
-    std::string filename = "../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif";
-    // filename = "../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif"; 
+    std::vector<std::string> demFiles;
 
-    DEM dem(filename, nThreads); 
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D001_49N168W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D002_49N144W_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D015_49N168E_A.tif");
+
+    // std::string filename = "../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif";
+    // // filename = "../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif"; 
+
+    DEM dem(demFiles, nThreads); 
 
     World w(dem); 
 

@@ -4,8 +4,10 @@
 
 World::World(DEM &dem) : dem(dem) {
 
-    // Initialise mean and maximum radius
+    // Initialise mean and minimum/maximum radius values
     meanRadius = dem.getMeanRadius(); 
+
+    minRadius = dem.getMinAltitude() + meanRadius;
     maxRadius = dem.getMaxAltitude() + meanRadius; 
 }
 
@@ -45,11 +47,18 @@ PixelData World::trace_ray(Ray ray, int threadid)
         // Retrieve altitude from DEM 
         hk = dem.getAltitude(rad2deg(sph[1]), rad2deg(sph[2]), threadid); 
 
-        if (pos.norm() <= (hk + meanRadius)) {
+        if (sph[0] <= (hk + meanRadius)) {
             hit = true;
             data.t = tk;  
             data.s = car2sph(pos); 
         } 
+        else if (sph[0] < minRadius) {
+
+            /* This means that the ray has crossed the Moon in an area 
+               which does not have a loaded DEM available. Thus proceeding 
+               with any other computation does not make any sense. */
+            break;
+        }
 
         tk += dt;
 

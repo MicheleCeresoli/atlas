@@ -37,18 +37,33 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
     // Currently uses an APPROXIMATE computation
     int bMin, bMax; 
 
-    double bMinMax[2];
+    double minMax[2];
 
-    bMinMax[0] = pBand->GetMinimum(&bMin); 
-    bMinMax[1] = pBand->GetMaximum(&bMax); 
+    minMax[0] = pBand->GetMinimum(&bMin); 
+    minMax[1] = pBand->GetMaximum(&bMax); 
 
     // If the information was not available compute it
     if (!(bMin && bMax)) {
-        GDALComputeRasterMinMax((GDALRasterBandH)pBand, TRUE, bMinMax);
+        pBand->ComputeRasterMinMax(FALSE, minMax);
     }
 
-    _vMin = bMinMax[0]; 
-    _vMax = bMinMax[1];
+    /* Now, since these datasets were made by fucking idiots the returned NoDataValue 
+       does not match the one that is actually used. Thus we re-set it to the minimum 
+       value found (which for CE'2 DEM is -99999) and then recompute the min\max values. 
+
+       The idea is the following, the lowest altitude on the Moon with respect to its 
+       reference radius is about 10km (Antoniadi crater). To be safe we assume that if 
+       the actual altitude is smaller than -50000, the minimum value is not valid */
+
+    if (minMax[0] < -50000) {
+        // Update the NoDataValue
+        pBand->SetNoDataValue(minMax[0]); 
+        // Recompute settings 
+        pBand->ComputeRasterMinMax(FALSE, minMax); 
+    }
+
+    _vMin = minMax[0]; 
+    _vMax = minMax[1];
 
     // Retrieve the value indicating no data
     _noDataVal = pBand->GetNoDataValue(); 
@@ -122,12 +137,6 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
     _height = pDataset->GetRasterYSize(); 
     _rasterCount  = pDataset->GetRasterCount(); 
 
-    // Retrieve all raster bands
-    bands.reserve(_rasterCount); 
-    for (int k = 0; k < _rasterCount; k++) {
-        bands.push_back(RasterBand(pDataset, k+1));
-    }
-
     // Retrieve the Affine transformation of the projection
     double adf[6]; 
 
@@ -157,6 +166,12 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
 
     // Compute the raster longitude and latitude bounds
     computeRasterBounds(); 
+
+    // Retrieve all raster bands
+    bands.reserve(_rasterCount); 
+    for (int k = 0; k < _rasterCount; k++) {
+        bands.push_back(RasterBand(pDataset, k+1));
+    }
 
 }
 

@@ -16,6 +16,7 @@ class World {
     private: 
         DEM dem;
 
+        double minRadius;
         double maxRadius; 
         double meanRadius;
 
