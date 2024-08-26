@@ -55,7 +55,7 @@ class RasterBand {
 
 
 /* -------------------------------------------------------
-                    RASTER CONTAINER 
+                    RASTER FILE 
 ---------------------------------------------------------- */
 
 
@@ -80,6 +80,11 @@ class RasterFile {
 
         Affine getAffine() const; 
         Affine getInvAffine() const; 
+
+        // Raster limits 
+
+        void getLongitudeBounds(double* bounds) const; 
+        void getLatitudeBounds(double* bounds) const;
 
         // Raster Bands Interfaces 
         
@@ -117,6 +122,9 @@ class RasterFile {
         double _top, _bottom; 
         double _left, _right; 
 
+        double lon_bounds[2];  // Raster longitude bounds
+        double lat_bounds[2];  // Raster latitude bounds
+
         Affine transform;  // Affine dataset transformation.
         Affine iTransform; // Inverse affine transformation.
 
@@ -136,6 +144,9 @@ class RasterFile {
 
         void setupTransformations(); 
 
+        void computeRasterBounds(); 
+
 };
+
 
 #endif

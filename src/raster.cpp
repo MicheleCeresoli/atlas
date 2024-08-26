@@ -3,7 +3,7 @@
 #include "crsutils.h"
 #include "utils.h"
 
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -155,6 +155,9 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
     // Setup the map projection to geographic transformations.
     setupTransformations(); 
 
+    // Compute the raster longitude and latitude bounds
+    computeRasterBounds(); 
+
 }
 
 
@@ -170,6 +173,21 @@ double RasterFile::top() const { return _top; }
 double RasterFile::bottom() const { return _bottom; }
 double RasterFile::left() const { return _left; }
 double RasterFile::right() const { return _right; }
+
+// Raster limits 
+
+void RasterFile::getLongitudeBounds(double* bounds) const {
+    bounds[0] = lon_bounds[0]; 
+    bounds[1] = lon_bounds[1];
+}
+
+void RasterFile::getLatitudeBounds(double* bounds) const {
+    bounds[0] = lat_bounds[0]; 
+    bounds[1] = lat_bounds[1];
+}
+
+
+// Raster Bands Interfaces 
 
 void RasterFile::loadBand(int i) {
     bands[i].loadData();
@@ -198,7 +216,7 @@ const OGRSpatialReference* RasterFile::crs() const {
 }
 
 
-// Conversion Functions
+// Transformation Functions
 
 point2 RasterFile::pix2map(const point2& p) const {
     return transform*p;
@@ -281,5 +299,67 @@ void RasterFile::setupTransformations() {
             )
         );
     }
+
+}
+
+
+void RasterFile::computeRasterBounds() {
+
+    // This routine is super specific for Chang'e DEM files! 
+    std::size_t len = filename.size(); 
+
+    int lat_id = filename[len - 18UL];
+    double dlon = 360.0; 
+
+    if (lat_id == 65) {
+        lat_bounds[0] = 84.0; 
+        lat_bounds[1] = 90.0;
+    } 
+    else if (lat_id == 78) {
+        lat_bounds[0] = -90; 
+        lat_bounds[1] = -84;
+    } 
+    else {
+        
+        double dlat = (lat_id - 66)*14; 
+        lat_bounds[0] = 70 - dlat;
+        lat_bounds[1] = 84.0 - dlat;
+
+        // Compute the longitude span of that tile 
+        switch (lat_id) {
+
+            case 66:
+            case 77: 
+                dlon = 45.0;
+                break; 
+
+            case 67: 
+            case 76: 
+                dlon = 30.0;
+                break; 
+
+            case 68: 
+            case 75:
+                dlon = 24;
+                break; 
+
+            case 69: 
+            case 74: 
+                dlon = 20.0;
+                break;
+            
+            default: 
+                dlon  = 18.0;
+                break;
+
+        }
+        
+    }
+
+    int lon_id = (int)atof(filename.substr(len - 17UL, 3).c_str()); 
+ 
+    lon_bounds[1] = lon_id*dlon - 180.0;
+    lon_bounds[0] = lon_bounds[1] - dlon;
+
 
 }
