@@ -38,3 +38,27 @@ point3 sph2car(const point3& sph) {
     return point3(clon*rclat, slon*rclat, rslat);
 
 }
+
+
+std::string readFileContent(const std::string& filename) {
+    
+    // Open the file
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
+
+    if (!file) {
+        std::runtime_error("failed to open the file");
+    }
+    
+    // Seek to the end of the file to get its size
+    file.seekg(0, std::ios::end);
+    std::size_t fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Create a string of the appropriate size
+    std::string content(fileSize, '\0');
+
+    // Read the entire file into the string
+    file.read(&content[0], fileSize);
+
+    return content; 
+}

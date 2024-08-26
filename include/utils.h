@@ -3,6 +3,9 @@
 #define UTILS_H 
 
 #include <limits>
+#include <fstream>
+#include <string>
+
 #include "vec2.h"
 #include "vec3.h"
 
@@ -21,5 +24,7 @@ vec2 deg2rad(const vec2& v);
 
 point3 car2sph(const point3& pos); 
 point3 sph2car(const point3& sph); 
+
+std::string readFileContent(const std::string& filename); 
 
 #endif 
