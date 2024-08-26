@@ -19,8 +19,6 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
     _maxAltitude = -inf;
 
     double hMin, hMax; 
-    
-    // TODO: computation of min altitude requires fixing! 
 
     // Load up all the rasters
     rasters.reserve(files.size()); 
