@@ -61,10 +61,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif() 
 
 # Executables 
-add_executable(ex1 ${SRC_FILES} ${HEADER_FILES})
+add_executable(arcadia ${SRC_FILES} ${HEADER_FILES})
 
-target_link_libraries(ex1 PRIVATE GDAL::GDAL)
+target_link_libraries(arcadia PRIVATE GDAL::GDAL)
 
 # Include header files
-target_include_directories(ex1 PRIVATE ${HEADER_DIR})
-target_include_directories(ex1 PRIVATE ${GDAL_INCLUDE_DIR})
+target_include_directories(arcadia PRIVATE ${HEADER_DIR})
+target_include_directories(arcadia PRIVATE ${GDAL_INCLUDE_DIR})
