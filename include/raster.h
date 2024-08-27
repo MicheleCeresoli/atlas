@@ -4,6 +4,7 @@
 #include "affine.h"
 #include "gdal_priv.h"
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -64,9 +65,10 @@ class RasterFile {
 
     public: 
 
-        RasterFile(const std::string& filename, int nThreads = 1);
+        RasterFile(const std::string& file, int nThreads = 1);
 
-        std::string getFilename() const; 
+        std::string getFileName() const; 
+        std::filesystem::path getFilePath() const; 
 
         int width() const; 
         int height() const; 
@@ -115,8 +117,10 @@ class RasterFile {
 
     private: 
 
-        std::string filename;
+        std::filesystem::path filepath;
         std::shared_ptr<GDALDataset> pDataset;
+
+        std::string filename; 
 
         int _nThreads; // Number of assigned threads
 

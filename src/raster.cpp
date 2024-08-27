@@ -119,12 +119,16 @@ double RasterBand::getData(int u, int v) const {
                     DATASET CONTAINER 
 ---------------------------------------------------------- */
 
-RasterFile::RasterFile(const std::string& filename, int nThreads) : 
-    filename(filename), _nThreads(nThreads)
+RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThreads)
 {
+    // Generate filepath object
+    filepath = std::filesystem::path(file); 
+
+    // Retrieve filename 
+    filename = filepath.filename().string(); 
 
     pDataset = std::shared_ptr<GDALDataset>(
-        (GDALDataset *) GDALOpen(filename.c_str(), GA_ReadOnly), GDALClose
+        (GDALDataset *) GDALOpen(file.c_str(), GA_ReadOnly), GDALClose
     );
 
     // Check whether it is a valid Dataset pointer
@@ -159,7 +163,7 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
     _bottom = p[1];
 
     // Retrieve the raster highest resolution from the Affine transform 
-    _resolution = MIN(fabs(transform[0]), fabs(transform[4]));
+    _resolution = MAX(fabs(transform[0]), fabs(transform[4]));
 
     // Update the raster's reference system projection
     updateReferenceSystem();
@@ -179,7 +183,8 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
 }
 
 
-std::string RasterFile::getFilename() const { return filename; }
+std::string RasterFile::getFileName() const { return filename; }
+std::filesystem::path RasterFile::getFilePath() const { return filepath; }
 
 int RasterFile::width() const { return _width; }
 int RasterFile::height() const { return _height; }
@@ -192,9 +197,9 @@ double RasterFile::bottom() const { return _bottom; }
 double RasterFile::left() const { return _left; }
 double RasterFile::right() const { return _right; }
 
-/* Return the raster highest resolution. In this case highest means the one which 
- * expresses the greater accuracy. For example, if it had 20m on the x-axis and 50m on the 
- * y-axis, the 20m resolution would be returned. */
+/* Return the raster lowest resolution. In this case lowest means the one which 
+ * expresses the lowest accuracy. For example, if it had 20m on the x-axis and 50m on the 
+ * y-axis, the 50m resolution would be returned. */
 double RasterFile::resolution() const { return _resolution; }
 
 // Raster limits 
@@ -290,10 +295,10 @@ point2 RasterFile::pix2sph(const point2& p, int threadid) const {
 
 // Private functions 
 
-void RasterFile::updateReferenceSystem() {
+void RasterFile::updateReferenceSystem() { 
 
     // Read the map projection information from the associated .PRJ file
-    std::string projFile = filename.substr(0, filename.size() - 3) + "prj";
+    std::string projFile = filepath.string().substr(0, filepath.string().size() - 3) + "prj";
     std::string wkt = readFileContent(projFile);  
     
     // Update the dataset reference system
