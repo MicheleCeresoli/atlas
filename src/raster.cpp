@@ -210,11 +210,11 @@ void RasterFile::getLatitudeBounds(double* bounds) const {
     bounds[1] = lat_bounds[1];
 }
 
-bool RasterFile::isWithinGeographicBounds(double lon, double lat) const {
+bool RasterFile::isWithinGeographicBounds(const point2& p) const {
 
-    return ((lon_bounds[0] <= lon && lon <= lon_bounds[1]) && 
-            (lat_bounds[0] <= lat && lat <= lat_bounds[1]));
-
+    return ((lon_bounds[0] <= p[0] && p[0] <= lon_bounds[1]) && 
+            (lat_bounds[0] <= p[1] && p[1] <= lat_bounds[1]));
+            
 }
 
 

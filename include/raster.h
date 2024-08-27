@@ -3,6 +3,7 @@
 
 #include "affine.h"
 #include "gdal_priv.h"
+#include "vec2.h"
 
 #include <filesystem>
 #include <memory>
@@ -91,7 +92,7 @@ class RasterFile {
         void getLongitudeBounds(double* bounds) const; 
         void getLatitudeBounds(double* bounds) const;
 
-        bool isWithinGeographicBounds(double lon, double lat) const; 
+        bool isWithinGeographicBounds(const point2& p) const; 
 
         // Raster Bands Interfaces 
         

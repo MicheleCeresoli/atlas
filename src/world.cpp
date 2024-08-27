@@ -38,6 +38,7 @@ PixelData World::trace_ray(Ray ray, int threadid)
     double hk;
 
     point3 pos, sph; 
+    point2 s2; 
 
     bool hit = false;
     while (!hit && tk <= tvals[1]) {
@@ -48,8 +49,11 @@ PixelData World::trace_ray(Ray ray, int threadid)
         // Convert to spherical coordinates and retrieve longitude and latitude
         sph = car2sph(pos);
 
+        // Convert geographic coordinates to degrees
+        s2 = rad2deg(point2(sph[1], sph[2])); 
+
         // Retrieve altitude from DEM 
-        hk = dem.getAltitude(rad2deg(sph[1]), rad2deg(sph[2]), subsample, threadid); 
+        hk = dem.getAltitude(s2, subsample, threadid); 
 
         if (sph[0] <= (hk + meanRadius)) {
              /* By putting t at halfway between the two values, we halve the maximum 

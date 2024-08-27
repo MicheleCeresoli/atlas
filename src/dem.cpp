@@ -95,14 +95,13 @@ RasterFile DEM::getRasterFile(int i) const {
     return rasters[i];
 }
 
-double DEM::getAltitude(double lon, double lat, bool subsample, int threadid) const {
+double DEM::getAltitude(const point2& s, bool subsample, int threadid) const {
 
-    point2 s(lon, lat); 
     point2 pix;  
 
     for (size_t k = 0; k < rasters.size(); k++) {
             
-        if (rasters[k].isWithinGeographicBounds(lon, lat)) {
+        if (rasters[k].isWithinGeographicBounds(s)) {
             pix = rasters[k].sph2pix(s, threadid); 
 
             if (!subsample) {
@@ -118,7 +117,7 @@ double DEM::getAltitude(double lon, double lat, bool subsample, int threadid) co
 
 }
 
-double DEM::subsampleRaster(point2 pix, int rid, int tid) const {
+double DEM::subsampleRaster(const point2& pix, int rid, int tid) const {
 
     int u = (int)pix[0], v = (int)pix[1]; 
 
