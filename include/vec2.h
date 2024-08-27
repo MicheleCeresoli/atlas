@@ -30,7 +30,10 @@ class vec2 {
 
 std::ostream& operator<<(std::ostream& out, const vec2& v);
 
+vec2 operator+(const vec2& u, double t); 
 vec2 operator+(const vec2& u, const vec2& v);
+
+vec2 operator-(const vec2& u, double t); 
 vec2 operator-(const vec2& u, const vec2& v);
 
 vec2 operator*(const vec2& u, const vec2& v);

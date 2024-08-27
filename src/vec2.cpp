@@ -50,8 +50,16 @@ std::ostream& operator<<(std::ostream& out, const vec2& v){
     return out << v[0] << ' ' << v[1]; 
 }
 
+vec2 operator+(const vec2& u, double t) {
+    return vec2(u[0] + t, u[1] + t);
+}
+
 vec2 operator+(const vec2& u, const vec2& v){
     return vec2(u[0] + v[0], u[1] + v[1]);
+}
+
+vec2 operator-(const vec2& u, double t) {
+    return vec2(u[0] - t, u[1] - t);
 }
 
 vec2 operator-(const vec2& u, const vec2& v){
