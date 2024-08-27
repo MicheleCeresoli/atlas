@@ -34,7 +34,7 @@ PixelData World::trace_ray(Ray ray, int threadid)
     double tvals[2]; 
     ray.get_parameter(tvals, maxRadius); 
 
-    double tk = tvals[0] < 0.0 ? 0.0 : tvals[0]; 
+    double tk = MAX(0.0, tvals[0]); 
     double hk;
 
     point3 pos, sph; 
@@ -49,7 +49,7 @@ PixelData World::trace_ray(Ray ray, int threadid)
         sph = car2sph(pos);
 
         // Retrieve altitude from DEM 
-        hk = dem.getAltitude(rad2deg(sph[1]), rad2deg(sph[2]), threadid); 
+        hk = dem.getAltitude(rad2deg(sph[1]), rad2deg(sph[2]), subsample, threadid); 
 
         if (sph[0] <= (hk + meanRadius)) {
              /* By putting t at halfway between the two values, we halve the maximum 
@@ -91,11 +91,13 @@ void World::computeRayResolution(const Camera& cam) {
 
         dt = MAX(gsd/4, resDem); 
         dt = MIN(dt, 100.0);
+        subsample = false;
 
     } else {
-        /* TODO: this should be changed because here the DEM should be sampling 
+        /* Here we the DEM altitude is computed using a weighted-average on the 4 
          * neighbouring pixels to artificially improve the resolution of the DEM. */
-        dt = resDem; 
+        dt = gsd/2; 
+        subsample = true;
     }
 
 }

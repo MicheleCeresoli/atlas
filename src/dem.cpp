@@ -95,7 +95,7 @@ RasterFile DEM::getRasterFile(int i) const {
     return rasters[i];
 }
 
-double DEM::getAltitude(double lon, double lat, int threadid) const {
+double DEM::getAltitude(double lon, double lat, bool subsample, int threadid) const {
 
     point2 s(lon, lat); 
     point2 pix;  
@@ -104,11 +104,73 @@ double DEM::getAltitude(double lon, double lat, int threadid) const {
             
         if (rasters[k].isWithinGeographicBounds(lon, lat)) {
             pix = rasters[k].sph2pix(s, threadid); 
-            return rasters[k].getBandData(pix[0], pix[1], 0); 
+
+            if (!subsample) {
+                return rasters[k].getBandData((int)pix[0], (int)pix[1], 0); 
+            } else {
+                return subsampleRaster(pix, k, threadid);
+            }
         }
 
     }
 
     return -inf; 
+
+}
+
+double DEM::subsampleRaster(point2 pix, int rid, int tid) const {
+
+    int u = (int)pix[0], v = (int)pix[1]; 
+
+    // These are the upper-left (dr) and bottom-right (dl) points
+    point2 dl(u, v); 
+    point2 dr = dl + 1;
+
+    dl = pix - dl; 
+    dr = dr - pix; 
+    
+    // Retrieve no data value
+    double noDataVal = rasters[rid].getBandNoDataValue(0); 
+
+    // Retrieve raster width and height 
+    double s = sqrt(2), sk; 
+    double h, n = 0.0, d = 0.0; 
+
+    bool hu = (u+1) < rasters[rid].width(); 
+    bool hv = (v+1) < rasters[rid].height(); 
+
+    for (size_t j = 0; j < 4; j++) {
+
+        switch (j) {
+            case 0:
+                sk = dl.norm();
+                h = rasters[rid].getBandData(u, v, 0); 
+                break;
+
+            case 1: 
+                sk = sqrt(dr[0]*dr[0] + dl[1]*dl[1]);
+                h = hu ? rasters[rid].getBandData(u+1, v, 0) : noDataVal; 
+                break;
+
+            case 2: 
+                sk = sqrt(dl[0]*dl[0] + dr[1]*dr[1]); 
+                h = hv ? rasters[rid].getBandData(u, v+1, 0) : noDataVal; 
+                break;
+
+            default: 
+                sk = dr.norm(); 
+                h = (hu && hv) ? rasters[rid].getBandData(u+1, v+1, 0) : noDataVal; 
+                break;
+        }
+
+        if (h != noDataVal) {
+            sk = 1 - sk/s; 
+            n += sk*h;
+            d += sk; 
+        } 
+
+    }
+
+    return n/d; 
 
 }

@@ -26,7 +26,8 @@ class World {
         double meanRadius;
         
         double dt;  
-        
+        bool subsample = false;
+
         double computeGSD(const Camera& cam) const; 
 
 };

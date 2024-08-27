@@ -23,8 +23,7 @@ class DEM {
 
         // Return the highest resolution across all the loaded files
         double getResolution() const;  
-
-        double getAltitude(double lon, double lat, int threadid = 0) const; 
+        double getAltitude(double lon, double lat, bool subsample, int threadid = 0) const; 
 
     private: 
 
@@ -34,6 +33,8 @@ class DEM {
         double _meanRadius; 
 
         double _resolution;
+
+        double subsampleRaster(point2 pix, int rid, int tid) const; 
 
 };
 
