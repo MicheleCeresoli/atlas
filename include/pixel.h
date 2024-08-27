@@ -2,12 +2,11 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
+#include "vec2.h"
 #include "vec3.h"
 
-struct Pixel {
-    int u; // Pixel Column (horizontal coordinate) 
-    int v; // Pixel Row (vertical coordinate)
-};
+
+using Pixel = point2; 
 
 struct PixelData {
     double t;       // Ray parameter at intersection 
@@ -18,5 +17,6 @@ struct RenderedPixel {
     Pixel p; 
     PixelData d;
 };
+
 
 #endif 

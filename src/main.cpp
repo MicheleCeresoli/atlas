@@ -151,22 +151,20 @@ int main(int argc, const char* argv[])
 
     // double h = 1.1*1738e3/std::sin(cam_fov/2);
 
-    // double h = 40e3 + 1737400;
-    double h = 1200e3 + 1737400;
+    double h = 100e3 + 1737400;
     double lon = deg2rad(-165);
     double lat = deg2rad(62);
 
     point3 cam_pos = sph2car(point3(h, lon, lat));
-    std::clog << std::fixed << std::setprecision(3) << std::endl;
+    // std::clog << std::fixed << std::setprecision(3) << std::endl;
 
     // // point3 cam_pos = point3(h, 0, 0); 
     // // dcm    cam_dcm = dcm(0, 0, -1, 0, 1, 0, 1, 0, 0);
     
-    dcm A_cam2lvlh = angle2dcm("Y", deg2rad(0)).transpose();
+    dcm A_cam2lvlh = angle2dcm("Y", deg2rad(70)).transpose();
     dcm A_lvlh2in  = pos2dcm(cam_pos);
     
     dcm A_cam2in = A_lvlh2in*A_cam2lvlh;
-    // dcm A_cam2in = A_lvlh2in;
 
     // std::clog << "Position: " << std::endl << cam_pos << "\n\n"; 
     // std::clog << "DCM: "  << std::endl << A_cam2in << std::endl; 
@@ -180,10 +178,10 @@ int main(int argc, const char* argv[])
 
     std::vector<std::string> demFiles;
 
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
@@ -204,8 +202,8 @@ int main(int argc, const char* argv[])
     std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
 
     // Write the pixels to a PPM image file
-    // makeImageLIDAR(cam, pixels); 
-    makeImageDEM(cam, pixels); 
+    makeImageLIDAR(cam, pixels); 
+    // makeImageDEM(cam, pixels); 
 
     std::clog << std::endl; 
     return 0;

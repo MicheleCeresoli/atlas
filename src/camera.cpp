@@ -28,10 +28,10 @@ void Camera::set_pos(const point3& pos) {
 
 // Return the pixel ID number
 int Camera::pixel_id(const Pixel& p) const {
-    return p.u + width*p.v; 
+    return p[0] + width*p[1]; 
 }
 
-Ray Camera::get_ray(int u, int v) const {
+Ray Camera::get_ray(double u, double v) const {
 
     // u is the pixel number along the horizontal coordinate
     // y is the pixel number along the vertical coordinate 

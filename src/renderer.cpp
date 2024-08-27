@@ -41,7 +41,7 @@ void Renderer::renderTask(
         rPix = {.p = pix}; 
         
         // Retrieve camera ray for this pixel
-        Ray ray = cam.get_ray(pix.u, pix.v); 
+        Ray ray = cam.get_ray(pix[0], pix[1]); 
 
         // Compute pixel data
         rPix.d = w.trace_ray(ray, wk.id()); 
@@ -88,7 +88,7 @@ void Renderer::generateRenderTasks(Camera& cam, World& w) {
             i = 0; 
         } 
 
-        pix = {.u = i, .v = j};
+        pix = Pixel(i, j); 
         task.push_back(pix);  
 
         if (task.size() >= batch_size)

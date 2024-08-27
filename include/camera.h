@@ -28,7 +28,7 @@ class Camera {
 
         int pixel_id(const Pixel& p) const;
 
-        Ray get_ray(int u, int v) const;
+        Ray get_ray(double u, double v) const;
 
 
     private: 
