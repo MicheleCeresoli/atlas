@@ -138,7 +138,6 @@ void Renderer::displayRenderStatus(const Camera& cam) {
 
     int nPixels = cam.width*cam.height; 
     int nTasks = pool.nPendingTasks(); 
-    int nThreads = pool.nThreads(); 
 
     int pTasks = nTasks; 
     while (nTasks > 0)
@@ -146,7 +145,7 @@ void Renderer::displayRenderStatus(const Camera& cam) {
         nTasks = pool.nPendingTasks(); 
 
         // Update the rendering status only when some tasks are completed.
-        if ((pTasks - nTasks) >= nThreads) {
+        if (pTasks != nTasks) {
             pTasks = nTasks;
 
             progress = int(100*(1 - (double)nTasks*batch_size/nPixels));
@@ -160,7 +159,7 @@ void Renderer::displayRenderStatus(const Camera& cam) {
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
     
-    std::clog << std::endl << "[100%] Ray-tracing completed in " 
+    std::clog << std::endl << "       Ray-tracing completed in " 
               << duration.count() << " seconds." << std::endl; 
 
 }
@@ -171,6 +170,9 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayI
 
     // Start the Thread pool, if not started already.
     pool.startPool(); 
+
+    // Compute the ray rendering resolution.
+    w.computeRayResolution(cam); 
 
     // Setup the render output variable.
     setupRenderOutput(cam); 
