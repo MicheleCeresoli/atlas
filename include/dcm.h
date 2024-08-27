@@ -2,7 +2,9 @@
 #define DCM_H
 
 #include "vec3.h"
+
 #include <iostream>
+#include <string>
 
 class dcm {
 
@@ -20,13 +22,23 @@ class dcm {
         double det() const;
         double trace() const;
 
+        dcm transpose() const; 
+
 };
 
 
 // Display Utilities 
 std::ostream& operator<<(std::ostream& out, const dcm& A);
 
-// Matrix - Vector Utilities 
+// Matrix Operations 
+dcm operator*(const dcm& A, const dcm&B); 
+
 vec3 operator*(const dcm& A, const vec3& v);
+
+// Conversion functions
+dcm angle2dcm(const std::string& ax, double x); 
+dcm angle2dcm(const std::string& rot_seq, double x, double y); 
+dcm angle2dcm(const std::string& rot_seq, double x, double y , double z); 
+
 
 #endif 
