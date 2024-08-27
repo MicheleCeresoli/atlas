@@ -17,8 +17,10 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
     // Initialise min\max altitude values
     _minAltitude = inf; 
     _maxAltitude = -inf;
+    // Initialise the resolution.
+    _resolution  = inf; 
 
-    double hMin, hMax; 
+    double hMin, hMax, res;
 
     // Load up all the rasters
     rasters.reserve(files.size()); 
@@ -40,6 +42,12 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
             _maxAltitude = hMax; 
         }
 
+        // Update the minimum DEM resolution
+        res = rasters.back().resolution();
+        if (res < _resolution) {
+            _resolution = res;
+        }
+
     }    
 
     // Retrieve the DEM mean radius. This assumes that the mean value is equal in 
@@ -58,6 +66,8 @@ int DEM::nRasters() const {
 double DEM::getMeanRadius() const { return _meanRadius; }
 double DEM::getMinAltitude() const { return _minAltitude; }
 double DEM::getMaxAltitude() const { return _maxAltitude; }
+
+double DEM::getResolution() const { return _resolution; }
 
 RasterFile DEM::getRasterFile(int i) const {
     return rasters[i];

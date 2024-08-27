@@ -48,12 +48,12 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
     }
 
     /* Now, since these datasets were made by fucking idiots the returned NoDataValue 
-       does not match the one that is actually used. Thus we re-set it to the minimum 
-       value found (which for CE'2 DEM is -99999) and then recompute the min\max values. 
-
-       The idea is the following, the lowest altitude on the Moon with respect to its 
-       reference radius is about 10km (Antoniadi crater). To be safe we assume that if 
-       the actual altitude is smaller than -50000, the minimum value is not valid */
+     * does not match the one that is actually used. Thus we re-set it to the minimum 
+     * value found (which for CE'2 DEM is -99999) and then recompute the min\max values. 
+     * 
+     * The idea is the following, the lowest altitude on the Moon with respect to its 
+     * reference radius is about 10km (Antoniadi crater). To be safe we assume that if 
+     * the actual altitude is smaller than -50000, the minimum value is not valid */
 
     if (minMax[0] < -50000) {
         // Update the NoDataValue
@@ -158,6 +158,9 @@ RasterFile::RasterFile(const std::string& filename, int nThreads) :
     _right  = p[0];
     _bottom = p[1];
 
+    // Retrieve the raster highest resolution from the Affine transform 
+    _resolution = MIN(fabs(transform[0]), fabs(transform[4]));
+
     // Update the raster's reference system projection
     updateReferenceSystem();
 
@@ -188,6 +191,11 @@ double RasterFile::top() const { return _top; }
 double RasterFile::bottom() const { return _bottom; }
 double RasterFile::left() const { return _left; }
 double RasterFile::right() const { return _right; }
+
+/* Return the raster highest resolution. In this case highest means the one which 
+ * expresses the greater accuracy. For example, if it had 20m on the x-axis and 50m on the 
+ * y-axis, the 20m resolution would be returned. */
+double RasterFile::resolution() const { return _resolution; }
 
 // Raster limits 
 

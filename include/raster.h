@@ -34,6 +34,7 @@ class RasterBand {
         double getData(int i) const;
         double getData(int u, int v) const;  
 
+
     private: 
 
         // We can't make this a shared_ptr because when the band is destroyed
@@ -70,6 +71,8 @@ class RasterFile {
         int width() const; 
         int height() const; 
         int rasterCount() const; 
+
+        double resolution() const; 
 
         int nThreads() const; 
 
@@ -123,6 +126,8 @@ class RasterFile {
 
         double _top, _bottom; 
         double _left, _right; 
+
+        double _resolution;     
 
         double lon_bounds[2];  // Raster longitude bounds
         double lat_bounds[2];  // Raster latitude bounds

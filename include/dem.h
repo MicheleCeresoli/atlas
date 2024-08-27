@@ -18,9 +18,11 @@ class DEM {
         RasterFile getRasterFile(int i) const; 
 
         double getMeanRadius() const; 
-
         double getMinAltitude() const; 
-        double getMaxAltitude() const; 
+        double getMaxAltitude() const;
+
+        // Return the highest resolution across all the loaded files
+        double getResolution() const;  
 
         double getAltitude(double lon, double lat, int threadid = 0) const; 
 
@@ -30,6 +32,8 @@ class DEM {
 
         double _minAltitude, _maxAltitude;
         double _meanRadius; 
+
+        double _resolution;
 
 };
 
