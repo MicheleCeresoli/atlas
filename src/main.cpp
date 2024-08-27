@@ -58,8 +58,8 @@ void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 
     }
 
-    std::clog << "The min height is: " << min << std::endl; 
-    std::clog << "The max height is: " << max << std::endl; 
+    // std::clog << "The min height is: " << min << std::endl; 
+    // std::clog << "The max height is: " << max << std::endl; 
 
     std::vector<double> imgData; 
     imgData.reserve(pixels.size());
@@ -213,29 +213,35 @@ int main(int argc, const char* argv[])
     // double h = 1.1*1738e3/std::sin(cam_fov/2);
 
     // double h = 40e3 + 1737400;
-    double h = 1000e3 + 1737400;
+    double h = 1200e3 + 1737400;
     double lon = deg2rad(-165);
     double lat = deg2rad(62);
 
     point3 cam_pos = sph2car(point3(h, lon, lat));
     std::clog << std::fixed << std::setprecision(3) << std::endl;
 
-    // point3 cam_pos = point3(h, 0, 0); 
-    // dcm    cam_dcm = dcm(0, 0, -1, 0, 1, 0, 1, 0, 0);
+    // // point3 cam_pos = point3(h, 0, 0); 
+    // // dcm    cam_dcm = dcm(0, 0, -1, 0, 1, 0, 1, 0, 0);
     
-    dcm cam_dcm = pos2dcm(cam_pos); 
-    std::clog << "Position: " << std::endl << cam_pos << "\n\n"; 
-    std::clog << "DCM: "  << std::endl << cam_dcm << std::endl; 
+    dcm A_cam2lvlh = angle2dcm("Y", deg2rad(0)).transpose();
+    dcm A_lvlh2in  = pos2dcm(cam_pos);
+    
+    dcm A_cam2in = A_lvlh2in*A_cam2lvlh;
+    // dcm A_cam2in = A_lvlh2in;
 
-    // Initialise the camera object
+    // std::clog << "Position: " << std::endl << cam_pos << "\n\n"; 
+    // std::clog << "DCM: "  << std::endl << A_cam2in << std::endl; 
+
+    // // Initialise the camera object
     Camera cam(cam_res, cam_fov);
-    cam.set_dcm(cam_dcm); 
+    cam.set_dcm(A_cam2in); 
     cam.set_pos(cam_pos); 
 
     int nThreads = 7;   
 
     std::vector<std::string> demFiles;
 
+    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
     demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
@@ -249,8 +255,7 @@ int main(int argc, const char* argv[])
     // std::string filename = "../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif";
     // // filename = "../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif"; 
 
-    DEM dem(demFiles, nThreads); 
-
+    DEM dem(demFiles, nThreads);
     World w(dem); 
 
     // Create the Renderer (1 thread, batch size 64)
@@ -262,7 +267,8 @@ int main(int argc, const char* argv[])
     // Write the pixels to a PPM image file
     // makeImageLIDAR(cam, pixels); 
     makeImageDEM(cam, pixels); 
-    
+
+    std::clog << std::endl; 
     return 0;
 }
 
@@ -311,5 +317,30 @@ int main(int argc, const char* argv[])
 
     RasterFile raster(filename, nThreads); 
     raster.loadBands(); 
+
+    // std::cout << angle2dcm("X", deg2rad(10)) << std::endl; 
+    // std::cout << angle2dcm("Y", deg2rad(10)) << std::endl; 
+    // std::cout << angle2dcm("Z", deg2rad(10)) << std::endl; 
+
+    // std::cout << angle2dcm("XY", deg2rad(10), deg2rad(70)) << std::endl; 
+    // std::cout << angle2dcm("XZ", deg2rad(10), deg2rad(70)) << std::endl; 
+    // std::cout << angle2dcm("YX", deg2rad(10), deg2rad(70)) << std::endl; 
+    // std::cout << angle2dcm("YZ", deg2rad(10), deg2rad(70)) << std::endl; 
+    // std::cout << angle2dcm("ZX", deg2rad(10), deg2rad(70)) << std::endl; 
+    // std::cout << angle2dcm("ZY", deg2rad(10), deg2rad(70)) << std::endl; 
+
+    // std::cout << angle2dcm("ZYX", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("XYX", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("XYZ", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("XZX", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("XZY", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("YXY", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("YXZ", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("YZX", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("YZY", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("ZXY", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("ZXZ", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+    // std::cout << angle2dcm("ZYZ", deg2rad(10), deg2rad(70), deg2rad(25)) << std::endl; 
+
 
 */
