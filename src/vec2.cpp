@@ -15,9 +15,6 @@ vec2 vec2::operator-() const {
     return vec2(-e[0], -e[1]); 
 }
 
-double vec2::operator[](int i) const { return e[i]; }
-double& vec2::operator[](int i) { return e[i]; }
-
 vec2& vec2::operator+=(const vec2& v) {
     e[0] += v[0]; 
     e[1] += v[1]; 

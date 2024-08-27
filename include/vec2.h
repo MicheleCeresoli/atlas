@@ -16,8 +16,9 @@ class vec2 {
         double y() const;
 
         vec2 operator-() const;
-        double operator[](int i) const;
-        double& operator[](int i);
+        
+        inline double operator[](int i) const { return e[i]; };
+        inline double& operator[](int i) { return e[i]; };
 
         vec2& operator+=(const vec2& v);
         vec2& operator*=(double t);

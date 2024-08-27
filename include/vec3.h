@@ -17,8 +17,9 @@ class vec3 {
         double z() const;
 
         vec3 operator-() const;
-        double operator[](int i) const;
-        double& operator[](int i);
+        
+        inline double operator[](int i) const { return e[i]; };
+        inline double& operator[](int i) { return e[i]; };
 
         vec3& operator+=(const vec3& v);
         vec3& operator*=(double t);
