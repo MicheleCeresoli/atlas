@@ -186,10 +186,6 @@ RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThrea
 std::string RasterFile::getFileName() const { return filename; }
 std::filesystem::path RasterFile::getFilePath() const { return filepath; }
 
-int RasterFile::width() const { return _width; }
-int RasterFile::height() const { return _height; }
-int RasterFile::rasterCount() const { return _rasterCount; }
-
 int RasterFile::nThreads() const { return _nThreads; }
 
 double RasterFile::top() const { return _top; }
@@ -232,6 +228,10 @@ void RasterFile::loadBands() {
     for (int k = 0; k < _rasterCount; k++) {
         loadBand(k); 
     }
+}
+
+double RasterFile::getBandNoDataValue(int bandid) const {
+    return bands[bandid].noDataVal(); 
 }
 
 double RasterFile::getBandData(int u, int v, int bandid) const {

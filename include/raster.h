@@ -70,9 +70,9 @@ class RasterFile {
         std::string getFileName() const; 
         std::filesystem::path getFilePath() const; 
 
-        int width() const; 
-        int height() const; 
-        int rasterCount() const; 
+        inline int width() const { return _width; }
+        inline int height() const { return _height; }
+        inline int rasterCount() const { return _rasterCount; }; 
 
         double resolution() const; 
 
@@ -98,6 +98,7 @@ class RasterFile {
         void loadBand(int i);
         void loadBands(); 
 
+        double getBandNoDataValue(int bandid) const;
         double getBandData(int u, int v, int bandid = 0) const; 
 
         const RasterBand* getRasterBand(int i) const;
