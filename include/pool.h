@@ -12,13 +12,13 @@
 class ThreadWorker {
 
     public: 
-        ThreadWorker(int id); 
+        ThreadWorker(uint id); 
 
         // Return the thread id
-        int id() const; 
+        uint id() const; 
 
     private: 
-        int _id; 
+        uint _id; 
 
 };
 
@@ -29,16 +29,16 @@ class ThreadPool {
         // Constructor. This does not start the pool, but only creates an instance of this 
         // class with an assigned number of workers. The `start` function is added to 
         // allow defining a set of jobs before actually starting them.
-        ThreadPool(int nThreads);
+        ThreadPool(size_t nThreads);
 
         // Destructor to stop the thread pool
         ~ThreadPool();
 
         // Retrieve the number of threads in the pool.
-        int nThreads() const; 
+        size_t nThreads() const; 
 
         // Return the number of remaining tasks
-        int nPendingTasks() const; 
+        size_t nPendingTasks() const; 
 
         // Start the Pool by creating all the working threads
         void startPool();
@@ -61,7 +61,7 @@ class ThreadPool {
     private: 
 
         // Number of workers available to the pool
-        int _nThreads;
+        size_t _nThreads;
 
         // List of worker threads
         std::vector<std::thread> workers; 
@@ -74,7 +74,7 @@ class ThreadPool {
         std::condition_variable task_cv; 
         
         // Number of pending/uncompleted tasks
-        std::atomic<int> pendingTasks = 0;
+        std::atomic<size_t> pendingTasks = 0;
         // Mutex and condition to wait for the task completion
         std::mutex waitMutex;
         std::condition_variable wait_cv; 
