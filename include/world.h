@@ -17,6 +17,8 @@ class World {
         // Compute the distance at which points are evaluated along a ray
         void computeRayResolution(const Camera& cam);
 
+        inline double getRayResolution() const { return dt; }; 
+
     private: 
     
         DEM dem;

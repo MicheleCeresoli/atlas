@@ -1,7 +1,11 @@
 
 #include "pixel.h"
-
 #include <stdexcept>
+
+
+/* -------------------------------------------------------
+                        TASKED PIXEL
+---------------------------------------------------------- */
 
 TaskedPixel::TaskedPixel(uint id, double i, double j, size_t nSamples) : 
     id(id), nSamples(nSamples) 
@@ -53,6 +57,12 @@ TaskedPixel::TaskedPixel(uint id, point2 p, size_t nSamples) :
     TaskedPixel(id, p[0], p[1], nSamples) {}
 
 
+
+
+/* -------------------------------------------------------
+                        RENDERED PIXEL
+---------------------------------------------------------- */
+
 RenderedPixel::RenderedPixel(uint id, size_t nSamples) : id(id), nSamples(nSamples) {
     data.reserve(nSamples); 
 }
@@ -63,5 +73,30 @@ void RenderedPixel::updateSamples(size_t newSamples) {
 }
 
 void RenderedPixel::addPixelData(const PixelData& d) {
+    
+    // Add the data
     data.push_back(d); 
+
+    // Update distance limits 
+
+    if (d.t < tMin)
+        tMin = d.t; 
+    
+    if (d.t > tMax)
+        tMax = d.t; 
+
+}
+
+
+double RenderedPixel::pixMeanDistance() const {
+    double t; 
+
+    for (size_t j = 0; j < nSamples; j++) {
+        if (data[j].t != inf)
+            t += data[j].t; 
+    }
+
+    t /= nSamples;
+    return t;
+
 }

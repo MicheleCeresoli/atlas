@@ -9,12 +9,11 @@
 #include <mutex>
 
 // Constructor
-Renderer::Renderer(size_t nThreads, size_t batch_size) : 
-    pool(ThreadPool(nThreads)), batch_size(batch_size) 
+Renderer::Renderer(RenderingOptions opts) : 
+    pool(ThreadPool(opts.nThreads)), opts(opts)
 {
-
     // Reserve enough space for the this task.
-    taskQueue.reserve(batch_size); 
+    taskQueue.reserve(opts.batchSize); 
 
 }
 
@@ -82,7 +81,7 @@ void Renderer::updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w) {
     
     // Update the task queue
     taskQueue.push_back(tp); 
-    if (taskQueue.size() >= batch_size) {
+    if (taskQueue.size() >= opts.batchSize) {
         releaseTaskQueue(cam, w); 
     }
     
@@ -131,6 +130,9 @@ void Renderer::processRenderOutput()
 
 uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w) 
 {
+    // Retrieve the resolution used to propagate the rays
+    double rayRes = w.getRayResolution(); 
+
     // Create an array of pixels that require anti-aliasing.
     std::vector<TaskedPixel> aliasedPixels; 
     aliasedPixels.reserve(renderedPixels.size());  
@@ -152,24 +154,24 @@ uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w)
         aliased = prev || prevCol[v]; 
 
         // Retrieve current pixel value 
-        tk = renderedPixels[id].data[0].t; 
+        tk = renderedPixels[id].pixDistance(); 
         tk1 = tk; tk2 = tk; 
 
         // Check against the one on the bottom
         if (v < cam.height - 1) {
-            tk1 = renderedPixels[id + cam.width].data[0].t;
-            prev = fabs(tk1 - tk) > 150; 
+            tk1 = renderedPixels[id + cam.width].pixDistance();
+            prev = isAliased(tk, tk1, rayRes); 
         } 
 
         // Check against the one on the right
         if (u < cam.width - 1) {
-            tk2 = renderedPixels[id + 1].data[0].t;
-            prevCol[v] = fabs(tk2 - tk) > 150; 
+            tk2 = renderedPixels[id + 1].pixDistance();
+            prevCol[v] = isAliased(tk, tk2, rayRes); 
         }
 
         if (aliased || prev || prevCol[v]) {
             // Add the pixel to the SSAA queue and precompute the min\max values
-            TaskedPixel tp = TaskedPixel(id, u, v, 8); 
+            TaskedPixel tp = TaskedPixel(id, u, v, opts.ssaa.nSamples); 
             tp.tint[0] = std::min({tk, tk1, tk2});
             tp.tint[1] = std::max({tk, tk1, tk2});
 
@@ -185,9 +187,11 @@ uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w)
         id = aliasedPixels[k].id; 
         cam.pixel_coord(id, u, v); 
 
-        // Compute the pixel values on the left and on top
-        tk1 = (u > 0) ? renderedPixels[id-1].data[0].t : renderedPixels[id].data[0].t; 
-        tk2 = (v > 0) ? renderedPixels[id-cam.width].data[0].t : renderedPixels[id].data[0].t; 
+        tk = renderedPixels[id].pixDistance();
+
+        // Compute the pixel value on the left and on the top
+        tk1 = (u > 0) ? renderedPixels[id-1].pixDistance() : tk;
+        tk2 = (v > 0) ? renderedPixels[id-cam.width].pixDistance() : tk; 
         
         // Update the pixel t-boundaries
         aliasedPixels[k].tint[0] = std::min({aliasedPixels[k].tint[0], tk1, tk2});
@@ -232,7 +236,7 @@ void Renderer::displayRenderStatus(uint nPixels, std::string m) {
     // Store current time
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    double f = (double)batch_size/nPixels; 
+    double f = (double)opts.batchSize/nPixels; 
 
     size_t nTasks = pool.nPendingTasks(); 
     size_t pTasks = nTasks; 
@@ -270,7 +274,7 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayI
     uint nPixels = generateRenderTasks(cam, w); 
 
     // Display the rendering status
-    if (displayInfo) {
+    if (opts.displayInfo) {
         displayRenderStatus(nPixels, "Ray-tracing"); 
     }
     
@@ -280,17 +284,23 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayI
     // At this point we need to re-order all the rendered pixels.
     processRenderOutput();
 
-    // Run Super-Sampling Antialiasing 
-    nPixels = generateAntiAliasingTasks(cam, w); 
+    if (opts.ssaa.active) 
+    {
+        // Run Super-Sampling Antialiasing 
+        nPixels = generateAntiAliasingTasks(cam, w); 
 
-    if (displayInfo) {
-        displayRenderStatus(nPixels, "Anti-Aliasing"); 
+        if (opts.displayInfo) {
+            displayRenderStatus(nPixels, "Anti-Aliasing"); 
+        }
+
+        // Wait for the completion of all jobs
+        pool.waitCompletion();
     }
-
-    // Wait for the completion of all jobs
-    pool.waitCompletion();
 
     return renderedPixels;
 
 }
 
+bool Renderer::isAliased(double t1, double t2, double dt) const {
+    return fabs(t2-t1) >= opts.ssaa.threshold*dt; 
+}

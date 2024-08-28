@@ -1,9 +1,10 @@
 #ifndef RENDERER_H 
 #define RENDERER_H 
 
+#include "camera.h"
 #include "pixel.h"
 #include "pool.h"
-#include "camera.h"
+#include "settings.h"
 #include "world.h"
 
 #include <mutex>
@@ -12,14 +13,14 @@
 class Renderer {
     
     public: 
-
-        Renderer(size_t nThreads, size_t batch_size = 64); 
+    
+        Renderer(RenderingOptions opts); 
         std::vector<RenderedPixel> render(Camera& cam, World& w, bool displayInfo=true);
 
     private: 
 
         ThreadPool pool; 
-        size_t batch_size; 
+        RenderingOptions opts; 
 
         // Mutex to synchronise access to shared data.
         std::mutex renderMutex; 
@@ -65,6 +66,8 @@ class Renderer {
         // Display the real-time rendering status on the terminal.
         void displayRenderStatus(uint nPixels, std::string m); 
 
+        // Check whether two pixel values are aliased. 
+        bool isAliased(double t1, double t2, double dt) const; 
 
 };
 

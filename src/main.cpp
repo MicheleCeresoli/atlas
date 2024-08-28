@@ -96,15 +96,15 @@ void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels,
     double t;
 
     for (size_t j = 0; j < pixels.size(); j++) {
-        for (size_t k = 0; k < pixels[j].nSamples; k++) {
+        
+        t = pixels[j].pixMinDistance(); 
+        if (t < min) 
+            min = t; 
 
-            t = pixels[j].data[k].t; 
-            if ((t > max) && (t != inf)) {
-                max = t; 
-            } else if (t < min) {
-                min = t;
-            } 
-        }
+        t = pixels[j].pixMaxDistance(); 
+        if ((t > max) && (t != inf))
+            max = t; 
+
     }
 
     // std::clog << "The min distance is: " << min << std::endl; 
@@ -206,8 +206,15 @@ int main(int argc, const char* argv[])
     DEM dem(demFiles, nThreads);
     World w(dem); 
 
+    RenderingOptions opts = {
+        .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
+        .batchSize = 640,
+        .nThreads = nThreads, 
+        .displayInfo = true
+    };
+
     // Create the Renderer (1 thread, batch size 64)
-    Renderer renderer(nThreads, 640);
+    Renderer renderer(opts);
 
     // Render the image
     std::vector<RenderedPixel> pixels = renderer.render(cam, w); 

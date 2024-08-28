@@ -29,6 +29,7 @@ set ( HEADER_FILES
     ${HEADER_DIR}/pool.h
     ${HEADER_DIR}/ray.h
     ${HEADER_DIR}/renderer.h
+    ${HEADER_DIR}/settings.h
     ${HEADER_DIR}/utils.h
     ${HEADER_DIR}/world.h
     ${HEADER_DIR}/vec2.h
@@ -46,6 +47,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp
     ${SOURCE_DIR}/renderer.cpp
+    ${SOURCE_DIR}/settings.cpp
     ${SOURCE_DIR}/utils.cpp
     ${SOURCE_DIR}/world.cpp
     ${SOURCE_DIR}/vec2.cpp
