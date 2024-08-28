@@ -33,8 +33,8 @@ class RasterBand {
         void loadData(); 
         
         // Get a given pixel 
-        double getData(int i) const;
-        double getData(int u, int v) const;  
+        double getData(uint i) const;
+        double getData(uint u, uint v) const;  
 
 
     private: 
@@ -44,15 +44,15 @@ class RasterBand {
         GDALRasterBand* pBand;
         std::shared_ptr<float> data;
 
-        int _xBlock, _yBlock;      
-        int _width, _height; 
+        uint _xBlock, _yBlock;      
+        uint _width, _height; 
 
         double _vMin, _vMax; 
         double _offset, _scale; 
 
         double _noDataVal;
 
-        int nLoadedElements = 0; 
+        uint nLoadedElements = 0; 
 };
 
 
@@ -66,18 +66,18 @@ class RasterFile {
 
     public: 
 
-        RasterFile(const std::string& file, int nThreads = 1);
+        RasterFile(const std::string& file, size_t nThreads = 1);
 
         std::string getFileName() const; 
         std::filesystem::path getFilePath() const; 
 
-        inline int width() const { return _width; }
-        inline int height() const { return _height; }
-        inline int rasterCount() const { return _rasterCount; }; 
+        inline uint width() const { return _width; }
+        inline uint height() const { return _height; }
+        inline size_t rasterCount() const { return _rasterCount; }; 
 
         double resolution() const; 
 
-        int nThreads() const; 
+        size_t nThreads() const; 
 
         double top() const; 
         double bottom() const; 
@@ -96,24 +96,24 @@ class RasterFile {
 
         // Raster Bands Interfaces 
         
-        void loadBand(int i);
+        void loadBand(size_t i);
         void loadBands(); 
 
-        double getBandNoDataValue(int bandid) const;
-        double getBandData(int u, int v, int bandid = 0) const; 
+        double getBandNoDataValue(uint bandid) const;
+        double getBandData(uint u, uint v, uint bandid = 0) const; 
 
-        const RasterBand* getRasterBand(int i) const;
+        const RasterBand* getRasterBand(uint i) const;
 
         // Transformation Functions
 
         point2 map2pix(const point2& m) const;
         point2 pix2map(const point2& p) const;
 
-        point2 sph2map(const point2& s, int threadid = 0) const;
-        point2 map2sph(const point2& m, int threadid = 0) const; 
+        point2 sph2map(const point2& s, uint threadid = 0) const;
+        point2 map2sph(const point2& m, uint threadid = 0) const; 
 
-        point2 sph2pix(const point2& s, int threadid = 0) const;
-        point2 pix2sph(const point2& p, int threadid = 0) const; 
+        point2 sph2pix(const point2& s, uint threadid = 0) const;
+        point2 pix2sph(const point2& p, uint threadid = 0) const; 
 
         const OGRSpatialReference* crs() const;
 
@@ -124,11 +124,11 @@ class RasterFile {
 
         std::string filename; 
 
-        int _nThreads; // Number of assigned threads
+        size_t _nThreads; // Number of assigned threads
 
-        int _width;  // Raster width
-        int _height; // Raster height
-        int _rasterCount;  // Raster bands
+        uint _width;  // Raster width
+        uint _height; // Raster height
+        size_t _rasterCount;  // Raster bands
 
         double _top, _bottom; 
         double _left, _right; 

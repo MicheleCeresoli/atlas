@@ -22,12 +22,15 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
     pBand = pd->GetRasterBand(i); 
 
     // Retrieve the block size 
-    pBand->GetBlockSize(&_xBlock, &_yBlock); 
+    int xb, yb; 
+    pBand->GetBlockSize(&xb, &yb);
+    _xBlock = (uint)xb; 
+    _yBlock = (uint)yb; 
 
     // Retrieve the band width and height (although it is already available in the dataset 
     // container. )
-    _width  = pBand->GetXSize(); 
-    _height = pBand->GetYSize(); 
+    _width  = (uint)pBand->GetXSize(); 
+    _height = (uint)pBand->GetYSize(); 
 
     // Retrieve band scale and offset parameters
     _offset = pBand->GetOffset(); 
@@ -100,7 +103,7 @@ void RasterBand::loadData() {
     return; 
 }
 
-double RasterBand::getData(int i) const {
+double RasterBand::getData(uint i) const {
 
     if (i < nLoadedElements) {
         return _scale*(double)data.get()[i] + _offset;
@@ -110,7 +113,7 @@ double RasterBand::getData(int i) const {
     }
 }
 
-double RasterBand::getData(int u, int v) const {
+double RasterBand::getData(uint u, uint v) const {
     return getData(v*_width + u);
 }
 
@@ -119,7 +122,7 @@ double RasterBand::getData(int u, int v) const {
                     DATASET CONTAINER 
 ---------------------------------------------------------- */
 
-RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThreads)
+RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nThreads)
 {
     // Generate filepath object
     filepath = std::filesystem::path(file); 
@@ -137,9 +140,9 @@ RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThrea
     }
 
     // Retrieve dataset parameters. 
-    _width  = pDataset->GetRasterXSize(); 
-    _height = pDataset->GetRasterYSize(); 
-    _rasterCount  = pDataset->GetRasterCount(); 
+    _width  = (uint)pDataset->GetRasterXSize(); 
+    _height = (uint)pDataset->GetRasterYSize(); 
+    _rasterCount  = (size_t)pDataset->GetRasterCount(); 
 
     // Retrieve the Affine transformation of the projection
     double adf[6]; 
@@ -175,9 +178,9 @@ RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThrea
     computeRasterBounds(); 
 
     // Retrieve all raster bands
-    bands.reserve(_rasterCount); 
-    for (int k = 0; k < _rasterCount; k++) {
-        bands.push_back(RasterBand(pDataset, k+1));
+    bands.reserve((size_t)_rasterCount); 
+    for (size_t k = 0; k < _rasterCount; k++) {
+        bands.push_back(RasterBand(pDataset, (int)k+1));
     }
 
 }
@@ -186,7 +189,7 @@ RasterFile::RasterFile(const std::string& file, int nThreads) : _nThreads(nThrea
 std::string RasterFile::getFileName() const { return filename; }
 std::filesystem::path RasterFile::getFilePath() const { return filepath; }
 
-int RasterFile::nThreads() const { return _nThreads; }
+size_t RasterFile::nThreads() const { return _nThreads; }
 
 double RasterFile::top() const { return _top; }
 double RasterFile::bottom() const { return _bottom; }
@@ -220,21 +223,21 @@ bool RasterFile::isWithinGeographicBounds(const point2& p) const {
 
 // Raster Bands Interfaces 
 
-void RasterFile::loadBand(int i) {
+void RasterFile::loadBand(size_t i) {
     bands[i].loadData();
 }
 
 void RasterFile::loadBands() {
-    for (int k = 0; k < _rasterCount; k++) {
+    for (size_t k = 0; k < _rasterCount; k++) {
         loadBand(k); 
     }
 }
 
-double RasterFile::getBandNoDataValue(int bandid) const {
+double RasterFile::getBandNoDataValue(uint bandid) const {
     return bands[bandid].noDataVal(); 
 }
 
-double RasterFile::getBandData(int u, int v, int bandid) const {
+double RasterFile::getBandData(uint u, uint v, uint bandid) const {
     return bands[bandid].getData(u, v);  
 }
 
@@ -242,7 +245,7 @@ double RasterFile::getBandData(int u, int v, int bandid) const {
 Affine RasterFile::getAffine() const { return transform; }
 Affine RasterFile::getInvAffine() const { return iTransform; }
 
-const RasterBand* RasterFile::getRasterBand(int i) const {
+const RasterBand* RasterFile::getRasterBand(uint i) const {
     return &(bands[i]);
 }
 
@@ -261,21 +264,21 @@ point2 RasterFile::map2pix(const point2& m) const {
     return iTransform*m;
 }
 
-point2 RasterFile::sph2map(const point2& s, int threadid) const {
+point2 RasterFile::sph2map(const point2& s, uint threadid) const {
 
     int flags[1]; 
-    point2 m(s.x(), s.y()); 
-
+    point2 m(s); 
+    
     if(!s2mT[threadid]->Transform(1, &m.e[0], &m.e[1], nullptr, flags))
         std::clog << "Transformation failed." << std::endl; 
     
     return m;
 }
 
-point2 RasterFile::map2sph(const point2& m, int threadid) const {
+point2 RasterFile::map2sph(const point2& m, uint threadid) const {
 
     int flags[1]; 
-    point2 s(m.x(), m.y()); 
+    point2 s(m);
 
     if(!m2sT[threadid]->Transform(1, &s.e[0], &s.e[1], nullptr, flags))
         std::clog << "Transformation failed." << std::endl; 
@@ -284,11 +287,11 @@ point2 RasterFile::map2sph(const point2& m, int threadid) const {
 
 }
 
-point2 RasterFile::sph2pix(const point2& s, int threadid) const {
+point2 RasterFile::sph2pix(const point2& s, uint threadid) const {
     return map2pix(sph2map(s, threadid)); 
 }
 
-point2 RasterFile::pix2sph(const point2& p, int threadid) const {
+point2 RasterFile::pix2sph(const point2& p, uint threadid) const {
     return map2sph(pix2map(p), threadid);
 }
 
@@ -320,7 +323,7 @@ void RasterFile::setupTransformations() {
     OGRSpatialReference sCRS = MoonGeographicCRS();
 
     // Compute the transformation between a geographic and projected map and its inverse.
-    for (int k = 0; k < _nThreads; k++) 
+    for (size_t k = 0; k < _nThreads; k++) 
     {
         s2mT.push_back(
             std::shared_ptr<OGRCoordinateTransformation>(
