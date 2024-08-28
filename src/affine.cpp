@@ -43,6 +43,12 @@ double Affine::det() const {
     return e[0]*e[4] - e[1]*e[3];
 }
 
+std::string Affine::toString() const {
+    return "Affine(" + std::to_string(e[0]) + ", " + std::to_string(e[1]) + ", " 
+                     + std::to_string(e[2]) + "\n       " + std::to_string(e[3]) + ", "
+                     + std::to_string(e[4]) + ", " + std::to_string(e[5]) + ")"; 
+}
+
 // Return an identity transformation
 Affine Affine::identity() { return Affine(); }
 
@@ -57,8 +63,7 @@ Affine Affine::scale(double s1, double s2) {
 
 // Stream 
 std::ostream& operator<<(std::ostream& out, const Affine& a) {
-    return out << "Affine(" << a[0] << ", " << a[1] << ", " << a[2] << std::endl 
-               << "       " << a[3] << ", " << a[4] << ", " << a[5] << ")";
+    return out << a.toString(); 
 }
 
 // Matrix / Vector utilities

@@ -13,9 +13,10 @@
 class Renderer {
     
     public: 
-    
+
+        Renderer();
         Renderer(RenderingOptions opts); 
-        std::vector<RenderedPixel> render(Camera& cam, World& w, bool displayInfo=true);
+        std::vector<RenderedPixel> render(Camera& cam, World& w);
 
     private: 
 

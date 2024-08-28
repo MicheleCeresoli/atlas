@@ -17,6 +17,7 @@ Renderer::Renderer(RenderingOptions opts) :
 
 }
 
+Renderer::Renderer() : Renderer(RenderingOptions()) {}
 
 
 // This function stores the output of each render task in the original class
@@ -265,7 +266,7 @@ void Renderer::displayRenderStatus(uint nPixels, std::string m) {
 }
 
 // This is the high-level function called by the user
-std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayInfo) {
+std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
 
     // Setup the render output variable.
     setupRenderer(cam, w); 

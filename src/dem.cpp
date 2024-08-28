@@ -13,10 +13,15 @@ DEM::DEM(std::vector<std::string> files, size_t nThreads) {
     // If there are no files, throw an error
     size_t nFiles = files.size(); 
 
-
     if (nFiles == 0)  {
-        std::runtime_error("at least one DEM file is required");
+        throw std::runtime_error("at least one DEM file is required");
     }
+
+    /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
+     * this function should be called just once at the start of the program, however 
+     * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
+     * it does any harm calling it more than once. */ 
+    GDALAllRegister();
 
     // Initialise min\max altitude values
     _minAltitude = inf; 

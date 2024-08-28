@@ -43,11 +43,15 @@ double vec3::norm2() const {
     return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; 
 }
 
+std::string vec3::toString() const {
+    return "[" + std::to_string(e[0]) + ", " + std::to_string(e[1]) 
+               + ", " + std::to_string(e[2]) + "]";
+}
 
 // Vector Utilities 
 
 std::ostream& operator<<(std::ostream& out, const vec3& v){
-    return out << v[0] << ' ' << v[1] << ' ' << v[2]; 
+    return out << v.toString(); 
 }
 
 vec3 operator+(const vec3& u, const vec3& v){

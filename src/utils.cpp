@@ -46,7 +46,7 @@ std::string readFileContent(const std::string& filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
 
     if (!file) {
-        std::runtime_error("failed to open the file");
+        throw std::runtime_error("failed to open the file");
     }
     
     // Seek to the end of the file to get its size

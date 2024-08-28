@@ -1,6 +1,17 @@
 
 set(PYTHON_FILES
+    pyarcadia.cpp
     affine.cpp
+    camera.cpp
+    dcm.cpp
+    dem.cpp
+    pixel.cpp
+    ray.cpp
+    renderer.cpp
+    settings.cpp
+    vec2.cpp
+    vec3.cpp
+    world.cpp
 )
 
 pybind11_add_module(pyarcadia MODULE 

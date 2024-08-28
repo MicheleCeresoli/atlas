@@ -155,8 +155,6 @@ int main(int argc, const char* argv[])
 
     std::clog << std::endl;
 
-    GDALAllRegister();
-
     uint   cam_res = 640;
     double cam_fov = deg2rad(CAM_FOV); 
 

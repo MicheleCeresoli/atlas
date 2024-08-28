@@ -3,6 +3,7 @@
 
 #include "vec2.h"
 #include <iostream> 
+#include <string>
 
 class Affine {
 
@@ -23,6 +24,8 @@ class Affine {
 
         // Compute the determinant of the transformation
         double det() const; 
+
+        std::string toString() const; 
 
         static Affine identity(); 
         static Affine scale(double s);

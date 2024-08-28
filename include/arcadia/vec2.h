@@ -2,6 +2,7 @@
 #define VEC2_H
 
 #include <iostream> 
+#include <string>
 
 class vec2 {
 
@@ -26,6 +27,8 @@ class vec2 {
 
         double norm() const;
         double norm2() const;
+
+        std::string toString() const; 
 
 };
 

@@ -13,11 +13,14 @@ class dcm {
         double e[9]; 
 
         dcm();
+        dcm(double* p); 
         dcm(double e0, double e1, double e2, double e3, double e4, double e5, 
             double e6, double e7, double e8);
         
         double operator[](int i) const; 
         double& operator[](int i); 
+
+        std::string toString() const;
 
         double det() const;
         double trace() const;

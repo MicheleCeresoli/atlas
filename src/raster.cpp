@@ -15,7 +15,7 @@
 RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
 
     if (i > pd->GetRasterCount()) {
-        std::range_error("the dataset does not contain the desired raster band.");
+        throw std::range_error("the dataset does not contain the desired raster band.");
     }
 
     // Retrieve the raster band
@@ -97,7 +97,7 @@ void RasterBand::loadData() {
     );
 
     if (err != CE_None) {
-        std::runtime_error("failed to retrieve raster band data");
+        throw std::runtime_error("failed to retrieve raster band data");
     } 
 
     return; 
@@ -108,7 +108,7 @@ double RasterBand::getData(uint i) const {
     if (i < nLoadedElements) {
         return _scale*(double)data.get()[i] + _offset;
     } else {
-        std::range_error("raster band data does not have enough elements");
+        throw std::range_error("raster band data does not have enough elements");
         return _noDataVal;
     }
 }
@@ -136,7 +136,7 @@ RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nTh
 
     // Check whether it is a valid Dataset pointer
     if (pDataset == NULL) {
-        std::runtime_error("failed to open the dataset");
+        throw std::runtime_error("failed to open the dataset");
     }
 
     // Retrieve dataset parameters. 
