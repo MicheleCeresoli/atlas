@@ -48,14 +48,15 @@ void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
     double r;
 
     for (size_t j = 0; j < pixels.size(); j++) {
-        r = pixels[j].d.s[0]; 
-
-        if (r > max) {
-            max = r; 
-        } else if ((r < min) && (r != 0.0)) {
-            min = r;
-        } 
-
+        for (size_t k = 0; k < pixels[j].nSamples; k++) {
+            
+            r = pixels[j].data[k].s[0]; 
+            if (r > max) {
+                max = r; 
+            } else if ((r < min) && (r != 0.0)) {
+                min = r;
+            } 
+        }
     }
 
     // std::clog << "The min height is: " << min << std::endl; 
@@ -66,15 +67,18 @@ void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 
     double t; 
     for (auto p : pixels) {
-        
-        if (p.d.t == inf) { 
-            t = 0.0;
-        }
-        else {
-            t = (p.d.s[0] - min)/(max - min);
+
+        t = 0.0;
+        for (size_t k = 0; k < p.nSamples; k++) {
+            if (p.data[k].t != inf) {
+                t += (p.data[k].s[0] - min)/(max - min);
+            }
         }
 
+        t /= (double)p.nSamples;
         imgData.push_back(t); 
+
+        // imgData.push_back((p.nSamples > 1) ? 1 : 0);
 
     }
 
@@ -82,7 +86,7 @@ void makeImageDEM(const Camera& cam, const std::vector<RenderedPixel>& pixels)
 
 }
 
-void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels)
+void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels, bool invert)
 {
 
     /* First, we retrieve the minimum and maximum values of the data. We do it 
@@ -92,29 +96,34 @@ void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels)
     double t;
 
     for (size_t j = 0; j < pixels.size(); j++) {
-        t = pixels[j].d.t; 
+        for (size_t k = 0; k < pixels[j].nSamples; k++) {
 
-        if ((t > max) && (t != inf)) {
-            max = t; 
-        } else if (t < min) {
-            min = t;
-        } 
-
+            t = pixels[j].data[k].t; 
+            if ((t > max) && (t != inf)) {
+                max = t; 
+            } else if (t < min) {
+                min = t;
+            } 
+        }
     }
 
-    std::clog << "The min distance is: " << min << std::endl; 
-    std::clog << "The max distance is: " << max << std::endl; 
+    // std::clog << "The min distance is: " << min << std::endl; 
+    // std::clog << "The max distance is: " << max << std::endl; 
 
     std::vector<double> imgData; 
     imgData.reserve(pixels.size());
 
     for (auto p : pixels) {
-        if (p.d.t == inf) {
-            t = 0.0;
+
+        t = 0.0; 
+        for (size_t k = 0; k < p.nSamples; k++) {
+            if (p.data[0].t != inf) {
+                t += (p.data[0].t - min)/(max - min);  
+            }
         }
-        else {
-            t = (p.d.t - min)/(max - min);  
-        }
+        
+        t /= (double)p.nSamples; 
+        t = invert ? 1.0 - t : t; 
 
         imgData.push_back(t); 
 
@@ -144,14 +153,16 @@ dcm pos2dcm(point3 pos)
 int main(int argc, const char* argv[])
 {
 
+    std::clog << std::endl;
+
     GDALAllRegister();
 
-    int    cam_res = 640;
+    uint   cam_res = 640;
     double cam_fov = deg2rad(CAM_FOV); 
 
     // double h = 1.1*1738e3/std::sin(cam_fov/2);
 
-    double h = 100e3 + 1737400;
+    double h = 20e3 + 1737400;
     double lon = deg2rad(-165);
     double lat = deg2rad(62);
 
@@ -174,7 +185,7 @@ int main(int argc, const char* argv[])
     cam.set_dcm(A_cam2in); 
     cam.set_pos(cam_pos); 
 
-    int nThreads = 7;   
+    size_t nThreads = 7;   
 
     std::vector<std::string> demFiles;
 
@@ -202,8 +213,8 @@ int main(int argc, const char* argv[])
     std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
 
     // Write the pixels to a PPM image file
-    makeImageLIDAR(cam, pixels); 
-    // makeImageDEM(cam, pixels); 
+    // makeImageLIDAR(cam, pixels, true); 
+    makeImageDEM(cam, pixels); 
 
     std::clog << std::endl; 
     return 0;
