@@ -10,13 +10,13 @@ class Camera {
     
     public: 
 
-        const int width; 
-        const int height; 
+        const uint width; 
+        const uint height; 
 
         // Constructors
         
-        Camera(int res_x, int res_y, double fov_x, double fov_y);
-        Camera(int res, double fov);
+        Camera(uint res_x, uint res_y, double fov_x, double fov_y);
+        Camera(uint res, double fov);
 
         // Functions 
 
@@ -26,7 +26,12 @@ class Camera {
         void set_dcm(const dcm& orientation);
         void set_pos(const point3& pos);
 
-        int pixel_id(const Pixel& p) const;
+        uint nPixels() const;
+
+        uint pixel_id(const uint& u, const uint& v) const; 
+        uint pixel_id(const Pixel& p) const;
+
+        void pixel_coord(const uint& id, uint& u, uint& v); 
 
         Ray get_ray(double u, double v) const;
 

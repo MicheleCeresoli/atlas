@@ -6,11 +6,11 @@
 
 // Constructors 
 
-Camera::Camera(int res_x, int res_y, double fov_x, double fov_y) :
+Camera::Camera(uint res_x, uint res_y, double fov_x, double fov_y) :
     width(res_x), height(res_y), fov_x(fov_x), fov_y(fov_y), 
-    dfov_x(fov_x/res_x), dfov_y(fov_y/res_y) {}
+    dfov_x(fov_x/(double)res_x), dfov_y(fov_y/(double)res_y) {}
 
-Camera::Camera(int res, double fov) : Camera(res, res, fov, fov) {} 
+Camera::Camera(uint res, double fov) : Camera(res, res, fov, fov) {} 
 
 
 // Functions 
@@ -26,9 +26,22 @@ void Camera::set_pos(const point3& pos) {
     center = pos; 
 }
 
+uint Camera::nPixels() const {
+    return width*height;
+}
+
 // Return the pixel ID number
-int Camera::pixel_id(const Pixel& p) const {
-    return p[0] + width*p[1]; 
+uint Camera::pixel_id(const uint& u, const uint& v) const {
+    return u + width*v; 
+}
+
+uint Camera::pixel_id(const Pixel& p) const {
+    return pixel_id(p[0], p[1]);
+}
+
+void Camera::pixel_coord(const uint& id, uint& u, uint& v) {
+    v = id / width;
+    u = id - v*width;
 }
 
 Ray Camera::get_ray(double u, double v) const {
