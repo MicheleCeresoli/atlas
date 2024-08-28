@@ -48,7 +48,4 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_compile_options(-Wunused-variable) # Variable defined but unused 
     add_compile_options(-Werror) 
 
-endif() 
-
-# 
-# # install(TARGETS arcadia)
+endif()
