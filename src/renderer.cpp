@@ -1,54 +1,67 @@
 
 #include "renderer.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <mutex>
 
 // Constructor
 Renderer::Renderer(size_t nThreads, size_t batch_size) : 
-    pool(ThreadPool(nThreads)), batch_size(batch_size) {}
+    pool(ThreadPool(nThreads)), batch_size(batch_size) 
+{
+
+    // Reserve enough space for the this task.
+    taskQueue.reserve(batch_size); 
+
+}
 
 
 
 // This function stores the output of each render task in the original class
-void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels)
+void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel>& pixels)
 {
     {
         std::unique_lock<std::mutex> lock(renderMutex); 
-        for (int j = 0; j < pixels.size(); j++)
-        {
-            renderedPixels.push_back(pixels[j]); 
+        for (auto p : pixels) {
+            if (!hasRendered)
+                renderedPixels.push_back(p);
+            else 
+            {
+                renderedPixels[p.id].updateSamples(p.nSamples);
+                for (size_t k = 0; k < p.nSamples; k++)
+                    renderedPixels[p.id].addPixelData(p.data[k]);
+            }
         }
     }
 }
 
 // This function renders a batch of pixels
 void Renderer::renderTask(
-    const ThreadWorker& wk, Camera& cam, World& w, const std::vector<Pixel> &pixels
+    const ThreadWorker& wk, Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
 ) {
 
     // Create a vector storing the pixels to be rendered with the given memory
     std::vector<RenderedPixel> output;
     output.reserve(pixels.size()); 
 
-    RenderedPixel rPix; 
-
-    for (int j = 0; j < pixels.size(); j++)
+    for (size_t j = 0; j < pixels.size(); j++)
     {
-        Pixel pix = pixels[j]; 
-        rPix = {.p = pix}; 
-        
-        // Retrieve camera ray for this pixel
-        Ray ray = cam.get_ray(pix[0], pix[1]); 
 
-        // Compute pixel data
-        rPix.d = w.trace_ray(ray, wk.id()); 
+        RenderedPixel rPix(pixels[j].id, pixels[j].nSamples);
+        for (size_t k = 0; k < rPix.nSamples; k++) 
+        {
+            // Retrieve camera ray for this pixel
+            Ray ray = cam.get_ray(pixels[j].u[k], pixels[j].v[k]); 
+
+            // Compute pixel data
+            rPix.addPixelData(w.trace_ray(ray, pixels[j].tint, wk.id())); 
+        }
 
         // Add the pixel to the list of computed pixels
         output.push_back(rPix); 
-
     }
 
     // Save the rendered pixels in the Rendeder class 
@@ -56,7 +69,7 @@ void Renderer::renderTask(
 
 }
 
-void Renderer::dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &task)
+void Renderer::dispatchTaskQueue(const std::vector<TaskedPixel>& task, Camera& cam, World& w)
 {
     pool.addTask(
         [this, &cam, &w, task] (const ThreadWorker& worker) { 
@@ -65,81 +78,165 @@ void Renderer::dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &tas
     );
 }
 
-// This function generates all the tasks required to render an image.
-void Renderer::generateRenderTasks(Camera& cam, World& w) {
+void Renderer::updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w) {
     
-    // List of pixels for each task
-    std::vector<Pixel> task;
-    task.reserve(batch_size); 
-
-    Pixel pix; 
-
-    // // Compute the total number of pixels that must be rendered. 
-    // int nPixels = cam.width * cam.height; 
-    // int nTasks = (int) ceil((double)nPixels / batch_size); 
-
-    // Assign all the pixels to a specific rendering task.
-    int j = 0, i = 0;
-    while (j < cam.height)
-    {
-        if (i >= cam.width)
-        {
-            j++; 
-            i = 0; 
-        } 
-
-        pix = Pixel(i, j); 
-        task.push_back(pix);  
-
-        if (task.size() >= batch_size)
-        {
-            // Add the task to the thread pool
-            dispatchTask(cam, w, task);
-            task.clear(); 
-        }
-
-        i++; 
+    // Update the task queue
+    taskQueue.push_back(tp); 
+    if (taskQueue.size() >= batch_size) {
+        releaseTaskQueue(cam, w); 
     }
+    
+}
+
+void Renderer::releaseTaskQueue(Camera& cam, World& w) {
+    // Add the task to the thread pool and clear the vector 
+    dispatchTaskQueue(taskQueue, cam, w); 
+    taskQueue.clear(); 
+}
+
+// This function generates all the tasks required to render an image.
+uint Renderer::generateRenderTasks(Camera& cam, World& w) {
+    
+    // Assign all the pixels to a specific rendering task.
+    uint nPixels = cam.nPixels();
+
+    uint id, u, v;
+    for (id = 0; id < nPixels; id++) {
+        // Compute pixel coordinates and update rendering queue
+        cam.pixel_coord(id, u, v);
+        updateTaskQueue(TaskedPixel(id, u, v), cam, w); 
+    }
+
+    /* This could happen whenever the batch-size is not an exact multiple of the number
+     * of tasked pixels, risking that the final task is never properly launched. */
+    releaseTaskQueue(cam, w); 
+
+    return nPixels;
 
 }
 
 // This function post-processes the outputs of all tasks to generated an 
 // orderered list of pixels.
-void Renderer::processRenderOutput(const Camera& cam)
+void Renderer::processRenderOutput()
 {
+    // Update render status
+    hasRendered = true; 
+    
     // Sort the rendered pixel vector to have increasing pixel IDs; 
     std::sort(renderedPixels.begin(), renderedPixels.end(), 
-        [&cam] (const RenderedPixel &p1, const RenderedPixel &p2) { 
-            return cam.pixel_id(p1.p) < cam.pixel_id(p2.p);
+        [] (const RenderedPixel& p1, const RenderedPixel& p2) { 
+            return p1.id < p2.id;
     });
-
 }
 
-void Renderer::setupRenderOutput(const Camera& cam) {
+uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w) 
+{
+    // Create an array of pixels that require anti-aliasing.
+    std::vector<TaskedPixel> aliasedPixels; 
+    aliasedPixels.reserve(renderedPixels.size());  
+
+    uint id, u, v; 
+    double tk, tk1, tk2;
+    
+    bool prev = false; 
+    bool aliased = false;
+
+    std::vector<uint8_t> prevCol(cam.height, 0);
+
+    for (id = 0; id < renderedPixels.size(); id++) {
+
+        // Get pixel coordinates
+        cam.pixel_coord(id, u, v);
+
+        // Check whether this pixel has already been checked.
+        aliased = prev || prevCol[v]; 
+
+        // Retrieve current pixel value 
+        tk = renderedPixels[id].data[0].t; 
+        tk1 = tk; tk2 = tk; 
+
+        // Check against the one on the bottom
+        if (v < cam.height - 1) {
+            tk1 = renderedPixels[id + cam.width].data[0].t;
+            prev = fabs(tk1 - tk) > 150; 
+        } 
+
+        // Check against the one on the right
+        if (u < cam.width - 1) {
+            tk2 = renderedPixels[id + 1].data[0].t;
+            prevCol[v] = fabs(tk2 - tk) > 150; 
+        }
+
+        if (aliased || prev || prevCol[v]) {
+            // Add the pixel to the SSAA queue and precompute the min\max values
+            TaskedPixel tp = TaskedPixel(id, u, v, 8); 
+            tp.tint[0] = std::min({tk, tk1, tk2});
+            tp.tint[1] = std::max({tk, tk1, tk2});
+
+            aliasedPixels.push_back(tp);
+        }
+
+    }
+    
+    // Update the aliased pixel t-boundaries
+    for (size_t k = 0; k < aliasedPixels.size(); k++) {
+
+        // Retrieve pixel ID and center coordinates 
+        id = aliasedPixels[k].id; 
+        cam.pixel_coord(id, u, v); 
+
+        // Compute the pixel values on the left and on top
+        tk1 = (u > 0) ? renderedPixels[id-1].data[0].t : renderedPixels[id].data[0].t; 
+        tk2 = (v > 0) ? renderedPixels[id-cam.width].data[0].t : renderedPixels[id].data[0].t; 
+        
+        // Update the pixel t-boundaries
+        aliasedPixels[k].tint[0] = std::min({aliasedPixels[k].tint[0], tk1, tk2});
+        aliasedPixels[k].tint[1] = std::max({aliasedPixels[k].tint[1], tk1, tk2}); 
+
+        // Add the pixel to the rendering queue
+        updateTaskQueue(aliasedPixels[k], cam, w); 
+
+    }
+
+    // This takes care of the batch-size not being a multiplier of the aliased pixels
+    releaseTaskQueue(cam, w);
+
+    return aliasedPixels.size(); 
+    
+}
+
+
+void Renderer::setupRenderer(const Camera& cam, World& w) {
+
+    // Start the Thread pool, if not started already.
+    pool.startPool(); 
+
+    // Compute the ray rendering resolution.
+    w.computeRayResolution(cam); 
+
+    hasRendered = false; 
 
     // Clear the previous output
     renderedPixels.clear();
 
     // Pre-allocate all the space needed to store all the image pixels.
-    int nPixels = cam.width * cam.height; 
-    renderedPixels.reserve(nPixels); 
+    renderedPixels.reserve(cam.nPixels()); 
+
+    // Clear the tasked pixels queue 
+    taskQueue.clear(); 
 
 }
 
-#include <iomanip>
-
-void Renderer::displayRenderStatus(const Camera& cam) {
+void Renderer::displayRenderStatus(uint nPixels, std::string m) {
 
     // Store current time
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    // Display rendering status
-    int progress;
+    double f = (double)batch_size/nPixels; 
 
-    int nPixels = cam.width*cam.height; 
-    int nTasks = pool.nPendingTasks(); 
+    size_t nTasks = pool.nPendingTasks(); 
+    size_t pTasks = nTasks; 
 
-    int pTasks = nTasks; 
     while (nTasks > 0)
     {
         nTasks = pool.nPendingTasks(); 
@@ -148,9 +245,8 @@ void Renderer::displayRenderStatus(const Camera& cam) {
         if (pTasks != nTasks) {
             pTasks = nTasks;
 
-            progress = int(100*(1 - (double)nTasks*batch_size/nPixels));
-            std::clog << "\r[" <<  std::setw(3) << progress 
-                      << "%] \033[32mRay-tracing image\033[0m " << std::flush;
+            std::clog << "\r[" <<  std::setw(3) << int(100*(1 - (double)nTasks*f)) 
+                      << "%] \033[32m" + m + " image\033[0m" << std::flush;
         }
         
     }
@@ -159,37 +255,40 @@ void Renderer::displayRenderStatus(const Camera& cam) {
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
     
-    std::clog << std::endl << "       Ray-tracing completed in " 
-              << duration.count() << " seconds." << std::endl; 
+    std::clog << "\r[100%] " + m + " completed in " << duration.count() 
+              << " seconds." << std::endl; 
 
 }
-
 
 // This is the high-level function called by the user
 std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w, bool displayInfo) {
 
-    // Start the Thread pool, if not started already.
-    pool.startPool(); 
-
-    // Compute the ray rendering resolution.
-    w.computeRayResolution(cam); 
-
     // Setup the render output variable.
-    setupRenderOutput(cam); 
+    setupRenderer(cam, w); 
 
     // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
-    generateRenderTasks(cam, w); 
+    uint nPixels = generateRenderTasks(cam, w); 
 
     // Display the rendering status
     if (displayInfo) {
-        displayRenderStatus(cam); 
+        displayRenderStatus(nPixels, "Ray-tracing"); 
     }
     
     // Wait for the completion of all jobs
     pool.waitCompletion();
 
     // At this point we need to re-order all the rendered pixels.
-    processRenderOutput(cam);
+    processRenderOutput();
+
+    // Run Super-Sampling Antialiasing 
+    nPixels = generateAntiAliasingTasks(cam, w); 
+
+    if (displayInfo) {
+        displayRenderStatus(nPixels, "Anti-Aliasing"); 
+    }
+
+    // Wait for the completion of all jobs
+    pool.waitCompletion();
 
     return renderedPixels;
 

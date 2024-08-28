@@ -27,29 +27,43 @@ class Renderer {
         // List storing the output of each render task
         std::vector<RenderedPixel> renderedPixels; 
 
+        // Temporary queue to store the pixels that will be dispatch to the render
+        std::vector<TaskedPixel> taskQueue;
+
+        bool hasRendered;
+
         // This function stores the output of each render task in the original class
         void saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels); 
  
         // This function renders a batch of pixels
         void renderTask(
-            const ThreadWorker&, Camera& cam, World& w, const std::vector<Pixel> &pixels
+            const ThreadWorker&, Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
         );
 
         // Add a rendering task to the thread pool
-        void dispatchTask(Camera& cam, World& w, const std::vector<Pixel> &task);
+        void dispatchTaskQueue(const std::vector<TaskedPixel>& task, Camera& cam, World& w);
+
+        // Add a pixel to the task queue and dispatch it when batch-size is reached.
+        void updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w); 
+
+        // Add the task to the thread pool and clear the vector 
+        void releaseTaskQueue(Camera& cam, World& w); 
 
         // This function generates all the tasks required to render an image.
-        void generateRenderTasks(Camera& cam, World& w);
+        uint generateRenderTasks(Camera& cam, World& w);
+
+        // Run anti-aliasing on the pixels with a large difference in the distance
+        uint generateAntiAliasingTasks(Camera& cam, World& w);
 
         // Update the storing of the rendered pixels
-        void setupRenderOutput(const Camera& cam); 
+        void setupRenderer(const Camera& cam, World& w); 
 
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.
-        void processRenderOutput(const Camera& cam); 
+        void processRenderOutput(); 
 
         // Display the real-time rendering status on the terminal.
-        void displayRenderStatus(const Camera& cam); 
+        void displayRenderStatus(uint nPixels, std::string m); 
 
 
 };

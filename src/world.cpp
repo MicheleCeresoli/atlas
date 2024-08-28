@@ -17,7 +17,7 @@ World::World(DEM &dem) : dem(dem) {
 
 }
 
-PixelData World::trace_ray(Ray ray, int threadid) 
+PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid) 
 {
 
     PixelData data; 
@@ -28,14 +28,26 @@ PixelData World::trace_ray(Ray ray, int threadid)
         return data;
     }
 
-    // Here we have an intersection. So we start by finding the two values 
-    // of the t-parameter that define the search interval. 
+    /* Here we have an intersection. So we start by finding the two values
+     * of the t-parameter that define the search interval. Then, depending on whether 
+     * an interval bound was provided to the tracer, the t-boundaries are 
+     * properly adjusted. */
 
-    double tvals[2]; 
+    double tk, tvals[2];
     ray.get_parameter(tvals, maxRadius); 
 
-    double tk = MAX(0.0, tvals[0]); 
-    double hk;
+    if (tint[0] == 0.0 && tint[1] == 0.0) {
+        tk = tvals[0]; 
+    } 
+    else {
+        tk = tint[0] - 3*dt;
+        tvals[1] = MIN(tvals[1], tint[1] + 3*dt);  
+    }
+
+    // Starting t-value
+    tk = MAX(0.0, tk); 
+
+    double hk; 
 
     point3 pos, sph; 
     point2 s2; 
@@ -53,7 +65,7 @@ PixelData World::trace_ray(Ray ray, int threadid)
         s2 = rad2deg(point2(sph[1], sph[2])); 
 
         // Retrieve altitude from DEM 
-        hk = dem.getAltitude(s2, subsample, threadid); 
+        hk = dem.getAltitude(s2, interp, threadid); 
 
         if (sph[0] <= (hk + meanRadius)) {
              /* By putting t at halfway between the two values, we halve the maximum 
@@ -86,8 +98,10 @@ void World::computeRayResolution(const Camera& cam) {
     // Retrieve the DEM's resolution 
     double resDem = dem.getResolution(); 
 
+    interp = gsd < resDem; 
+    
     // No point in using the maximum DEM's resolution
-    if (gsd >= resDem) {
+    if (interp) {
 
         /* Here we are reducing the resolution to avoid 'aliasing' issues. However, 
          * since we already satisfy the requirement, we don't want to slow down the 
@@ -95,13 +109,11 @@ void World::computeRayResolution(const Camera& cam) {
 
         dt = MAX(gsd/4, resDem); 
         dt = MIN(dt, 100.0);
-        subsample = false;
 
     } else {
         /* Here we the DEM altitude is computed using a weighted-average on the 4 
          * neighbouring pixels to artificially improve the resolution of the DEM. */
         dt = gsd/2; 
-        subsample = true;
     }
 
 }

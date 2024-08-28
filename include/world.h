@@ -12,7 +12,7 @@ class World {
     public: 
 
         World(DEM &dem);
-        PixelData trace_ray(Ray r, int threaid); 
+        PixelData trace_ray(const Ray& r, const double* tvals, int threadid); 
 
         // Compute the distance at which points are evaluated along a ray
         void computeRayResolution(const Camera& cam);
@@ -26,7 +26,9 @@ class World {
         double meanRadius;
         
         double dt;  
-        bool subsample = false;
+        
+        // True if DEM data should be interpolated because of resolution limitations.
+        bool interp = false;
 
         double computeGSD(const Camera& cam) const; 
 
