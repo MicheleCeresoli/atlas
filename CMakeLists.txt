@@ -42,6 +42,7 @@ set ( SRC_FILES
     ${SOURCE_DIR}/raster.cpp
     ${SOURCE_DIR}/dcm.cpp
     ${SOURCE_DIR}/dem.cpp
+    ${SOURCE_DIR}/pixel.cpp
     ${SOURCE_DIR}/pool.cpp
     ${SOURCE_DIR}/ray.cpp
     ${SOURCE_DIR}/renderer.cpp
@@ -59,6 +60,9 @@ set ( SRC_FILES
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
+    # add_compile_options(-Wconversion)
+    # add_compile_options(-Wfloat-conversion)
+    # add_compile_options(-Wsign-conversion)
     add_compile_options(-Wmaybe-uninitialized) # Variable improperly intiialised
     add_compile_options(-Wunused-variable) # Variable defined but unused 
     add_compile_options(-Werror) 
