@@ -8,27 +8,34 @@
 #include <chrono>
 #include <iomanip>
 
-DEM::DEM(std::vector<std::string> files, int nThreads) {
+DEM::DEM(std::vector<std::string> files, size_t nThreads) {
 
     // If there are no files, throw an error
-    if (files.size() == 0)  {
+    size_t nFiles = files.size(); 
+
+
+    if (nFiles == 0)  {
         std::runtime_error("at least one DEM file is required");
     }
 
     // Initialise min\max altitude values
     _minAltitude = inf; 
     _maxAltitude = -inf;
+
     // Initialise the resolution.
     _resolution  = inf; 
 
     double hMin, hMax, res;
-    int progress; 
+    
+    // Variables for displaying the progress status
+    int progress, dl;
+    std::string filename, message;
 
     // Store current time
     auto t1 = std::chrono::high_resolution_clock::now();
 
     // Load up all the rasters
-    rasters.reserve(files.size()); 
+    rasters.reserve(nFiles); 
     for (auto f : files)
     {
         // Add the raster and retrieve its name.
@@ -36,11 +43,17 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
         RasterFile* pRaster = &rasters.back();
 
         // Update loading status
-        progress = (int)(100*(double)rasters.size()/files.size());
+        progress = (int)(100*(double)rasters.size()/nFiles);
+
+        // Retrieve filename and update the message to avoid overlaps.
+        filename = pRaster->getFileName(); 
+        dl = message.length() - filename.length(); 
+
+        message = dl > 0 ? filename + std::string(dl, ' ') : filename;
 
         std::clog << "\r[" <<  std::setw(3) << progress 
                   << "%] \033[32mLoading DEM file:\033[0m " 
-                  << pRaster->getFileName() << std::flush;
+                  << message << std::flush;
         
         // Load the first band (its the only one for CE2 DEMs)
         pRaster->loadBand(0); 
@@ -64,12 +77,19 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
 
     }    
 
+
     // Retrieve time to compute rendering duration
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
 
-    std::clog << std::endl << "       DEM files loaded in " << duration.count() 
-              << " seconds." << std::endl;
+    // Generate completion message. 
+    message = "\r[100%] DEM files loaded in " + std::to_string(duration.count()) + " seconds.";
+    dl = 26 + filename.length() - message.length();
+
+    if (dl > 0) 
+        message += std::string(dl, ' '); 
+    
+    std::clog << message << std::endl;
 
     // Retrieve the DEM mean radius. This assumes that the mean value is equal in 
     // all rasters, which is true for the DEMs at hand. 
@@ -78,10 +98,10 @@ DEM::DEM(std::vector<std::string> files, int nThreads) {
 
 }
 
-DEM::DEM(std::string filename, int nThreads) : 
+DEM::DEM(std::string filename, size_t nThreads) : 
     DEM(std::vector<std::string>{filename}, nThreads) {}
 
-int DEM::nRasters() const { 
+size_t DEM::nRasters() const { 
     return rasters.size();
 }
 
@@ -91,11 +111,11 @@ double DEM::getMaxAltitude() const { return _maxAltitude; }
 
 double DEM::getResolution() const { return _resolution; }
 
-RasterFile DEM::getRasterFile(int i) const {
+RasterFile DEM::getRasterFile(uint i) const {
     return rasters[i];
 }
 
-double DEM::getAltitude(const point2& s, bool subsample, int threadid) const {
+double DEM::getAltitude(const point2& s, bool interp, uint threadid) const {
 
     point2 pix;  
 
@@ -104,11 +124,8 @@ double DEM::getAltitude(const point2& s, bool subsample, int threadid) const {
         if (rasters[k].isWithinGeographicBounds(s)) {
             pix = rasters[k].sph2pix(s, threadid); 
 
-            if (!subsample) {
-                return rasters[k].getBandData((int)pix[0], (int)pix[1], 0); 
-            } else {
-                return subsampleRaster(pix, k, threadid);
-            }
+            return interp ? interpolateRaster(pix, k, threadid) : 
+                            rasters[k].getBandData(pix[0], pix[1], 0);         
         }
 
     }
@@ -117,9 +134,9 @@ double DEM::getAltitude(const point2& s, bool subsample, int threadid) const {
 
 }
 
-double DEM::subsampleRaster(const point2& pix, int rid, int tid) const {
+double DEM::interpolateRaster(const point2& pix, size_t rid, int tid) const {
 
-    int u = (int)pix[0], v = (int)pix[1]; 
+    int u = pix[0], v = pix[1]; 
 
     // These are the upper-left (dr) and bottom-right (dl) points
     point2 dl(u, v); 
