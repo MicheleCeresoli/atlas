@@ -9,6 +9,7 @@ set(HEADER_LIST
     ${HEADER_DIR}/crsutils.h
     ${HEADER_DIR}/raster.h
     ${HEADER_DIR}/dcm.h
+    ${HEADER_DIR}/dom.h
     ${HEADER_DIR}/dem.h
     ${HEADER_DIR}/pixel.h
     ${HEADER_DIR}/pool.h
@@ -28,6 +29,7 @@ set(SOURCE_LIST
     raster.cpp
     dcm.cpp
     dem.cpp
+    dom.cpp
     pixel.cpp
     pool.cpp
     ray.cpp

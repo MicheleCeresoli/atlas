@@ -5,6 +5,7 @@ set(PYTHON_FILES
     camera.cpp
     dcm.cpp
     dem.cpp
+    dom.cpp
     pixel.cpp
     raster.cpp
     ray.cpp

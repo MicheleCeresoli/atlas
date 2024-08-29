@@ -5,40 +5,21 @@
 #include "vec3.h"
 
 
-class DEM {
+class DEM : public RasterContainer {
 
     public: 
 
-        DEM(std::string filename, size_t nThreads = 1);
-        DEM(std::vector<std::string> files, size_t nThreads = 1); 
+        DEM(std::string filename, size_t nThreads = 1, bool displayInfo = false);
+        DEM(std::vector<std::string> files, size_t nThreads = 1, bool displayInfo = false); 
 
-        // Return the number of raster files
-        size_t nRasters() const; 
-
-        double getMeanRadius() const; 
-        double getMinAltitude() const; 
-        double getMaxAltitude() const;
-
-        // Return the highest resolution across all the loaded files
-        double getResolution() const;  
-        double getAltitude(const point2& s, bool interp, uint threadid = 0) const; 
-
-        RasterFile* getRasterFile(uint i); 
+        inline double getMeanRadius() const { return _minAltitude; }; 
+        inline double getMinAltitude() const { return _maxAltitude; }; 
+        inline double getMaxAltitude() const { return _meanRadius; };
         
-        // Load and unload raster data
-        void loadRaster(size_t i); 
-        void unloadRaster(size_t i); 
-
     private: 
-
-        std::vector<RasterFile> rasters;
 
         double _minAltitude, _maxAltitude;
         double _meanRadius; 
-
-        double _resolution;
-
-        double interpolateRaster(const point2& pix, size_t rid, int tid) const; 
 
 };
 

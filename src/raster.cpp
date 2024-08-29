@@ -415,3 +415,200 @@ void RasterFile::computeRasterBounds() {
 
 
 }
+
+
+
+/* -------------------------------------------------------
+                    RASTER CONTAINER
+---------------------------------------------------------- */
+
+// Constructors 
+
+RasterContainer::RasterContainer(
+    std::vector<std::string> files, size_t nThreads, bool displayInfo
+) {
+
+    // If there are no files, throw an error
+    size_t nFiles = files.size(); 
+
+    if (nFiles == 0)  {
+        throw std::runtime_error("at least one raster file is required");
+    }
+
+    /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
+     * this function should be called just once at the start of the program, however 
+     * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
+     * it does any harm calling it more than once. */ 
+    GDALAllRegister();
+
+    // Initialise the resolution.
+    _resolution  = inf; 
+    double res;
+    
+    // Store current time
+    auto t1 = std::chrono::high_resolution_clock::now();
+    
+    // Load up all the rasters
+    rasters.reserve(nFiles); 
+    for (auto f : files)
+    {
+        // Add the raster and retrieve its name.
+        rasters.push_back(RasterFile(f, nThreads));
+
+        if (displayInfo) {
+            displayLoadingStatus(RasterLoadingStatus::LOADING, nFiles);
+        }
+            
+        // Update the minimum DEM resolution
+        res = rasters.back().resolution();
+        if (res < _resolution) {
+            _resolution = res;
+        }
+
+    }    
+
+    // Retrieve time to compute rendering duration
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+
+    if (displayInfo) {
+        displayLoadingStatus(RasterLoadingStatus::COMPLETED, 0); 
+    }
+        
+
+}
+
+RasterContainer::RasterContainer(std::string filename, size_t nThreads, bool displayInfo) : 
+    RasterContainer(std::vector<std::string>{filename}, nThreads, displayInfo) {}
+
+
+const RasterFile* RasterContainer::getRasterFile(size_t i) const {
+    return &rasters[i];
+}
+
+void RasterContainer::loadRaster(size_t i) {
+    rasters[i].loadBand(0); 
+}
+
+void RasterContainer::unloadRaster(size_t i) {
+    rasters[i].unloadBand(0); 
+}
+
+void RasterContainer::loadRasters() {
+    for (size_t k = 0; k < rasters.size(); k++) {
+        rasters[k].loadBand(k);
+    }
+}
+
+void RasterContainer::unloadRasters() {
+    for (size_t k = 0; k < rasters.size(); k++) {
+        rasters[k].unloadBand(k);
+    }
+}
+
+double RasterContainer::getData(const point2& s, bool interp, uint tid) const {
+
+    point2 pix;  
+    for (size_t k = 0; k < rasters.size(); k++) {
+            
+        if (rasters[k].isWithinGeographicBounds(s)) {
+            pix = rasters[k].sph2pix(s, tid); 
+
+            return interp ? interpolateRaster(pix, k, tid) : 
+                            rasters[k].getBandData(pix[0], pix[1], 0);         
+        }
+
+    }
+
+    return -inf; 
+}
+
+double RasterContainer::interpolateRaster(const point2& pix, size_t rid, int tid) const {
+
+    int u = pix[0], v = pix[1]; 
+
+    // These are the upper-left (dr) and bottom-right (dl) points
+    point2 dl(u, v); 
+    point2 dr = dl + 1;
+
+    dl = pix - dl; 
+    dr = dr - pix; 
+    
+    // Retrieve no data value
+    double noDataVal = rasters[rid].getBandNoDataValue(0); 
+
+    // Retrieve raster width and height 
+    double s = sqrt(2), sk; 
+    double h, n = 0.0, d = 0.0; 
+
+    bool hu = (u+1) < rasters[rid].width(); 
+    bool hv = (v+1) < rasters[rid].height(); 
+
+    for (size_t j = 0; j < 4; j++) {
+
+        switch (j) {
+            case 0:
+                sk = dl.norm();
+                h = rasters[rid].getBandData(u, v, 0); 
+                break;
+
+            case 1: 
+                sk = sqrt(dr[0]*dr[0] + dl[1]*dl[1]);
+                h = hu ? rasters[rid].getBandData(u+1, v, 0) : noDataVal; 
+                break;
+
+            case 2: 
+                sk = sqrt(dl[0]*dl[0] + dr[1]*dr[1]); 
+                h = hv ? rasters[rid].getBandData(u, v+1, 0) : noDataVal; 
+                break;
+
+            default: 
+                sk = dr.norm(); 
+                h = (hu && hv) ? rasters[rid].getBandData(u+1, v+1, 0) : noDataVal; 
+                break;
+        }
+
+        if (h != noDataVal) {
+            sk = 1 - sk/s; 
+            n += sk*h;
+            d += sk; 
+        } 
+
+    }
+
+    return n/d; 
+}
+
+void RasterContainer::displayLoadingStatus(RasterLoadingStatus s, size_t nFiles) {
+
+    int dl; 
+
+    std::string filename = rasters.back().getFileName(); 
+
+    if (s == RasterLoadingStatus::LOADING) {
+
+        // Update loading status
+        int progress = (int)(100*(double)rasters.size()/nFiles);
+
+        // Compute message 
+        dl = displayMessage.length() - filename.length(); 
+        displayMessage = dl > 0 ? filename + std::string(dl, ' ') : filename;
+        
+        // Print the message to terminal
+        std::clog << "\r[" <<  std::setw(3) << progress 
+                  << "%] \033[32mLoading raster file:\033[0m " 
+                  << displayMessage << std::flush;
+
+    } else {
+
+        // Generate completion message. 
+        displayMessage = "\r[100%] Raster files loaded.";
+        dl = 29 + filename.length() - displayMessage.length();
+
+        if (dl > 0) 
+            displayMessage += std::string(dl, ' '); 
+        
+        std::clog << displayMessage << std::endl;
+    }
+
+}

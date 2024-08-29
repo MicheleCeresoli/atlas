@@ -65,7 +65,7 @@ PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid)
         s2 = rad2deg(point2(sph[1], sph[2])); 
 
         // Retrieve altitude from DEM 
-        hk = dem.getAltitude(s2, interp, threadid); 
+        hk = dem.getData(s2, interp, threadid); 
 
         if (sph[0] <= (hk + meanRadius)) {
              /* By putting t at halfway between the two values, we halve the maximum 

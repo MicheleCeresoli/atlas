@@ -33,7 +33,6 @@ void init_raster(py::module_ &m) {
         .def(py::init<std::string, size_t>(), py::arg("file"), py::arg("nThreads") = 1)
 
         .def("getFileName", &RasterFile::getFileName)
-        .def("getFilePath", &RasterFile::getFilePath)
 
         .def("width", &RasterFile::width)
         .def("height", &RasterFile::height)
@@ -71,9 +70,10 @@ void init_raster(py::module_ &m) {
         .def("unloadBand", &RasterFile::unloadBand)
         .def("unloadBands", &RasterFile::unloadBands)
 
-
         .def("getBandNoDataValue", &RasterFile::getBandNoDataValue)
         .def("getBandData", &RasterFile::getBandData)
+
+        .def("getRasterBand", &RasterFile::getRasterBand, py::return_value_policy::reference)
 
         .def("map2pix", &RasterFile::map2pix)
         .def("pix2map", &RasterFile::pix2map)
@@ -82,7 +82,28 @@ void init_raster(py::module_ &m) {
         .def("map2sph", &RasterFile::map2sph)
 
         .def("sph2pix", &RasterFile::sph2pix)
-        .def("pix2sph", &RasterFile::pix2sph)
+        .def("pix2sph", &RasterFile::pix2sph);
 
-        ;
+
+    py::class_<RasterContainer>(m, "RasterContainer")
+
+        .def(py::init<std::string, size_t, bool>(), 
+             py::arg("filename"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+
+        .def(py::init<std::vector<std::string>, size_t, bool>(), 
+             py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+
+        .def("nRasters", &RasterContainer::nRasters)
+        .def("getResolution", &RasterContainer::getResolution)
+        .def("getData", &RasterContainer::getData)
+
+        .def("getRasterFile", &RasterContainer::getRasterFile, 
+            py::return_value_policy::reference)
+
+        .def("loadRaster", &RasterContainer::loadRaster)
+        .def("unloadRaster", &RasterContainer::unloadRaster)
+
+        .def("loadRasters", &RasterContainer::loadRasters)
+        .def("unloadRasters", &RasterContainer::unloadRasters); 
+
 }

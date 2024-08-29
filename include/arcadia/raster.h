@@ -166,4 +166,58 @@ class RasterFile {
 };
 
 
+
+/* -------------------------------------------------------
+                    RASTER CONTAINER
+---------------------------------------------------------- */
+
+enum class RasterLoadingStatus {
+    LOADING, 
+    COMPLETED
+};
+
+class RasterContainer {
+
+    public: 
+
+        RasterContainer(
+            std::string filename, size_t nThreads = 1, bool displayInfo = false
+        ); 
+
+        RasterContainer(
+            std::vector<std::string> files, 
+            size_t nThreads = 1, 
+            bool displayInfo = false
+        );
+
+        virtual ~RasterContainer() = default;
+
+        inline size_t nRasters() const { return rasters.size(); }; 
+
+        inline double getResolution() const { return _resolution; }; 
+        double getData(const point2& s, bool interp, uint threadid = 0) const;
+
+        const RasterFile* getRasterFile(size_t i) const; 
+
+        void loadRaster(size_t i); 
+        void unloadRaster(size_t i); 
+
+        void loadRasters(); 
+        void unloadRasters(); 
+
+    protected:
+
+        std::vector<RasterFile> rasters;
+        double _resolution;
+
+        double interpolateRaster(const point2& pix, size_t rid, int tid) const;
+
+    private: 
+
+        std::string displayMessage;
+        void displayLoadingStatus(RasterLoadingStatus s, size_t nFiles);
+
+};
+
+
 #endif

@@ -2,13 +2,13 @@
 #include <pybind11/pybind11.h> 
 #include <pybind11/stl.h>
 
-#include "dem.h"
+#include "dom.h"
 
 namespace py = pybind11;
 
-void init_dem(py::module_ &m) {
+void init_dom(py::module_ &m) {
 
-    py::class_<DEM, RasterContainer>(m, "DEM")
+    py::class_<DOM, RasterContainer>(m, "DOM")
 
         .def(py::init<std::string, size_t, bool>(), 
              py::arg("filename"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
@@ -16,8 +16,6 @@ void init_dem(py::module_ &m) {
         .def(py::init<std::vector<std::string>, size_t, bool>(), 
              py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
 
-        .def("getMeanRadius", &DEM::getMeanRadius)
-        .def("getMinAltitude", &DEM::getMinAltitude)
-        .def("getMaxAltitude", &DEM::getMaxAltitude);
-        
+        .def("getColor", &DOM::getColor);
+
 }

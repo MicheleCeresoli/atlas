@@ -187,39 +187,43 @@ int main(int argc, const char* argv[])
 
     std::vector<std::string> demFiles;
 
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D001_49N168W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D002_49N144W_A.tif");
-    demFiles.push_back("../resources/CE2_GRAS_DEM_50m_D015_49N168E_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D001_49N168W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D002_49N144W_A.tif");
+    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D015_49N168E_A.tif");
 
     // std::string filename = "../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif";
     // // filename = "../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif"; 
 
-    DEM dem(demFiles, nThreads);
-    World w(dem); 
+    DEM dem(demFiles, nThreads, true);
 
-    RenderingOptions opts = {
-        .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
-        .batchSize = 640,
-        .nThreads = nThreads, 
-        .displayInfo = true
-    };
+    const RasterFile* f = dem.getRasterFile(0); 
+    std::cout << f->getFileName() << std::endl; 
 
-    // Create the Renderer (1 thread, batch size 64)
-    Renderer renderer(opts);
+    // World w(dem); 
 
-    // Render the image
-    std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
+    // RenderingOptions opts = {
+    //     .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
+    //     .batchSize = 640,
+    //     .nThreads = nThreads, 
+    //     .displayInfo = true
+    // };
 
-    // Write the pixels to a PPM image file
-    // makeImageLIDAR(cam, pixels, true); 
-    makeImageDEM(cam, pixels); 
+    // // Create the Renderer (1 thread, batch size 64)
+    // Renderer renderer(opts);
+
+    // // Render the image
+    // std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
+
+    // // Write the pixels to a PPM image file
+    // // makeImageLIDAR(cam, pixels, true); 
+    // makeImageDEM(cam, pixels); 
 
     std::clog << std::endl; 
     return 0;
