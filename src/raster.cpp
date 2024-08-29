@@ -103,13 +103,17 @@ void RasterBand::loadData() {
     return; 
 }
 
+void RasterBand::unloadData() {
+    nLoadedElements = 0; 
+    data.reset();
+}
+
 double RasterBand::getData(uint i) const {
 
     if (i < nLoadedElements) {
         return _scale*(double)data.get()[i] + _offset;
     } else {
         throw std::range_error("raster band data does not have enough elements");
-        return _noDataVal;
     }
 }
 
@@ -230,6 +234,16 @@ void RasterFile::loadBand(size_t i) {
 void RasterFile::loadBands() {
     for (size_t k = 0; k < _rasterCount; k++) {
         loadBand(k); 
+    }
+}
+
+void RasterFile::unloadBand(size_t i) {
+    bands[i].unloadData(); 
+}
+
+void RasterFile::unloadBands() {
+    for (size_t k = 0; k < _rasterCount; k++) {
+        unloadBand(k);
     }
 }
 

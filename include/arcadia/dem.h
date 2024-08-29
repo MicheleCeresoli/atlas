@@ -15,8 +15,6 @@ class DEM {
         // Return the number of raster files
         size_t nRasters() const; 
 
-        RasterFile getRasterFile(uint i) const; 
-
         double getMeanRadius() const; 
         double getMinAltitude() const; 
         double getMaxAltitude() const;
@@ -24,6 +22,12 @@ class DEM {
         // Return the highest resolution across all the loaded files
         double getResolution() const;  
         double getAltitude(const point2& s, bool interp, uint threadid = 0) const; 
+
+        RasterFile* getRasterFile(uint i); 
+        
+        // Load and unload raster data
+        void loadRaster(size_t i); 
+        void unloadRaster(size_t i); 
 
     private: 
 

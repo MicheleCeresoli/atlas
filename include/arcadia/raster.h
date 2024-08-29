@@ -29,8 +29,9 @@ class RasterBand {
         double scale() const;
         double noDataVal() const; 
 
-        // Read all the data inside the raster band
+        // Load/unload all the data inside the raster band
         void loadData(); 
+        void unloadData();
         
         // Get a given pixel 
         double getData(uint i) const;
@@ -98,6 +99,9 @@ class RasterFile {
         
         void loadBand(size_t i);
         void loadBands(); 
+
+        void unloadBand(size_t i); 
+        void unloadBands(); 
 
         double getBandNoDataValue(uint bandid) const;
         double getBandData(uint u, uint v, uint bandid = 0) const; 

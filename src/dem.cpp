@@ -116,8 +116,8 @@ double DEM::getMaxAltitude() const { return _maxAltitude; }
 
 double DEM::getResolution() const { return _resolution; }
 
-RasterFile DEM::getRasterFile(uint i) const {
-    return rasters[i];
+RasterFile* DEM::getRasterFile(uint i) {
+    return &rasters[i];
 }
 
 double DEM::getAltitude(const point2& s, bool interp, uint threadid) const {
@@ -137,6 +137,14 @@ double DEM::getAltitude(const point2& s, bool interp, uint threadid) const {
 
     return -inf; 
 
+}
+
+void DEM::loadRaster(size_t i) {
+    rasters[i].loadBand(0);
+}
+
+void DEM::unloadRaster(size_t i) {
+    rasters[i].unloadBand(0);
 }
 
 double DEM::interpolateRaster(const point2& pix, size_t rid, int tid) const {
