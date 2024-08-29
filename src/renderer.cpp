@@ -298,6 +298,8 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
         pool.waitCompletion();
     }
 
+    // Unloads unused DEM files data from memory.
+    w.cleanupDEM();
     return renderedPixels;
 
 }

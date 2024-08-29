@@ -10,11 +10,11 @@ void init_dom(py::module_ &m) {
 
     py::class_<DOM, RasterContainer>(m, "DOM")
 
-        .def(py::init<std::string, size_t, bool>(), 
-             py::arg("filename"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+        .def(py::init<std::string, RenderingOptions>(), 
+             py::arg("filename"), py::arg("opts") = RenderingOptions())
 
-        .def(py::init<std::vector<std::string>, size_t, bool>(), 
-             py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+        .def(py::init<std::vector<std::string>, RenderingOptions>(), 
+             py::arg("files"), py::arg("opts") = RenderingOptions())
 
         .def("getColor", &DOM::getColor);
 

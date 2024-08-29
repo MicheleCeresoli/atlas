@@ -2,6 +2,7 @@
 #define DEM_H 
 
 #include "raster.h"
+#include "settings.h"
 #include "vec3.h"
 
 
@@ -9,12 +10,15 @@ class DEM : public RasterContainer {
 
     public: 
 
-        DEM(std::string filename, size_t nThreads = 1, bool displayInfo = false);
-        DEM(std::vector<std::string> files, size_t nThreads = 1, bool displayInfo = false); 
 
-        inline double getMeanRadius() const { return _minAltitude; }; 
-        inline double getMinAltitude() const { return _maxAltitude; }; 
-        inline double getMaxAltitude() const { return _meanRadius; };
+        DEM(std::string filename, RenderingOptions opts);
+        DEM(std::vector<std::string> files, RenderingOptions opts); 
+
+        DEM(const DEM&) = default; 
+        
+        inline double getMeanRadius() const { return _meanRadius; }; 
+        inline double getMinAltitude() const { return _minAltitude; }; 
+        inline double getMaxAltitude() const { return _maxAltitude; };
         
     private: 
 

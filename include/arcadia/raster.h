@@ -1,5 +1,5 @@
-#ifndef RasterFile_H 
-#define RasterFile_H 
+#ifndef RASTERFILE_H 
+#define RASTERFILE_H 
 
 #include "affine.h"
 #include "gdal_priv.h"
@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -21,13 +22,15 @@ class RasterBand {
         RasterBand(std::shared_ptr<GDALDataset> pd, int i);
 
         // Retrieve the minimum raster value; 
-        double min() const; 
+        inline double min() const { return _vMin; }
         // Retrieve the maximum raster value;
-        double max() const; 
+        inline double max() const { return _vMax; }
 
-        double offset() const; 
-        double scale() const;
-        double noDataVal() const; 
+        inline double offset() const { return _offset; }; 
+        inline double scale() const { return _scale; }
+        inline double noDataVal() const { return _noDataVal; } 
+
+        inline bool isLoaded() const { return nLoadedElements > 0; }
 
         // Load/unload all the data inside the raster band
         void loadData(); 
@@ -69,24 +72,27 @@ class RasterFile {
 
         RasterFile(const std::string& file, size_t nThreads = 1);
 
-        std::string getFileName() const; 
-        std::filesystem::path getFilePath() const; 
+        inline std::string getFileName() const { return filename; }
+        inline std::filesystem::path getFilePath() const { return filepath; }
 
         inline uint width() const { return _width; }
         inline uint height() const { return _height; }
         inline size_t rasterCount() const { return _rasterCount; }; 
 
-        double resolution() const; 
+        /* Return the raster lowest resolution. In this case lowest means the one which 
+         * expresses the lowest accuracy. For example, if it had 20m on the x-axis and 50m 
+         * on the y-axis, the 50m resolution would be returned. */
+        inline double resolution() const { return _resolution; }
 
-        size_t nThreads() const; 
+        inline size_t nThreads() const { return _nThreads; }
 
-        double top() const; 
-        double bottom() const; 
-        double left() const; 
-        double right() const; 
+        inline double top() const { return _top; }; 
+        inline double bottom() const { return _bottom; }
+        inline double left() const { return _left; }
+        inline double right() const { return _right; }
 
-        Affine getAffine() const; 
-        Affine getInvAffine() const; 
+        inline Affine getAffine() const { return transform; }
+        inline Affine getInvAffine() const { return iTransform; }
 
         // Raster limits 
 
@@ -97,21 +103,25 @@ class RasterFile {
 
         // Raster Bands Interfaces 
         
-        void loadBand(size_t i);
-        void loadBands(); 
+        inline void loadBand(size_t i) { bands[i].loadData(); };
+        inline void unloadBand(size_t i) { bands[i].unloadData(); }; 
+        inline bool isBandLoaded(size_t i) const { return bands[i].isLoaded(); }; 
 
-        void unloadBand(size_t i); 
+        void loadBands(); 
         void unloadBands(); 
 
-        double getBandNoDataValue(uint bandid) const;
-        double getBandData(uint u, uint v, uint bandid = 0) const; 
+        inline double getBandNoDataValue(uint i) const { return bands[i].noDataVal(); }
 
-        const RasterBand* getRasterBand(uint i) const;
+        inline double getBandData(uint u, uint v, uint i = 0) const { 
+            return bands[i].getData(u, v);
+        }
+
+        inline const RasterBand* getRasterBand(uint i) const { return &bands[i]; }
 
         // Transformation Functions
 
-        point2 map2pix(const point2& m) const;
-        point2 pix2map(const point2& p) const;
+        inline point2 pix2map(const point2& p) const { return transform*p; }
+        inline point2 map2pix(const point2& m) const { return iTransform*m; }
 
         point2 sph2map(const point2& s, uint threadid = 0) const;
         point2 map2sph(const point2& m, uint threadid = 0) const; 
@@ -119,7 +129,7 @@ class RasterFile {
         point2 sph2pix(const point2& s, uint threadid = 0) const;
         point2 pix2sph(const point2& p, uint threadid = 0) const; 
 
-        const OGRSpatialReference* crs() const;
+        inline const OGRSpatialReference* crs() const { return pDataset->GetSpatialRef(); }
 
     private: 
 
@@ -195,20 +205,27 @@ class RasterContainer {
         inline size_t nRasters() const { return rasters.size(); }; 
 
         inline double getResolution() const { return _resolution; }; 
-        double getData(const point2& s, bool interp, uint threadid = 0) const;
+        double getData(const point2& s, bool interp, uint threadid = 0);
 
-        const RasterFile* getRasterFile(size_t i) const; 
+        inline const RasterFile* getRasterFile(size_t i) const { return &rasters[i]; }
 
-        void loadRaster(size_t i); 
-        void unloadRaster(size_t i); 
+        inline void loadRaster(size_t i) { rasters[i].loadBand(0); }
+        inline void unloadRaster(size_t i) { rasters[i].unloadBand(0); }
 
         void loadRasters(); 
-        void unloadRasters(); 
+        void unloadRasters();
+
+        void cleanupRasters(); 
 
     protected:
 
         std::vector<RasterFile> rasters;
         double _resolution;
+
+        // // Mutex to handle raster loading\unloading. 
+        std::mutex rasterUpdateMutex;
+        std::vector<uint> rastersUsed; 
+        std::vector<uint> rastersFlag;
 
         double interpolateRaster(const point2& pix, size_t rid, int tid) const;
 

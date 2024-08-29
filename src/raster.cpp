@@ -73,15 +73,6 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
 
 }
 
-
-double RasterBand::min() const { return _vMin; }
-double RasterBand::max() const { return _vMax; }
-
-double RasterBand::offset() const { return _offset; }
-double RasterBand::scale() const { return _scale; }
-
-double RasterBand::noDataVal() const { return _noDataVal; }
-
 void RasterBand::loadData() {
 
     nLoadedElements = _width*_height;
@@ -189,22 +180,6 @@ RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nTh
 
 }
 
-
-std::string RasterFile::getFileName() const { return filename; }
-std::filesystem::path RasterFile::getFilePath() const { return filepath; }
-
-size_t RasterFile::nThreads() const { return _nThreads; }
-
-double RasterFile::top() const { return _top; }
-double RasterFile::bottom() const { return _bottom; }
-double RasterFile::left() const { return _left; }
-double RasterFile::right() const { return _right; }
-
-/* Return the raster lowest resolution. In this case lowest means the one which 
- * expresses the lowest accuracy. For example, if it had 20m on the x-axis and 50m on the 
- * y-axis, the 50m resolution would be returned. */
-double RasterFile::resolution() const { return _resolution; }
-
 // Raster limits 
 
 void RasterFile::getLongitudeBounds(double* bounds) const {
@@ -225,20 +200,12 @@ bool RasterFile::isWithinGeographicBounds(const point2& p) const {
 }
 
 
-// Raster Bands Interfaces 
-
-void RasterFile::loadBand(size_t i) {
-    bands[i].loadData();
-}
+// Raster Bands Interfaces
 
 void RasterFile::loadBands() {
     for (size_t k = 0; k < _rasterCount; k++) {
         loadBand(k); 
     }
-}
-
-void RasterFile::unloadBand(size_t i) {
-    bands[i].unloadData(); 
 }
 
 void RasterFile::unloadBands() {
@@ -247,37 +214,8 @@ void RasterFile::unloadBands() {
     }
 }
 
-double RasterFile::getBandNoDataValue(uint bandid) const {
-    return bands[bandid].noDataVal(); 
-}
-
-double RasterFile::getBandData(uint u, uint v, uint bandid) const {
-    return bands[bandid].getData(u, v);  
-}
-
-
-Affine RasterFile::getAffine() const { return transform; }
-Affine RasterFile::getInvAffine() const { return iTransform; }
-
-const RasterBand* RasterFile::getRasterBand(uint i) const {
-    return &(bands[i]);
-}
-
-const OGRSpatialReference* RasterFile::crs() const {
-    return pDataset->GetSpatialRef(); 
-}
-
 
 // Transformation Functions
-
-point2 RasterFile::pix2map(const point2& p) const {
-    return transform*p;
-}
-
-point2 RasterFile::map2pix(const point2& m) const {
-    return iTransform*m;
-}
-
 point2 RasterFile::sph2map(const point2& s, uint threadid) const {
 
     int flags[1]; 
@@ -431,10 +369,6 @@ RasterContainer::RasterContainer(
     // If there are no files, throw an error
     size_t nFiles = files.size(); 
 
-    if (nFiles == 0)  {
-        throw std::runtime_error("at least one raster file is required");
-    }
-
     /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
      * this function should be called just once at the start of the program, however 
      * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
@@ -467,14 +401,17 @@ RasterContainer::RasterContainer(
 
     }    
 
+    // Initialise the raster use and flags vectors 
+    rastersUsed = std::vector<uint>(nFiles, 0);
+    rastersFlag = std::vector<uint>(nFiles, 0); 
+
     // Retrieve time to compute rendering duration
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
 
     if (displayInfo) {
-        displayLoadingStatus(RasterLoadingStatus::COMPLETED, 0); 
+        displayLoadingStatus(RasterLoadingStatus::COMPLETED, nFiles); 
     }
-        
 
 }
 
@@ -482,38 +419,41 @@ RasterContainer::RasterContainer(std::string filename, size_t nThreads, bool dis
     RasterContainer(std::vector<std::string>{filename}, nThreads, displayInfo) {}
 
 
-const RasterFile* RasterContainer::getRasterFile(size_t i) const {
-    return &rasters[i];
-}
-
-void RasterContainer::loadRaster(size_t i) {
-    rasters[i].loadBand(0); 
-}
-
-void RasterContainer::unloadRaster(size_t i) {
-    rasters[i].unloadBand(0); 
-}
-
 void RasterContainer::loadRasters() {
     for (size_t k = 0; k < rasters.size(); k++) {
-        rasters[k].loadBand(k);
+        rasters[k].loadBand(0);
     }
 }
 
 void RasterContainer::unloadRasters() {
     for (size_t k = 0; k < rasters.size(); k++) {
-        rasters[k].unloadBand(k);
+        rasters[k].unloadBand(0);
     }
 }
 
-double RasterContainer::getData(const point2& s, bool interp, uint tid) const {
+double RasterContainer::getData(const point2& s, bool interp, uint tid) {
 
     point2 pix;  
     for (size_t k = 0; k < rasters.size(); k++) {
             
         if (rasters[k].isWithinGeographicBounds(s)) {
-            pix = rasters[k].sph2pix(s, tid); 
+            
+            /* In the worst case scenario, this lock is acquired just once per 
+             * image per used raster, so we shouldn't have many performance drawbacks. */
+            if (rastersUsed[k] == 0) {
+                
+                std::unique_lock<std::mutex> lock(rasterUpdateMutex);
 
+                // If the rasters band is not loaded, load it! 
+                if (!rasters[k].isBandLoaded(0))
+                    rasters[k].loadBand(0); 
+
+                // Update the number of times the raster has been used 
+                rastersUsed[k]++; 
+            }
+
+            // Retrieve the pixel data value
+            pix = rasters[k].sph2pix(s, tid); 
             return interp ? interpolateRaster(pix, k, tid) : 
                             rasters[k].getBandData(pix[0], pix[1], 0);         
         }
@@ -521,6 +461,24 @@ double RasterContainer::getData(const point2& s, bool interp, uint tid) const {
     }
 
     return -inf; 
+}
+
+void RasterContainer::cleanupRasters() {
+
+    for (size_t k; k < rasters.size(); k++) 
+    {
+        if (rastersUsed[k] == 0) {
+            rastersFlag[k]++; 
+
+            if (rastersFlag[k] > 1) {
+                rasters[k].unloadBand(0);
+                rastersFlag[k] = 0; 
+            }
+        } else {
+            rastersFlag[k] = 0; 
+            rastersUsed[k] = 0;
+        }
+    }
 }
 
 double RasterContainer::interpolateRaster(const point2& pix, size_t rid, int tid) const {
@@ -581,11 +539,13 @@ double RasterContainer::interpolateRaster(const point2& pix, size_t rid, int tid
 
 void RasterContainer::displayLoadingStatus(RasterLoadingStatus s, size_t nFiles) {
 
-    int dl; 
+    if (nFiles == 0)
+        return;  
 
+    int dl; 
     std::string filename = rasters.back().getFileName(); 
 
-    if (s == RasterLoadingStatus::LOADING) {
+    if (s == RasterLoadingStatus::LOADING && nFiles > 0) {
 
         // Update loading status
         int progress = (int)(100*(double)rasters.size()/nFiles);

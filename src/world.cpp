@@ -2,9 +2,11 @@
 #include "world.h"
 #include "utils.h"
 
-#include <vector>
-
-World::World(DEM &dem) : dem(dem) {
+World::World(
+    std::vector<std::string> dem_files, 
+    std::vector<std::string> dom_files, 
+    RenderingOptions opts
+) : dem(dem_files, opts), dom(dom_files, opts) {
 
     // Initialise mean and minimum/maximum radius values
     meanRadius = dem.getMeanRadius(); 

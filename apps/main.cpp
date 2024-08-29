@@ -165,11 +165,7 @@ int main(int argc, const char* argv[])
     double lat = deg2rad(62);
 
     point3 cam_pos = sph2car(point3(h, lon, lat));
-    // std::clog << std::fixed << std::setprecision(3) << std::endl;
 
-    // // point3 cam_pos = point3(h, 0, 0); 
-    // // dcm    cam_dcm = dcm(0, 0, -1, 0, 1, 0, 1, 0, 0);
-    
     dcm A_cam2lvlh = angle2dcm("Y", deg2rad(70)).transpose();
     dcm A_lvlh2in  = pos2dcm(cam_pos);
     
@@ -187,43 +183,48 @@ int main(int argc, const char* argv[])
 
     std::vector<std::string> demFiles;
 
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
     demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B001_77N158W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_A001_87N000W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D001_49N168W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D002_49N144W_A.tif");
-    // demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D015_49N168E_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B002_77N113W_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_B008_77N158E_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C001_63N165W_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C002_63N135W_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_C012_63N165E_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D001_49N168W_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D002_49N144W_A.tif");
+    demFiles.push_back("../resources/dem/CE2_GRAS_DEM_50m_D015_49N168E_A.tif");
 
-    // std::string filename = "../resources/CE2_GRAS_DEM_50m_C001_63N165W_A.tif";
-    // // filename = "../resources/CE2_GRAS_DEM_50m_B001_77N158W_A.tif"; 
 
-    DEM dem(demFiles, nThreads, true);
+    std::vector<std::string> domFiles; 
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_A001_87N000W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B001_77N158W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B002_77N113W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B008_77N158E_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C001_63N165W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C002_63N135W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C012_63N165E_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D001_49N168W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D002_49N144W_A.tif");
+    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D015_49N168E_A.tif");
 
-    const RasterFile* f = dem.getRasterFile(0); 
-    std::cout << f->getFileName() << std::endl; 
+    RenderingOptions opts = {
+        .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
+        .batchSize = 640,
+        .nThreads = nThreads, 
+        .displayInfo = true
+    };
+   
+    World w(demFiles, domFiles, opts); 
 
-    // World w(dem); 
+    // Create the Renderer 
+    Renderer renderer(opts);
 
-    // RenderingOptions opts = {
-    //     .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
-    //     .batchSize = 640,
-    //     .nThreads = nThreads, 
-    //     .displayInfo = true
-    // };
+    // Render the image
+    std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
 
-    // // Create the Renderer (1 thread, batch size 64)
-    // Renderer renderer(opts);
-
-    // // Render the image
-    // std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
-
-    // // Write the pixels to a PPM image file
+    // Write the pixels to a PPM image file
     // // makeImageLIDAR(cam, pixels, true); 
-    // makeImageDEM(cam, pixels); 
+    makeImageDEM(cam, pixels); 
 
     std::clog << std::endl; 
     return 0;

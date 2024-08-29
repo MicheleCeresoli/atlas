@@ -2,12 +2,13 @@
 #include "dem.h"
 #include "utils.h"
 
-DEM::DEM(std::vector<std::string> files, size_t nThreads, bool displayInfo) : 
-    RasterContainer(files, nThreads, displayInfo) {
+DEM::DEM(std::vector<std::string> files, RenderingOptions opts) : 
+    RasterContainer(files, opts.nThreads, opts.displayInfo) {
 
     // Initialise min\max altitude values
     _minAltitude = inf; 
     _maxAltitude = -inf;
+    _meanRadius = 0.0;
 
     double hMin, hMax;
     RasterFile* pRaster;
@@ -30,10 +31,11 @@ DEM::DEM(std::vector<std::string> files, size_t nThreads, bool displayInfo) :
 
     // Retrieve the DEM mean radius. This assumes that the mean value is equal in 
     // all rasters, which is true for the DEMs at hand. 
-    _meanRadius = rasters[0].crs()->GetSemiMajor(); 
+    if (nRasters() > 0)
+        _meanRadius = rasters[0].crs()->GetSemiMajor(); 
 
 }
 
-DEM::DEM(std::string filename, size_t nThreads, bool displayInfo) : 
-    DEM(std::vector<std::string>{filename}, nThreads, displayInfo) {}
+DEM::DEM(std::string filename, RenderingOptions opts) : 
+    DEM(std::vector<std::string>{filename}, opts) {}
 
