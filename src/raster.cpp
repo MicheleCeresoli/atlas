@@ -463,14 +463,14 @@ double RasterContainer::getData(const point2& s, bool interp, uint tid) {
     return -inf; 
 }
 
-void RasterContainer::cleanupRasters() {
+void RasterContainer::cleanupRasters(uint threshold) {
 
     for (size_t k; k < rasters.size(); k++) 
     {
         if (rastersUsed[k] == 0) {
             rastersFlag[k]++; 
 
-            if (rastersFlag[k] > 1) {
+            if (rastersFlag[k] >= threshold) {
                 rasters[k].unloadBand(0);
                 rastersFlag[k] = 0; 
             }

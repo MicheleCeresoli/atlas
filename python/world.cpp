@@ -8,10 +8,14 @@ void init_world(py::module_ &m) {
 
     py::class_<World>(m, "World")
 
-        .def(py::init
-            <std::vector<std::string>, std::vector<std::string>, RenderingOptions>(), 
-            py::arg("dem_files"), py::arg("dom_files"), py::arg("opts") = RenderingOptions()
+        .def(py::init<WorldOptions, uint>(), 
+            py::arg("opts") = WorldOptions(), py::arg("nThreads") = 1
         )
+
+        .def("sampleDOM", &World::sampleDOM)
+
+        .def("cleanupDEM", &World::cleanupDEM)
+        .def("cleanupDOM", &World::cleanupDOM)
 
         .def("getRayResolution", &World::getRayResolution)
         .def("computeRayResolution", &World::computeRayResolution);

@@ -10,6 +10,8 @@
 #include "vec3.h"
 #include "world.h"
 
+#include "arcadia.h"
+
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -32,7 +34,7 @@ void writePixel(std::ostream& out, double x) {
 
 void writeImage(const Camera& cam, const std::vector<double>& data) 
 {   
-    std::cout << "P3\n" << cam.width << ' ' << cam.height << "\n255\n"; 
+    std::cout << "P3\n" << cam.width() << ' ' << cam.height() << "\n255\n"; 
     for (int j = 0; j < data.size(); j++) {
         writePixel(std::cout, data[j]); 
     }
@@ -133,6 +135,46 @@ void makeImageLIDAR(const Camera& cam, const std::vector<RenderedPixel>& pixels,
 
 }
 
+void makeImageOptical(const Camera& cam, DOM& dom, const std::vector<RenderedPixel>& pixels)
+{
+  /* First, we retrieve the minimum and maximum values of the data. We do it 
+       manually because we have to exclude pixels that have invalid data. */    
+
+    // std::clog << "The min distance is: " << min << std::endl; 
+    // std::clog << "The max distance is: " << max << std::endl; 
+
+    std::vector<double> imgData; 
+    imgData.reserve(pixels.size());
+
+    double c; 
+    point2 s; 
+
+    for (auto p : pixels) {
+
+        s = rad2deg(point2(p.data[0].s[1], p.data[0].s[2]));
+        // std::clog << s << std::endl; 
+
+        // c = dom.getColor(s, true, 0)/255;
+
+        for (size_t k = 0; k < p.nSamples; k++) {
+            if (p.data[k].t != inf) {
+                
+                s = rad2deg(point2(p.data[k].s[1], p.data[k].s[2]));
+                c += dom.getColor(s, true, 0);   
+            }
+        }
+
+        c /= (255*p.nSamples);
+        
+        // t /= (double)p.nSamples; 
+        // t = invert ? 1.0 - t : t; 
+
+        imgData.push_back(c); 
+
+    }
+
+    writeImage(cam, imgData); 
+}
     
 dcm pos2dcm(point3 pos)
 {
@@ -160,26 +202,25 @@ int main(int argc, const char* argv[])
 
     // double h = 1.1*1738e3/std::sin(cam_fov/2);
 
-    double h = 20e3 + 1737400;
+    double h = 350e3 + 1737400;
     double lon = deg2rad(-165);
     double lat = deg2rad(62);
 
     point3 cam_pos = sph2car(point3(h, lon, lat));
 
-    dcm A_cam2lvlh = angle2dcm("Y", deg2rad(70)).transpose();
+    dcm A_cam2lvlh = angle2dcm("Y", deg2rad(60)).transpose();
     dcm A_lvlh2in  = pos2dcm(cam_pos);
     
     dcm A_cam2in = A_lvlh2in*A_cam2lvlh;
 
-    // std::clog << "Position: " << std::endl << cam_pos << "\n\n"; 
-    // std::clog << "DCM: "  << std::endl << A_cam2in << std::endl; 
+    std::clog << "Position: " << std::endl << cam_pos << "\n\n"; 
+    std::clog << "DCM: "  << std::endl << A_cam2in << std::endl; 
 
     // // Initialise the camera object
     Camera cam(cam_res, cam_fov);
     cam.set_dcm(A_cam2in); 
     cam.set_pos(cam_pos); 
-
-    size_t nThreads = 7;   
+   
 
     std::vector<std::string> demFiles;
 
@@ -196,35 +237,48 @@ int main(int argc, const char* argv[])
 
 
     std::vector<std::string> domFiles; 
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_A001_87N000W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B001_77N158W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B002_77N113W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B008_77N158E_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C001_63N165W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C002_63N135W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C012_63N165E_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D001_49N168W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D002_49N144W_A.tif");
-    demFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D015_49N168E_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_A001_87N000W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B001_77N158W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B002_77N113W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_B008_77N158E_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C001_63N165W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C002_63N135W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_C012_63N165E_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D001_49N168W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D002_49N144W_A.tif");
+    domFiles.push_back("../resources/dom/CE2_GRAS_DOM_50m_D015_49N168E_A.tif");
 
-    RenderingOptions opts = {
+
+    RenderingOptions optsRenderer = {
         .ssaa = SSAAOptions{.nSamples = 4, .active = true, .threshold = 0}, 
         .batchSize = 640,
-        .nThreads = nThreads, 
         .displayInfo = true
     };
-   
-    World w(demFiles, domFiles, opts); 
 
-    // Create the Renderer 
-    Renderer renderer(opts);
 
-    // Render the image
-    std::vector<RenderedPixel> pixels = renderer.render(cam, w); 
+    WorldOptions optsWorld(demFiles, domFiles); 
+    optsWorld.displayInfo = true; 
+
+    size_t nThreads = 6;
+    
+    RayTracerOptions opts {
+        .nThreads = nThreads, 
+        .optsWorld = optsWorld, 
+        .optsRenderer = optsRenderer
+    };
+    
+
+    LunarRayTracer tracer = LunarRayTracer(opts);
+
+    tracer.updateCamera(cam); 
+    tracer.run(); 
+
+    tracer.generateImageOptical("testImage5.png");
 
     // Write the pixels to a PPM image file
-    // // makeImageLIDAR(cam, pixels, true); 
-    makeImageDEM(cam, pixels); 
+    // makeImageLIDAR(cam, pixels, true); 
+    // makeImageDEM(cam, pixels); 
+    // makeImageOptical(cam, w.dom, pixels);
 
     std::clog << std::endl; 
     return 0;

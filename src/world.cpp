@@ -2,31 +2,22 @@
 #include "world.h"
 #include "utils.h"
 
-World::World(
-    std::vector<std::string> dem_files, 
-    std::vector<std::string> dom_files, 
-    RenderingOptions opts
-) : dem(dem_files, opts), dom(dom_files, opts) {
-
-    // Initialise mean and minimum/maximum radius values
-    meanRadius = dem.getMeanRadius(); 
-
-    minRadius = dem.getMinAltitude() + meanRadius;
-    maxRadius = dem.getMaxAltitude() + meanRadius; 
+World::World(const WorldOptions& opts, uint nThreads) : 
+    dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
     // This will be updated on the `computeRayResolution` call. 
     dt = dem.getResolution(); 
 
 }
 
-PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid) 
+PixelData World::traceRay(const Ray& ray, const double* tint, int threadid) 
 {
 
     PixelData data; 
     data.t = inf;
 
     // The ray does not intersect the outer sphere
-    if (ray.min_distance() > maxRadius) { 
+    if (ray.min_distance() > dem.maxRadius()) { 
         return data;
     }
 
@@ -36,7 +27,7 @@ PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid)
      * properly adjusted. */
 
     double tk, tvals[2];
-    ray.get_parameter(tvals, maxRadius); 
+    ray.get_parameter(tvals, dem.maxRadius()); 
 
     if (tint[0] == 0.0 && tint[1] == 0.0) {
         tk = tvals[0]; 
@@ -69,15 +60,14 @@ PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid)
         // Retrieve altitude from DEM 
         hk = dem.getData(s2, interp, threadid); 
 
-        if (sph[0] <= (hk + meanRadius)) {
+        if (sph[0] <= (hk + dem.meanRadius())) {
              /* By putting t at halfway between the two values, we halve the maximum 
               * error we are commiting in the intersection location. */
             hit = true;
             data.t = tk - dt/2;
             data.s = car2sph(ray.at(data.t));   
         } 
-        else if (sph[0] < minRadius) {
-
+        else if (sph[0] < dem.minRadius()) {
             /* This means that the ray has crossed the Moon in an area 
              * which does not have a loaded DEM available. Thus proceeding 
              * with any other computation does not make any sense. */
@@ -90,6 +80,10 @@ PixelData World::trace_ray(const Ray& ray, const double* tint, int threadid)
 
     return data; 
 
+}
+
+double World::sampleDOM(const point2& p) {
+    return dom.getColor(p, interp, 0);
 }
 
 void World::computeRayResolution(const Camera& cam) {
@@ -124,33 +118,33 @@ double World::computeGSD(const Camera& cam) const {
 
     // Compute the intersection points of each ray 
     std::vector<point3> fovPoints; 
-    std::vector<bool>   tagPoints(cam.height, true);
+    std::vector<bool>   tagPoints(cam.height(), true);
 
     // Reserve enough space to avoid allocations.
-    fovPoints.reserve(cam.height);
+    fovPoints.reserve(cam.height());
 
     double tks[2];
     double gsd = inf, gsd_jk; 
 
-    for (size_t j = 0; j < cam.width; j++) {
-        for (size_t k = 0; k < cam.height; k++) {
+    for (size_t j = 0; j < cam.width(); j++) {
+        for (size_t k = 0; k < cam.height(); k++) {
             
             // Retrieve ray
             Ray ray_k(cam.get_ray(j, k)); 
 
-            if (ray_k.min_distance() > meanRadius) {
+            if (ray_k.min_distance() > dem.meanRadius()) {
                 tagPoints[k] = false; 
                 continue;
             }
 
             // Compute position at moon intersection 
-            ray_k.get_parameter(tks, meanRadius); 
+            ray_k.get_parameter(tks, dem.meanRadius()); 
             point3 uk(unit_vector(ray_k.at(tks[0])));
 
             // Check with pixel above
             if (k > 0) {
                 if (tagPoints[k-1]) {
-                    gsd_jk = meanRadius*acos(dot(uk, fovPoints[k-1]));
+                    gsd_jk = dem.meanRadius()*acos(dot(uk, fovPoints[k-1]));
                     if (gsd_jk < gsd)
                         gsd = gsd_jk; 
                 }
@@ -159,7 +153,7 @@ double World::computeGSD(const Camera& cam) const {
             // Check with pixel on the left
             if (j > 0) {
                 if (tagPoints[k]) {
-                    gsd_jk = meanRadius*acos(dot(uk, fovPoints[k])); 
+                    gsd_jk = dem.meanRadius()*acos(dot(uk, fovPoints[k])); 
                     if (gsd_jk < gsd) 
                         gsd = gsd_jk;
                 }

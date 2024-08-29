@@ -215,7 +215,7 @@ class RasterContainer {
         void loadRasters(); 
         void unloadRasters();
 
-        void cleanupRasters(); 
+        void cleanupRasters(uint threshold); 
 
     protected:
 

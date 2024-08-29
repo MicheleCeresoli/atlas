@@ -3,28 +3,28 @@
 
 #include "raster.h"
 #include "settings.h"
-#include "vec3.h"
-
 
 class DEM : public RasterContainer {
 
     public: 
 
 
-        DEM(std::string filename, RenderingOptions opts);
-        DEM(std::vector<std::string> files, RenderingOptions opts); 
-
-        DEM(const DEM&) = default; 
+        DEM(WorldOptions opts, uint nThreads);
+        DEM(const std::vector<std::string>& files, uint nThreads, bool displayInfo); 
         
-        inline double getMeanRadius() const { return _meanRadius; }; 
-        inline double getMinAltitude() const { return _minAltitude; }; 
-        inline double getMaxAltitude() const { return _maxAltitude; };
+        inline double minAltitude() const { return _minAltitude; }; 
+        inline double maxAltitude() const { return _maxAltitude; };
+
+        inline double minRadius() const { return _minRadius; }
+        inline double maxRadius() const { return _maxRadius; }
+
+        inline double meanRadius() const { return _meanRadius; }; 
+
         
     private: 
 
         double _minAltitude, _maxAltitude;
-        double _meanRadius; 
-
+        double _minRadius, _maxRadius, _meanRadius;
 };
 
 #endif 

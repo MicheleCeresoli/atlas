@@ -29,6 +29,9 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif()
 
+find_package(OpenCV CONFIG REQUIRED)
+
+
 # Include the compiled library code 
 add_subdirectory(src)
 

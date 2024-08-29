@@ -2,6 +2,9 @@
 #define RENDSETTINGS_H
 
 #include <cstddef>
+#include <string>
+#include <vector>
+ 
 
 class SSAAOptions {
 
@@ -19,11 +22,39 @@ class RenderingOptions {
     public: 
 
         SSAAOptions ssaa;
-        
         size_t batchSize = 640; 
-        size_t nThreads = 1;
+        bool displayInfo = false;
+
+};
+
+
+class WorldOptions {
+
+    public: 
+
+        WorldOptions();
+        WorldOptions(const std::string& dem, const std::string& dom); 
+        WorldOptions(const std::vector<std::string>& dem, const std::string& dom);
+        WorldOptions(const std::string& dem, const std::vector<std::string>& dom); 
+        WorldOptions(const std::vector<std::string>& dem, const std::vector<std::string>& dom);
+
+        std::vector<std::string> demFiles; 
+        std::vector<std::string> domFiles;
 
         bool displayInfo = false;
+
+        uint rasterUsageThreshold = 2;
+
+};
+
+class RayTracerOptions {
+
+    public: 
+
+        size_t nThreads = 1;
+
+        WorldOptions optsWorld;
+        RenderingOptions optsRenderer; 
 
 };
 

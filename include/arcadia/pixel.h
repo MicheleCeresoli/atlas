@@ -2,7 +2,6 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
-#include "utils.h"
 #include "vec2.h"
 #include "vec3.h"
 
@@ -59,7 +58,8 @@ class RenderedPixel {
 
     private: 
 
-        double tMin = inf, tMax = -inf; 
+        double tMin; 
+        double tMax; 
         
 
 };

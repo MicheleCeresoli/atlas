@@ -14,9 +14,14 @@ class Renderer {
     
     public: 
 
-        Renderer();
-        Renderer(RenderingOptions opts); 
-        std::vector<RenderedPixel> render(Camera& cam, World& w);
+        Renderer(const RenderingOptions& opts, uint nThreads); 
+
+        void render(const Camera& cam, World& w);
+
+        inline const std::vector<RenderedPixel>* getRenderedPixels() const {
+            return &renderedPixels;
+        }
+        
 
     private: 
 
@@ -39,23 +44,23 @@ class Renderer {
  
         // This function renders a batch of pixels
         void renderTask(
-            const ThreadWorker&, Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
+            const ThreadWorker&, const Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
         );
 
         // Add a rendering task to the thread pool
-        void dispatchTaskQueue(const std::vector<TaskedPixel>& task, Camera& cam, World& w);
+        void dispatchTaskQueue(const std::vector<TaskedPixel>& task, const Camera& cam, World& w);
 
         // Add a pixel to the task queue and dispatch it when batch-size is reached.
-        void updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w); 
+        void updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w); 
 
         // Add the task to the thread pool and clear the vector 
-        void releaseTaskQueue(Camera& cam, World& w); 
+        void releaseTaskQueue(const Camera& cam, World& w); 
 
         // This function generates all the tasks required to render an image.
-        uint generateRenderTasks(Camera& cam, World& w);
+        uint generateRenderTasks(const Camera& cam, World& w);
 
         // Run anti-aliasing on the pixels with a large difference in the distance
-        uint generateAntiAliasingTasks(Camera& cam, World& w);
+        uint generateAntiAliasingTasks(const Camera& cam, World& w);
 
         // Update the storing of the rendered pixels
         void setupRenderer(const Camera& cam, World& w); 

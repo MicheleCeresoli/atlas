@@ -104,6 +104,8 @@ void init_raster(py::module_ &m) {
         .def("unloadRaster", &RasterContainer::unloadRaster)
 
         .def("loadRasters", &RasterContainer::loadRasters)
-        .def("unloadRasters", &RasterContainer::unloadRasters); 
+        .def("unloadRasters", &RasterContainer::unloadRasters)
+        
+        .def("cleanupRasters", &RasterContainer::cleanupRasters); 
 
 }

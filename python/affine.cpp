@@ -18,7 +18,7 @@ void init_affine(py::module_ &m) {
         .def(py::init([](py::array_t<double> v) {
             
             // Check array dimensions
-            if (v.ndim() > 2 || v.size() > 6) {
+            if (v.ndim() > 2 || v.size() != 6) {
                 throw std::runtime_error("Unsupported array dimensions.");
             }
 

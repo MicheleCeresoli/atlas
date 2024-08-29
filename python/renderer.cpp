@@ -9,7 +9,14 @@ void init_renderer(py::module_ &m) {
 
     py::class_<Renderer>(m, "Renderer")
 
-        .def(py::init<RenderingOptions>(), py::arg("opts")=RenderingOptions())
+        .def(py::init<RenderingOptions, uint>(), 
+            py::arg("opts")=RenderingOptions(), 
+            py::arg("nThreads") = 1
+        )
+        
+        .def("getRenderedPixels", &Renderer::getRenderedPixels, 
+            py::return_value_policy::reference)
+
         .def("render", &Renderer::render);
 
 }

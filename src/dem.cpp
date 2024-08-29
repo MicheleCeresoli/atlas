@@ -2,8 +2,8 @@
 #include "dem.h"
 #include "utils.h"
 
-DEM::DEM(std::vector<std::string> files, RenderingOptions opts) : 
-    RasterContainer(files, opts.nThreads, opts.displayInfo) {
+DEM::DEM(const std::vector<std::string>& files, uint nThreads, bool displayInfo) : 
+    RasterContainer(files, nThreads, displayInfo) {
 
     // Initialise min\max altitude values
     _minAltitude = inf; 
@@ -34,8 +34,10 @@ DEM::DEM(std::vector<std::string> files, RenderingOptions opts) :
     if (nRasters() > 0)
         _meanRadius = rasters[0].crs()->GetSemiMajor(); 
 
+    _minRadius = _meanRadius + _minAltitude; 
+    _maxRadius = _meanRadius + _maxAltitude;
+
 }
 
-DEM::DEM(std::string filename, RenderingOptions opts) : 
-    DEM(std::vector<std::string>{filename}, opts) {}
-
+DEM::DEM(WorldOptions opts, uint nThreads) : 
+    DEM(opts.demFiles, nThreads, opts.displayInfo) {}

@@ -5,6 +5,7 @@ set(HEADER_DIR ../include/arcadia)
 
 set(HEADER_LIST 
     ${HEADER_DIR}/affine.h
+    ${HEADER_DIR}/arcadia.h
     ${HEADER_DIR}/camera.h
     ${HEADER_DIR}/crsutils.h
     ${HEADER_DIR}/raster.h
@@ -22,8 +23,9 @@ set(HEADER_LIST
     ${HEADER_DIR}/vec3.h
 )
 
-set(SOURCE_LIST 
+set(SOURCE_LIST
     affine.cpp
+    arcadia.cpp
     camera.cpp
     crsutils.cpp
     raster.cpp
@@ -47,6 +49,7 @@ add_library(arcadialib SHARED ${SOURCE_LIST} ${HEADER_LIST})
 # Add these directories (users won't use GDAL)
 target_include_directories(arcadialib PUBLIC ${HEADER_DIR})
 target_include_directories(arcadialib PRIVATE ${GDAL_INCLUDE_DIR})
+target_include_directories(arcadialib PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Users require at least C++17
 target_compile_features(arcadialib PUBLIC cxx_std_17)

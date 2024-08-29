@@ -15,12 +15,12 @@ void init_dcm(py::module_ &m) {
         // Ad-hoc constructor that takes a NumPy array 
         .def(py::init([](py::array_t<double> v) {
             // Check array dimensions 
-            if (v.ndim() > 2 || v.size() > 9) {
+            if (v.ndim() > 2 || v.size() != 9) {
                 throw std::runtime_error("Unsupported array dimensions.");
             }
 
             double data[9]; 
-            std::memcpy(data, v.data(), 6*sizeof(double)); 
+            std::memcpy(data, v.data(), 9*sizeof(double)); 
             return new dcm(data); 
 
         }))

@@ -10,14 +10,23 @@ void init_dem(py::module_ &m) {
 
     py::class_<DEM, RasterContainer>(m, "DEM")
 
-        .def(py::init<std::string, RenderingOptions>(), 
-             py::arg("filename"), py::arg("opts") = RenderingOptions())
+        .def(py::init<WorldOptions, uint>(), 
+               py::arg("opts") = WorldOptions(), 
+               py::arg("nThreads") = 1
+          )
 
-        .def(py::init<std::vector<std::string>, RenderingOptions>(), 
-             py::arg("files"), py::arg("opts") = RenderingOptions())
+        .def(py::init<std::vector<std::string>, uint, bool>(), 
+               py::arg("files"), 
+               py::arg("nThreads") = 1, 
+               py::arg("displayInfo") = false
+          )
 
-        .def("getMeanRadius", &DEM::getMeanRadius)
-        .def("getMinAltitude", &DEM::getMinAltitude)
-        .def("getMaxAltitude", &DEM::getMaxAltitude);
+        .def("minAltitude", &DEM::minAltitude)
+        .def("maxAltitude", &DEM::maxAltitude)
+
+        .def("minRadius", &DEM::minRadius)
+        .def("maxRadius", &DEM::maxRadius)
+        .def("meanRadius", &DEM::meanRadius);
+
         
 }

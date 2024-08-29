@@ -1,5 +1,7 @@
 
 #include "pixel.h"
+#include "utils.h"
+
 #include <stdexcept>
 
 
@@ -63,8 +65,11 @@ TaskedPixel::TaskedPixel(uint id, point2 p, size_t nSamples) :
                         RENDERED PIXEL
 ---------------------------------------------------------- */
 
-RenderedPixel::RenderedPixel(uint id, size_t nSamples) : id(id), nSamples(nSamples) {
+RenderedPixel::RenderedPixel(uint id, size_t nSamples) : 
+    id(id), nSamples(nSamples), tMin(inf), tMax(-inf) 
+{
     data.reserve(nSamples); 
+
 }
 
 void RenderedPixel::updateSamples(size_t newSamples) {

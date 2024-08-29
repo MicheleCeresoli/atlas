@@ -2,6 +2,7 @@
 set(PYTHON_FILES
     pyarcadia.cpp
     affine.cpp
+    arcadia.cpp
     camera.cpp
     dcm.cpp
     dem.cpp
@@ -22,3 +23,4 @@ pybind11_add_module(pyarcadia MODULE
 
 target_link_libraries(pyarcadia PUBLIC arcadialib)
 target_link_libraries(pyarcadia PRIVATE GDAL::GDAL)
+target_link_libraries(arcadialib PRIVATE ${OpenCV_LIBS})

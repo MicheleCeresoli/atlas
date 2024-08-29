@@ -9,16 +9,13 @@
 #include <mutex>
 
 // Constructor
-Renderer::Renderer(RenderingOptions opts) : 
-    pool(ThreadPool(opts.nThreads)), opts(opts)
+Renderer::Renderer(const RenderingOptions& opts, uint nThreads) : 
+    pool(ThreadPool(nThreads)), opts(opts)
 {
     // Reserve enough space for the this task.
     taskQueue.reserve(opts.batchSize); 
 
 }
-
-Renderer::Renderer() : Renderer(RenderingOptions()) {}
-
 
 // This function stores the output of each render task in the original class
 void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel>& pixels)
@@ -40,7 +37,8 @@ void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel>& pixels)
 
 // This function renders a batch of pixels
 void Renderer::renderTask(
-    const ThreadWorker& wk, Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
+    const ThreadWorker& wk, const Camera& cam, World& w, 
+    const std::vector<TaskedPixel>& pixels
 ) {
 
     // Create a vector storing the pixels to be rendered with the given memory
@@ -57,7 +55,7 @@ void Renderer::renderTask(
             Ray ray = cam.get_ray(pixels[j].u[k], pixels[j].v[k]); 
 
             // Compute pixel data
-            rPix.addPixelData(w.trace_ray(ray, pixels[j].tint, wk.id())); 
+            rPix.addPixelData(w.traceRay(ray, pixels[j].tint, wk.id())); 
         }
 
         // Add the pixel to the list of computed pixels
@@ -69,8 +67,9 @@ void Renderer::renderTask(
 
 }
 
-void Renderer::dispatchTaskQueue(const std::vector<TaskedPixel>& task, Camera& cam, World& w)
-{
+void Renderer::dispatchTaskQueue(
+    const std::vector<TaskedPixel>& task, const Camera& cam, World& w
+) {
     pool.addTask(
         [this, &cam, &w, task] (const ThreadWorker& worker) { 
             renderTask(worker, cam, w, task); 
@@ -78,7 +77,7 @@ void Renderer::dispatchTaskQueue(const std::vector<TaskedPixel>& task, Camera& c
     );
 }
 
-void Renderer::updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w) {
+void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w) {
     
     // Update the task queue
     taskQueue.push_back(tp); 
@@ -88,14 +87,14 @@ void Renderer::updateTaskQueue(const TaskedPixel& tp, Camera& cam, World& w) {
     
 }
 
-void Renderer::releaseTaskQueue(Camera& cam, World& w) {
+void Renderer::releaseTaskQueue(const Camera& cam, World& w) {
     // Add the task to the thread pool and clear the vector 
     dispatchTaskQueue(taskQueue, cam, w); 
     taskQueue.clear(); 
 }
 
 // This function generates all the tasks required to render an image.
-uint Renderer::generateRenderTasks(Camera& cam, World& w) {
+uint Renderer::generateRenderTasks(const Camera& cam, World& w) {
     
     // Assign all the pixels to a specific rendering task.
     uint nPixels = cam.nPixels();
@@ -129,7 +128,7 @@ void Renderer::processRenderOutput()
     });
 }
 
-uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w) 
+uint Renderer::generateAntiAliasingTasks(const Camera& cam, World& w) 
 {
     // Retrieve the resolution used to propagate the rays
     double rayRes = w.getRayResolution(); 
@@ -144,7 +143,7 @@ uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w)
     bool prev = false; 
     bool aliased = false;
 
-    std::vector<uint8_t> prevCol(cam.height, 0);
+    std::vector<uint8_t> prevCol(cam.height(), 0);
 
     for (id = 0; id < renderedPixels.size(); id++) {
 
@@ -159,13 +158,13 @@ uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w)
         tk1 = tk; tk2 = tk; 
 
         // Check against the one on the bottom
-        if (v < cam.height - 1) {
-            tk1 = renderedPixels[id + cam.width].pixDistance();
+        if (v < cam.height() - 1) {
+            tk1 = renderedPixels[id + cam.width()].pixDistance();
             prev = isAliased(tk, tk1, rayRes); 
         } 
 
         // Check against the one on the right
-        if (u < cam.width - 1) {
+        if (u < cam.width() - 1) {
             tk2 = renderedPixels[id + 1].pixDistance();
             prevCol[v] = isAliased(tk, tk2, rayRes); 
         }
@@ -192,7 +191,7 @@ uint Renderer::generateAntiAliasingTasks(Camera& cam, World& w)
 
         // Compute the pixel value on the left and on the top
         tk1 = (u > 0) ? renderedPixels[id-1].pixDistance() : tk;
-        tk2 = (v > 0) ? renderedPixels[id-cam.width].pixDistance() : tk; 
+        tk2 = (v > 0) ? renderedPixels[id-cam.width()].pixDistance() : tk; 
         
         // Update the pixel t-boundaries
         aliasedPixels[k].tint[0] = std::min({aliasedPixels[k].tint[0], tk1, tk2});
@@ -215,9 +214,6 @@ void Renderer::setupRenderer(const Camera& cam, World& w) {
 
     // Start the Thread pool, if not started already.
     pool.startPool(); 
-
-    // Compute the ray rendering resolution.
-    w.computeRayResolution(cam); 
 
     hasRendered = false; 
 
@@ -266,7 +262,7 @@ void Renderer::displayRenderStatus(uint nPixels, std::string m) {
 }
 
 // This is the high-level function called by the user
-std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
+void Renderer::render(const Camera& cam, World& w) {
 
     // Setup the render output variable.
     setupRenderer(cam, w); 
@@ -297,10 +293,6 @@ std::vector<RenderedPixel> Renderer::render(Camera& cam, World& w) {
         // Wait for the completion of all jobs
         pool.waitCompletion();
     }
-
-    // Unloads unused DEM files data from memory.
-    w.cleanupDEM();
-    return renderedPixels;
 
 }
 

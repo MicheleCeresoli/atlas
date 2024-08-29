@@ -1,12 +1,11 @@
 
 #include "dom.h"
 
-DOM::DOM(std::vector<std::string> files, RenderingOptions opts) : 
-    RasterContainer(files, opts.nThreads, opts.displayInfo) {}
+DOM::DOM(const std::vector<std::string>& files, uint nThreads, bool displayInfo) : 
+    RasterContainer(files, nThreads, displayInfo) {}
 
-DOM::DOM(std::string filename, RenderingOptions opts) : 
-    DOM(std::vector<std::string>{filename}, opts) {}
-
+DOM::DOM(WorldOptions opts, uint nThreads) : 
+    DOM(opts.domFiles, nThreads, opts.displayInfo) {}
 
 double DOM::getColor(const point2& s, bool interp, uint tid) {
     double c = getData(s, interp, tid); 

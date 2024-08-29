@@ -3,15 +3,14 @@
 
 #include "raster.h"
 #include "settings.h"
-#include "vec3.h"
-
+#include "vec2.h"
 
 class DOM : public RasterContainer {
 
     public: 
 
-        DOM(std::string filename, RenderingOptions opt);
-        DOM(std::vector<std::string> files, RenderingOptions opt); 
+        DOM(WorldOptions opts, uint nThreads);
+        DOM(const std::vector<std::string>& files, uint nThreads, bool displayInfo); 
 
         double getColor(const point2& s, bool interp, uint threadid = 0); 
 

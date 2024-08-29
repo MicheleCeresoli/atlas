@@ -16,21 +16,19 @@ class World {
 
     public: 
 
-        World(
-            std::vector<std::string> dem_files, 
-            std::vector<std::string> dom_files,
-            RenderingOptions opts
-        );
+        World(const WorldOptions& opts, uint nThreads);
 
-        PixelData trace_ray(const Ray& r, const double* tvals, int threadid); 
+        PixelData traceRay(const Ray& r, const double* tvals, int threadid); 
+        
+        double sampleDOM(const point2& p);
 
         // Compute the distance at which points are evaluated along a ray
         void computeRayResolution(const Camera& cam);
 
         // Unloads unused DEM files to reduce memory consumption.
-        inline void cleanupDEM() { dem.cleanupRasters(); }
+        inline void cleanupDEM() { dem.cleanupRasters(opts.rasterUsageThreshold); }
         // Unloads unused DOM files to reduce memory consumption.
-        inline void cleanupDOM() { dom.cleanupRasters(); }
+        inline void cleanupDOM() { dom.cleanupRasters(opts.rasterUsageThreshold); }
 
         inline double getRayResolution() const { return dt; }; 
 
@@ -39,9 +37,7 @@ class World {
         DEM dem;
         DOM dom;
 
-        double minRadius;
-        double maxRadius; 
-        double meanRadius;
+        WorldOptions opts;
         
         double dt;  
         
