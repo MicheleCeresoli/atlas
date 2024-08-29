@@ -6,6 +6,7 @@ set(PYTHON_FILES
     dcm.cpp
     dem.cpp
     pixel.cpp
+    raster.cpp
     ray.cpp
     renderer.cpp
     settings.cpp

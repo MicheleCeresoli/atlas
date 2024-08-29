@@ -5,6 +5,7 @@ void init_camera(pybind11::module_ &m);
 void init_dcm(pybind11::module_ &m); 
 void init_dem(pybind11::module_ &m);
 void init_pixel(pybind11::module_ &m);
+void init_raster(pybind11::module_ &m);
 void init_ray(pybind11::module_ &m);
 void init_renderer(pybind11::module_ &m); 
 void init_settings(pybind11::module_ &m);
@@ -24,7 +25,8 @@ PYBIND11_MODULE(pyarcadia, m) {
     init_pixel(m); 
     init_camera(m); 
 
-    init_affine(m); 
+    init_affine(m);
+    init_raster(m);  
     init_dem(m); 
     init_world(m); 
 

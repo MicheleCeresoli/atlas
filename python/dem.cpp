@@ -17,9 +17,15 @@ void init_dem(py::module_ &m) {
              py::arg("files"), py::arg("nThreads") = 1)
 
         .def("nRasters", &DEM::nRasters)
+        .def("getRasterFile", &DEM::getRasterFile)
+
+        .def("loadRaster", &DEM::loadRaster)
+        .def("unloadRaster", &DEM::unloadRaster)
+
         .def("getMeanRadius", &DEM::getMeanRadius)
         .def("getMinAltitude", &DEM::getMinAltitude)
         .def("getMaxAltitude", &DEM::getMaxAltitude)
+        
         .def("getResolution", &DEM::getResolution)
         .def("getAltitude", &DEM::getAltitude);
 
