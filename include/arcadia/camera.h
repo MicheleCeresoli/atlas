@@ -12,7 +12,6 @@ class Camera {
 
         // Constructors
         Camera() = default;
-        Camera(uint res_x, uint res_y, double fov_x, double fov_y);
         Camera(uint res, double fov);
 
         // Functions 
@@ -40,11 +39,8 @@ class Camera {
         uint _width = 0;
         uint _height = 0;
 
-        double fov_x; 
-        double fov_y; 
-
-        double dfov_x; 
-        double dfov_y; 
+        double fov;
+        double scale; 
 
         point3 center;  // Camera center 
         dcm A;          // Camera orientation, rotates a vector from the camera axes to the 
