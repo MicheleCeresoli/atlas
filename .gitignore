@@ -3,6 +3,8 @@ build/
 resources/
 images/
 
+*.jl
+
 *.o
 *.ppm
 
