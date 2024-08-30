@@ -24,6 +24,8 @@ class World {
 
         // Compute the distance at which points are evaluated along a ray
         void computeRayResolution(const Camera& cam);
+        // Manually update the ray resolution
+        inline void setRayResolution(double res) { dt = res; }
 
         // Unloads unused DEM files to reduce memory consumption.
         inline void cleanupDEM() { dem.cleanupRasters(opts.rasterUsageThreshold); }

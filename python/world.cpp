@@ -18,6 +18,8 @@ void init_world(py::module_ &m) {
         .def("cleanupDOM", &World::cleanupDOM)
 
         .def("getRayResolution", &World::getRayResolution)
+        .def("setRayResolution", &World::setRayResolution)
+        
         .def("computeRayResolution", &World::computeRayResolution);
 
 
