@@ -28,6 +28,9 @@ class LunarRayTracer {
         void generateImageDEM(const std::string& filename); 
         void generateImageGCPs(const std::string& filename); 
 
+        // Settings Retrieval
+        inline double getAltitude() { return altitude; }; 
+        
         void getImageGCPs();
 
 
@@ -36,6 +39,10 @@ class LunarRayTracer {
         World world; 
         Renderer renderer;
         Camera cam; 
+
+        double altitude;
+
+        void sampleAltitude();
 
 };
 

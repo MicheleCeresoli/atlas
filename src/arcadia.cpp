@@ -18,9 +18,26 @@ void LunarRayTracer::run() {
 
     // Ray trace all the pixels in the camera
     renderer.render(cam, world);    
+
+    // Compute the Camera altitude wrt the DEM surface
+    sampleAltitude();
     
     // Unloads unused DEM files data from memory.
     world.cleanupDEM();
+
+}
+
+
+// Settings Retrieval
+void LunarRayTracer::sampleAltitude() {
+
+    // Create a ray centered at the camera position in the Nadir direction
+    Ray nadir(cam.get_pos(), -cam.get_pos());
+
+    double t[2];
+
+    // Update the altitude 
+    altitude = world.traceRay(nadir, t, 0).t;
 
 }
 

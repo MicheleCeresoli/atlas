@@ -23,5 +23,7 @@ void init_arcadia(py::module_ &m) {
         .def("generateImageOptical", &LunarRayTracer::generateImageOptical) 
         .def("generateImageLIDAR", &LunarRayTracer::generateImageLIDAR) 
         .def("generateImageDEM", &LunarRayTracer::generateImageDEM)
-        .def("generateImageGCPs", &LunarRayTracer::generateImageGCPs);
+        .def("generateImageGCPs", &LunarRayTracer::generateImageGCPs)
+
+        .def("getAltitude", &LunarRayTracer::getAltitude);
 }

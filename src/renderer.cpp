@@ -237,13 +237,14 @@ void Renderer::displayRenderStatus(uint nPixels, std::string m) {
 
     size_t nTasks = pool.nPendingTasks(); 
     size_t pTasks = nTasks; 
+    size_t nThreads = pool.nThreads();
 
     while (nTasks > 0)
     {
         nTasks = pool.nPendingTasks(); 
 
         // Update the rendering status only when some tasks are completed.
-        if (pTasks != nTasks) {
+        if ((pTasks - nTasks) >= nThreads) {
             pTasks = nTasks;
 
             std::clog << "\r[" <<  std::setw(3) << int(100*(1 - (double)nTasks*f)) 

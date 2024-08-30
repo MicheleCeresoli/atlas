@@ -445,8 +445,9 @@ double RasterContainer::getData(const point2& s, bool interp, uint tid) {
                 std::unique_lock<std::mutex> lock(rasterUpdateMutex);
 
                 // If the rasters band is not loaded, load it! 
-                if (!rasters[k].isBandLoaded(0))
-                    rasters[k].loadBand(0); 
+                if (!rasters[k].isBandLoaded(0)) {
+                    rasters[k].loadBand(0);
+                }
 
                 // Update the number of times the raster has been used 
                 rastersUsed[k]++; 
@@ -468,9 +469,7 @@ void RasterContainer::cleanupRasters(uint threshold) {
     for (size_t k; k < rasters.size(); k++) 
     {
         if (rastersUsed[k] == 0) {
-            rastersFlag[k]++; 
-
-            if (rastersFlag[k] >= threshold) {
+            if (++rastersFlag[k] >= threshold && rasters[k].isBandLoaded(0)) {
                 rasters[k].unloadBand(0);
                 rastersFlag[k] = 0; 
             }
