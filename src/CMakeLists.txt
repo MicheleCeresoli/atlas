@@ -44,15 +44,15 @@ set(SOURCE_LIST
 )
 
 # Make a library - static or dynamic based on user settings 
-add_library(arcadialib SHARED ${SOURCE_LIST} ${HEADER_LIST})
+add_library(arcadiacxx SHARED ${SOURCE_LIST} ${HEADER_LIST})
 
 # Add these directories (users won't use GDAL)
-target_include_directories(arcadialib PUBLIC ${HEADER_DIR})
-target_include_directories(arcadialib PRIVATE ${GDAL_INCLUDE_DIR})
-target_include_directories(arcadialib PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_include_directories(arcadiacxx PUBLIC ${HEADER_DIR})
+target_include_directories(arcadiacxx PRIVATE ${GDAL_INCLUDE_DIR})
+target_include_directories(arcadiacxx PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Users require at least C++17
-target_compile_features(arcadialib PUBLIC cxx_std_17)
+target_compile_features(arcadiacxx PUBLIC cxx_std_17)
 
 # IDEs should put the headers in a nice place
 source_group(

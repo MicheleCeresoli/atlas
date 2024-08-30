@@ -21,6 +21,6 @@ pybind11_add_module(pyarcadia MODULE
     ${PYTHON_FILES}
 )
 
-target_link_libraries(pyarcadia PUBLIC arcadialib)
+target_link_libraries(pyarcadia PUBLIC arcadiacxx)
 target_link_libraries(pyarcadia PRIVATE GDAL::GDAL)
-target_link_libraries(arcadialib PRIVATE ${OpenCV_LIBS})
+target_link_libraries(pyarcadia PRIVATE ${OpenCV_LIBS})
