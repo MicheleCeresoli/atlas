@@ -51,4 +51,8 @@ void init_vec2(py::module_ &m) {
         })
 
         .def("__repr__", &vec2::toString);
+
+    py::implicitly_convertible<py::array_t<double>, vec2>();
+    py::implicitly_convertible<std::array<double, 2>, vec2>();
+
 }

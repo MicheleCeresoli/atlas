@@ -34,7 +34,7 @@ void LunarRayTracer::sampleAltitude() {
     // Create a ray centered at the camera position in the Nadir direction
     Ray nadir(cam.get_pos(), -cam.get_pos());
 
-    double t[2];
+    double t[2] = {0.0, 0.0};
 
     // Update the altitude 
     altitude = world.traceRay(nadir, t, 0).t;

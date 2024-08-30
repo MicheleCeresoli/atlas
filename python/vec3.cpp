@@ -53,4 +53,8 @@ void init_vec3(py::module_ &m) {
         })
 
         .def("__repr__", &vec3::toString);
+
+    
+    py::implicitly_convertible<py::array_t<double>, vec3>();
+    py::implicitly_convertible<std::array<double, 3>, vec3>();
 }

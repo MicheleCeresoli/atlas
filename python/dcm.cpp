@@ -52,4 +52,7 @@ void init_dcm(py::module_ &m) {
 
         .def("__repr__", &dcm::toString);
 
+    py::implicitly_convertible<py::array_t<double>, dcm>();
+    py::implicitly_convertible<std::array<double, 9>, dcm>();
+
 }

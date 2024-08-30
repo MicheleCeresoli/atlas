@@ -24,25 +24,9 @@ void init_camera(py::module_ &m) {
         .def("nPixels", &Camera::nPixels)
         
         .def("get_pos", &Camera::get_pos)
+        .def("set_pos", &Camera::set_pos)
+
         .def("get_dcm", &Camera::get_dcm)
-
-        .def("set_pos", [](Camera& self, py::array_t<double> pos) {
-            
-            // Check array dimensions 
-            if (pos.ndim() != 1 || pos.shape(0) != 3)
-                throw std::runtime_error("Unsupported array dimensions.");
-            
-            point3 p; 
-            std::memcpy(p.e, pos.data(), 3*sizeof(double)); 
-            self.set_pos(p); 
-        })
-
-        .def("set_pos", [](Camera& self, std::array<double, 3> p) {
-            return self.set_pos(point3(p[0], p[1], p[2]));
-        })
-
-        .def("set_dcm", [](Camera& self, const dcm& dcm) {
-            self.set_dcm(dcm); 
-        });
+        .def("set_dcm", &Camera::set_dcm);
 
 }
