@@ -386,6 +386,12 @@ RasterContainer::RasterContainer(
     rasters.reserve(nFiles); 
     for (auto f : files)
     {
+        // Prevent opening an empty string.
+        if (f.empty()) {
+            nFiles--;
+            continue;
+        }
+
         // Add the raster and retrieve its name.
         rasters.push_back(RasterFile(f, nThreads));
 
