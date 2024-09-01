@@ -2,6 +2,15 @@
 #include "world.h"
 #include "utils.h"
 
+#include <algorithm>
+
+// TODO: what happens when the camera position is below the Moon's mean radius, i.e., 
+// when for example the spacecraft is attempting to land inside a crater?
+
+// TODO 2: there could also be an issue with the maximum value of tk that is analysed. 
+// What happens when a ray crosses on both sides the sphere but after it went outside 
+// it meets a mountain? Is it even physically possible?
+
 World::World(const WorldOptions& opts, uint nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
@@ -29,7 +38,7 @@ PixelData World::traceRay(const Ray& ray, const double* tint, int threadid)
     double tk, tvals[2];
     ray.get_parameter(tvals, dem.maxRadius()); 
 
-    if (tint[0] == 0.0 && tint[1] == 0.0) {
+    if (tint[0] == 0.0 && tint[1] == 0.0) { // is the second condition necessary?
         tk = tvals[0]; 
     } 
     else {
@@ -114,14 +123,15 @@ void World::computeRayResolution(const Camera& cam) {
 
 }
 
-double World::computeGSD(const Camera& cam) const {
+double World::computeGSD(const Camera& cam) {
+
+    // Update the array with the distances of each pixel
+    rayDistances.clear(); 
+    rayDistances.reserve(cam.nPixels()); 
 
     // Compute the intersection points of each ray 
-    std::vector<point3> fovPoints; 
+    std::vector<point3> fovPoints(cam.height()); 
     std::vector<bool>   tagPoints(cam.height(), true);
-
-    // Reserve enough space to avoid allocations.
-    fovPoints.reserve(cam.height());
 
     double tks[2];
     double gsd = inf, gsd_jk; 
@@ -133,7 +143,8 @@ double World::computeGSD(const Camera& cam) const {
             Ray ray_k(cam.get_ray(j, k)); 
 
             if (ray_k.min_distance() > dem.meanRadius()) {
-                tagPoints[k] = false; 
+                tagPoints[k] = false;
+                rayDistances.push_back(inf); 
                 continue;
             }
 
@@ -163,7 +174,10 @@ double World::computeGSD(const Camera& cam) const {
             fovPoints[k] = uk;
             tagPoints[k] = true; 
 
-        }
+            rayDistances.push_back(tks[0]);
+
+        } 
+
     }
 
     return gsd;

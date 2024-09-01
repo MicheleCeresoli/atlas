@@ -45,17 +45,40 @@ void Renderer::renderTask(
     std::vector<RenderedPixel> output;
     output.reserve(pixels.size()); 
 
-    for (size_t j = 0; j < pixels.size(); j++)
-    {
+    double tj, tints[2];
 
+    for (size_t j = 0; j < pixels.size(); j++)
+    { 
+        tints[1] = pixels[j].tint[1];
+        
+        // If in adaptive-mode, retrieve the ray starting position from the 
+        // previous rendered pixel.
+        if ((opts.adaptiveTracing) && (j > 0) && (pixels[j].nSamples == 1)) {
+            tints[0] = output[j-1].data[0].t;
+            
+            /* TODO: Bisogna sistemare anche il valore massimo che gli viene dato. 
+             * Vale la pena riflettere un attimo su come si vuole gestire l'intera 
+             * catena anche a valle della "Real Camera" che spara raggi a caso. 
+             * 
+             * Potrebbe aver senso differenziare sin da subito tra il caso in cui spari 
+             * per calcolare il "centro del pixel" e quello in cui spari per generare 
+             * un immagine realistica, quindi o con aliasing o con defocus blur? */
+             
+            if (tints[0] == inf) 
+                tints[0] = 0;
+
+        } else {
+            tints[0] = pixels[j].tint[0];
+        }
+        
         RenderedPixel rPix(pixels[j].id, pixels[j].nSamples);
         for (size_t k = 0; k < rPix.nSamples; k++) 
         {
             // Retrieve camera ray for this pixel
             Ray ray = cam.get_ray(pixels[j].u[k], pixels[j].v[k]); 
-
+            
             // Compute pixel data
-            rPix.addPixelData(w.traceRay(ray, pixels[j].tint, wk.id())); 
+            rPix.addPixelData(w.traceRay(ray, tints, wk.id())); 
         }
 
         // Add the pixel to the list of computed pixels
@@ -80,7 +103,7 @@ void Renderer::dispatchTaskQueue(
 void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w) {
     
     // Update the task queue
-    taskQueue.push_back(tp); 
+    updateTaskQueue(tp);
     if (taskQueue.size() >= opts.batchSize) {
         releaseTaskQueue(cam, w); 
     }
@@ -93,8 +116,21 @@ void Renderer::releaseTaskQueue(const Camera& cam, World& w) {
     taskQueue.clear(); 
 }
 
-// This function generates all the tasks required to render an image.
 uint Renderer::generateRenderTasks(const Camera& cam, World& w) {
+    
+    uint nPixels;
+    if (opts.adaptiveTracing) {
+        nPixels = generateAdaptiveRenderTasks(cam, w);
+    } else {
+        nPixels = generateBasicRenderTasks(cam, w);
+    }
+
+    return nPixels; 
+
+}
+
+// This function generates all the tasks required to render an image.
+uint Renderer::generateBasicRenderTasks(const Camera& cam, World& w) {
     
     // Assign all the pixels to a specific rendering task.
     uint nPixels = cam.nPixels();
@@ -111,6 +147,83 @@ uint Renderer::generateRenderTasks(const Camera& cam, World& w) {
     releaseTaskQueue(cam, w); 
 
     return nPixels;
+
+}
+
+// This function generates all the tasks required to render an image.
+uint Renderer::generateAdaptiveRenderTasks(const Camera& cam, World& w) {
+    
+    const std::vector<double>* pRayDistances = w.getRayDistances();
+
+    uint id = 0;
+    for (size_t u = 0; u < cam.width(); u++) {
+        
+        size_t idx_start = u*cam.height(); 
+        size_t idx_end   = idx_start + cam.height(); 
+
+        uint min_index = 0;
+        for (size_t j = idx_start + 1; j < idx_end; j++) {
+            
+            // Update current minimum index value
+            if ((pRayDistances->at(j-1) != inf) && 
+                (pRayDistances->at(j) > pRayDistances->at(j-1))) {
+                break;
+            }
+
+            min_index++;
+        }
+
+        // auto idxStart = pRayDistances->begin() + u*cam.height();
+        // auto idxEnd   = idxStart + cam.height(); 
+        
+        // // Find the iterator to the minimum element
+        // auto min_it = std::min_element(idxStart, idxEnd);
+        // // Calculate the index
+        // int minIndex = std::distance(idxStart, min_it);
+
+        if (min_index == 0) {
+
+            // Here we generate a single task starting from the top of the column
+            for (size_t v = 0; v < cam.height(); v++) {
+                id = cam.pixel_id(u, v);
+                updateTaskQueue(TaskedPixel(id, u, v));
+            }
+
+            releaseTaskQueue(cam, w);
+
+        } else if (min_index == cam.height()-1) {
+
+            // Here we generate a single task starting from the bottom of the column
+            for (int v = cam.height()-1; v >= 0; v--) {
+                id = cam.pixel_id(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v));
+            }
+
+            releaseTaskQueue(cam, w);
+
+        } else {
+
+            /* Here we generate two tasks. The first one goes from the min element to the 
+             * top of the column. The second one from the one after the min to the end 
+             * of the column. */
+            
+            for (int v = min_index; v >= 0; v--) {
+                id = cam.pixel_id(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v)); 
+            }
+
+            releaseTaskQueue(cam, w);
+
+            for (size_t v = min_index + 1; v < cam.height(); v++) {
+                id = cam.pixel_id(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v)); 
+            }
+
+            releaseTaskQueue(cam, w);
+        }
+    }
+
+    return cam.nPixels();
 
 }
 

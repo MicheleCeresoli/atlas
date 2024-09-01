@@ -32,3 +32,20 @@ Ray Camera::get_ray(double u, double v) const {
     vec3 direction = vec3(x, y, 1.0);
     return Ray(center, A*direction);
 }
+
+
+// RealCamera::RealCamera(uint res, double focalLength, double sensorSize, double fstop) : 
+//     _width(res), _height(res), focalLength(focalLength), sensorSize(sensorSize), 
+//     fstop(fstop) {
+
+//     // Compute Field of View (rad)
+//     fov = 2*atan(sensorSize/(2*focalLength));
+    
+//     // Compute pixel physical size (mm)
+//     pixSize = sensorSize/res; 
+
+//     // Compute aperture size
+//     aperture = focalLength/fstop; 
+
+// }
+

@@ -34,6 +34,10 @@ class World {
 
         inline double getRayResolution() const { return dt; }; 
 
+        inline const std::vector<double>* getRayDistances() const { 
+            return &rayDistances; 
+        }
+
     private: 
     
         DEM dem;
@@ -42,11 +46,12 @@ class World {
         WorldOptions opts;
         
         double dt;  
+        std::vector<double> rayDistances;
         
         // True if DEM data should be interpolated because of resolution limitations.
         bool interp = false;
 
-        double computeGSD(const Camera& cam) const; 
+        double computeGSD(const Camera& cam); 
 
 };
 

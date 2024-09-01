@@ -44,13 +44,17 @@ class Renderer {
  
         // This function renders a batch of pixels
         void renderTask(
-            const ThreadWorker&, const Camera& cam, World& w, const std::vector<TaskedPixel>& pixels
+            const ThreadWorker&, const Camera& cam, World& w, 
+            const std::vector<TaskedPixel>& pixels
         );
 
         // Add a rendering task to the thread pool
-        void dispatchTaskQueue(const std::vector<TaskedPixel>& task, const Camera& cam, World& w);
+        void dispatchTaskQueue(
+            const std::vector<TaskedPixel>& task, const Camera& cam, World& w
+        );
 
         // Add a pixel to the task queue and dispatch it when batch-size is reached.
+        inline void updateTaskQueue(const TaskedPixel& tp) { taskQueue.push_back(tp); } 
         void updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w); 
 
         // Add the task to the thread pool and clear the vector 
@@ -58,6 +62,8 @@ class Renderer {
 
         // This function generates all the tasks required to render an image.
         uint generateRenderTasks(const Camera& cam, World& w);
+        uint generateAdaptiveRenderTasks(const Camera& cam, World& w);
+        uint generateBasicRenderTasks(const Camera& cam, World& w);
 
         // Run anti-aliasing on the pixels with a large difference in the distance
         uint generateAntiAliasingTasks(const Camera& cam, World& w);
