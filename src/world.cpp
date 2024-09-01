@@ -11,6 +11,9 @@
 // What happens when a ray crosses on both sides the sphere but after it went outside 
 // it meets a mountain? Is it even physically possible?
 
+// TODO 3: sample altitude basta convertire al dem la posizione attuale della camera
+// non serve sparare un raggio.
+
 World::World(const WorldOptions& opts, uint nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
@@ -140,7 +143,7 @@ double World::computeGSD(const Camera& cam) {
         for (size_t k = 0; k < cam.height(); k++) {
             
             // Retrieve ray
-            Ray ray_k(cam.get_ray(j, k)); 
+            Ray ray_k(cam.getRay(j, k, true)); 
 
             if (ray_k.min_distance() > dem.meanRadius()) {
                 tagPoints[k] = false;

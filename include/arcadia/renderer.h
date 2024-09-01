@@ -36,7 +36,13 @@ class Renderer {
 
         // Temporary queue to store the pixels that will be dispatch to the render
         std::vector<TaskedPixel> taskQueue;
+        // Vector used to compute the min\max boundaries of each pixel.
+        std::vector<TaskedPixel> pixBorders; 
 
+        std::vector<double> pixMaxT; 
+        std::vector<double> pixMinT; 
+
+        uint nPixels;
         bool hasRendered;
 
         // This function stores the output of each render task in the original class
@@ -61,25 +67,30 @@ class Renderer {
         void releaseTaskQueue(const Camera& cam, World& w); 
 
         // This function generates all the tasks required to render an image.
-        uint generateRenderTasks(const Camera& cam, World& w);
-        uint generateAdaptiveRenderTasks(const Camera& cam, World& w);
-        uint generateBasicRenderTasks(const Camera& cam, World& w);
+        void generateRenderTasks(const Camera& cam, World& w);
+        void generateBasicRenderTasks(const Camera& cam, World& w);
+        void generateAdaptiveRenderTasks(const Camera& cam, World& w);
 
         // Run anti-aliasing on the pixels with a large difference in the distance
         uint generateAntiAliasingTasks(const Camera& cam, World& w);
+        uint generateDefocusBlurTasks(const Camera& cam, World& w); 
 
         // Update the storing of the rendered pixels
         void setupRenderer(const Camera& cam, World& w); 
 
+        void postProcessRender(const PinholeCamera& cam, World& w);
+        void postProcessRender(const RealCamera& cam, World& w);  
+
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.
-        void processRenderOutput(); 
+        void sortRenderOutput(); 
+
+        // Retrieve the min\max t-values of each pixel depending on its boundaries
+        void getPixelBoundaries(const Camera& cam);
 
         // Display the real-time rendering status on the terminal.
-        void displayRenderStatus(uint nPixels, std::string m); 
+        void displayRenderStatus(uint n, std::string m); 
 
-        // Check whether two pixel values are aliased. 
-        bool isAliased(double t1, double t2, double dt) const; 
 
 };
 
