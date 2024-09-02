@@ -4,12 +4,6 @@
 
 #include <algorithm>
 
-// TODO: what happens when the camera position is below the Moon's mean radius, i.e., 
-// when for example the spacecraft is attempting to land inside a crater?
-
-// TODO 2: there could also be an issue with the maximum value of tk that is analysed. 
-// What happens when a ray crosses on both sides the sphere but after it went outside 
-// it meets a mountain? Is it even physically possible?
 
 World::World(const WorldOptions& opts, uint nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
@@ -37,6 +31,15 @@ PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid
 
     double tk, tEnd;
     ray.getParameters(dem.maxRadius(), tk, tEnd); 
+
+    /* If tk is negative, it means that the ray encounters the Moon in a direction 
+     * opposite to the one the camera is facing. However, if the camera position is 
+     * above the maximum altitude of the Moon, there's now way one a ray like that 
+     * can intersect a mountain. */
+
+    if ((tk < 0.0) && (ray.origin().norm() > dem.maxRadius())) {
+        return data; 
+    }
 
     if (tMin != 0.0) {
         tk = tMin;
