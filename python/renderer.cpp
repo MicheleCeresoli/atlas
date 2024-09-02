@@ -5,6 +5,7 @@
 
 namespace py = pybind11;
 
+
 void init_renderer(py::module_ &m) {
 
     py::class_<Renderer>(m, "Renderer")
@@ -17,6 +18,7 @@ void init_renderer(py::module_ &m) {
         .def("getRenderedPixels", &Renderer::getRenderedPixels, 
             py::return_value_policy::reference)
 
-        .def("render", &Renderer::render);
+        .def("render", &Renderer::render)
+        .def("updateRenderingOptions", &Renderer::updateRenderingOptions);
 
 }

@@ -11,9 +11,6 @@
 // What happens when a ray crosses on both sides the sphere but after it went outside 
 // it meets a mountain? Is it even physically possible?
 
-// TODO 3: sample altitude basta convertire al dem la posizione attuale della camera
-// non serve sparare un raggio.
-
 World::World(const WorldOptions& opts, uint nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
@@ -22,14 +19,14 @@ World::World(const WorldOptions& opts, uint nThreads) :
 
 }
 
-PixelData World::traceRay(const Ray& ray, const double* tint, int threadid) 
+PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid) 
 {
 
     PixelData data; 
     data.t = inf;
 
     // The ray does not intersect the outer sphere
-    if (ray.min_distance() > dem.maxRadius()) { 
+    if (ray.minDistance() > dem.maxRadius()) { 
         return data;
     }
 
@@ -38,19 +35,19 @@ PixelData World::traceRay(const Ray& ray, const double* tint, int threadid)
      * an interval bound was provided to the tracer, the t-boundaries are 
      * properly adjusted. */
 
-    double tk, tvals[2];
-    ray.get_parameter(tvals, dem.maxRadius()); 
+    double tk, tEnd;
+    ray.getParameters(dem.maxRadius(), tk, tEnd); 
 
-    if (tint[0] == 0.0 && tint[1] == 0.0) { // is the second condition necessary?
-        tk = tvals[0]; 
+    if (tMin != 0.0) {
+        tk = tMin;
     } 
-    else {
-        tk = tint[0] - 3*dt;
-        tvals[1] = MIN(tvals[1], tint[1] + 3*dt);  
+
+    if (tMax != 0.0) {
+        tEnd = tEnd < tMax ? tEnd : tMax;
     }
 
-    // Starting t-value
-    tk = MAX(0.0, tk); 
+    // Starting t-value can't be smaller than 0.0 (not going backwards!)
+    tk = tk > 0 ? tk : 0.0; 
 
     double hk; 
 
@@ -58,8 +55,8 @@ PixelData World::traceRay(const Ray& ray, const double* tint, int threadid)
     point2 s2; 
 
     bool hit = false;
-    while (!hit && tk <= tvals[1]) {
-        
+    while (!hit && tk <= tEnd) {
+
         // Compute ray position
         pos = ray.at(tk); 
 
@@ -87,18 +84,13 @@ PixelData World::traceRay(const Ray& ray, const double* tint, int threadid)
         }
 
         tk += dt;
-
     }
 
     return data; 
 
 }
 
-double World::sampleDOM(const point2& p) {
-    return dom.getColor(p, interp, 0);
-}
-
-void World::computeRayResolution(const Camera& cam) {
+void World::computeRayResolution(const Camera* cam) {
 
     // Compute the minimum GSD of the camera 
     double gsd = computeGSD(cam); 
@@ -126,34 +118,38 @@ void World::computeRayResolution(const Camera& cam) {
 
 }
 
-double World::computeGSD(const Camera& cam) {
+double World::computeGSD(const Camera* cam) {
 
     // Update the array with the distances of each pixel
     rayDistances.clear(); 
-    rayDistances.reserve(cam.nPixels()); 
+    rayDistances.reserve(cam->nPixels()); 
 
     // Compute the intersection points of each ray 
-    std::vector<point3> fovPoints(cam.height()); 
-    std::vector<bool>   tagPoints(cam.height(), true);
+    std::vector<point3> fovPoints(cam->height()); 
+    std::vector<bool>   tagPoints(cam->height(), true);
 
-    double tks[2];
+    double tMin, tMax;
     double gsd = inf, gsd_jk; 
 
-    for (size_t j = 0; j < cam.width(); j++) {
-        for (size_t k = 0; k < cam.height(); k++) {
+    for (size_t j = 0; j < cam->width(); j++) {
+        for (size_t k = 0; k < cam->height(); k++) {
             
             // Retrieve ray
-            Ray ray_k(cam.getRay(j, k, true)); 
+            Ray ray_k(cam->getRay(j, k, true)); 
 
-            if (ray_k.min_distance() > dem.meanRadius()) {
+            // Compute position at moon intersection 
+            ray_k.getParameters(dem.meanRadius(), tMin, tMax); 
+
+            /* If tMin is negative, the ray is "encountering" the Moon behind our back, 
+             * so this case is treated as if we are missing it entirely. */
+
+            if (ray_k.minDistance() > dem.meanRadius() || tMin < 0) {
                 tagPoints[k] = false;
                 rayDistances.push_back(inf); 
                 continue;
             }
 
-            // Compute position at moon intersection 
-            ray_k.get_parameter(tks, dem.meanRadius()); 
-            point3 uk(unit_vector(ray_k.at(tks[0])));
+            point3 uk(unit_vector(ray_k.at(tMin)));
 
             // Check with pixel above
             if (k > 0) {
@@ -177,7 +173,7 @@ double World::computeGSD(const Camera& cam) {
             fovPoints[k] = uk;
             tagPoints[k] = true; 
 
-            rayDistances.push_back(tks[0]);
+            rayDistances.push_back(tMin);
 
         } 
 

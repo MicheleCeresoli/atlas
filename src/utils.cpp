@@ -2,16 +2,6 @@
 #include "utils.h"
 #include <cmath>
 
-double rad2deg(double x) { return x*R2D; }
-double deg2rad(double x) { return x*D2R; }
-
-vec2 rad2deg(const vec2& v) {
-    return vec2(v[0]*R2D, v[1]*R2D); 
-}
-
-vec2 deg2rad(const vec2& v) {
-    return vec2(v[0]*D2R, v[1]*D2R);
-}
 
 // Convert cartesian pos to radius, longitude and latitude 
 point3 car2sph(const point3& pos) {

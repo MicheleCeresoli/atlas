@@ -17,11 +17,11 @@ void init_ray(py::module_ &m) {
         .def("direction", &Ray::direction)
 
         .def("at", &Ray::at)
-        .def("minDistance", &Ray::min_distance)
+        .def("minDistance", &Ray::minDistance)
         
-        .def("getParameter", [](Ray& self, double r) -> py::array_t<double> {
+        .def("getParameters", [](Ray& self, double r) -> py::array_t<double> {
             double t[2]; 
-            self.get_parameter(t, r); 
+            self.getParameters(r, t[0], t[1]); 
             return py::array_t<double>({2}, {sizeof(double)}, {t});
         });
 }

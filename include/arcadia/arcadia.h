@@ -17,10 +17,15 @@ class LunarRayTracer {
 
         void run(); 
 
+        // Renderer Update Routines 
+        inline void updateRenderingOptions(const RenderingOptions& opts) {
+            renderer.updateRenderingOptions(opts);
+        }
+
         // Camera Update Routines
-        inline void updateCamera(const Camera& camera) { cam = camera; }
-        inline void updateCameraPosition(const point3& pos) { cam.set_pos(pos); }
-        inline void updateCameraOrientation(const dcm& dcm) { cam.set_dcm(dcm); } 
+        inline void updateCamera(Camera* camera) { cam = camera; }
+        inline void updateCameraPosition(const point3& pos) { cam->setPos(pos); }
+        inline void updateCameraOrientation(const dcm& dcm) { cam->setDCM(dcm); } 
 
         // Image Generation Routines
         bool generateImageOptical(const std::string& filename); 
@@ -38,7 +43,7 @@ class LunarRayTracer {
 
         World world; 
         Renderer renderer;
-        Camera cam; 
+        Camera* cam; 
 
         double altitude;
 

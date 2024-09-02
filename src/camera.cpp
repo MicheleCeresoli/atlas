@@ -1,5 +1,6 @@
 
 #include "camera.h"
+#include "utils.h"
 
 #include <cmath>
 #include <iostream>
@@ -12,8 +13,6 @@ void Camera::getPixelCoordinates(const uint& id, uint& u, uint& v) const {
     v = id / _width;
     u = id - v*_width;
 }
-
-
 
 // PINHOLE CAMERA
 
@@ -40,7 +39,6 @@ Ray PinholeCamera::getRay(double u, double v, bool center) const {
 }
 
 
-
 // REAL CAMERA (with defocus blur)
 
 RealCamera::RealCamera(uint res, double focalLen, double sensorSize, double fstop) : 
@@ -50,7 +48,7 @@ RealCamera::RealCamera(uint res, double focalLen, double sensorSize, double fsto
     fov = 2*atan(sensorSize/(2*focalLength)); 
     scale = tan(0.5*fov); 
 
-    // Compute pixel physical size (mm)
+    // Compute pixel physical size (mm/px)
     pixSize = sensorSize/res; 
 
     // Compute aperture size 
@@ -59,27 +57,45 @@ RealCamera::RealCamera(uint res, double focalLen, double sensorSize, double fsto
 }
 
 Ray RealCamera::getRay(double u, double v, bool center) const {
-    
+
+    point3 origin;
     vec3 direction; 
+
+    double x, y;
 
     if (center) {
 
         // We shoot a ray as if it were a Pinhole camera
-        double x = ((1 - 2 * (v + 0.5)/(double)height())) * scale;
-        double y = (2 * (u + 0.5)/(double)width() - 1) * scale;
+        x = ((1 - 2 * (v + 0.5)/(double)height())) * scale;
+        y = (2 * (u + 0.5)/(double)width() - 1) * scale;
 
+        origin = _pos;
         direction = vec3(x, y, 1.0);
 
     } else {
         
         // We shoot a ray from a random point on the aperture disk to a random point 
         // within the pixel square 
+        double r = aperture*sqrt(randomNumber()); 
+        double th = 2*PI*randomNumber(); 
 
-        direction = vec3(0.0, 0.0, 0.0);
+        point3 lensPoint(r*cos(th), r*sin(th), 0); 
+
+        // We rotate the point and add it to the camera position after converting from 
+        // mm to meters.
+        origin = _pos + 1e-3*(_dcm*lensPoint); 
+        
+        // For the direction, we sample the pixel in a random unit square around the center
+        x =  0.5*(sensorSize - pixSize) - (v + 0.5*randomNumber())*pixSize;
+        y = -0.5*(sensorSize - pixSize) + (u + 0.5*randomNumber())*pixSize;
+
+        point3 pixSample(x, y, focalLength);
+
+        // Compute the direction
+        direction = pixSample - lensPoint;
     }
 
-    /* TODO: finish me!!*/
-    return Ray(_pos, _dcm*direction);
+    return Ray(origin, _dcm*direction);
 
 }
 

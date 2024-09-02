@@ -217,9 +217,9 @@ int main(int argc, const char* argv[])
     std::clog << "DCM: "  << std::endl << A_cam2in << std::endl; 
 
     // // Initialise the camera object
-    Camera cam(cam_res, cam_fov);
-    cam.set_dcm(A_cam2in); 
-    cam.set_pos(cam_pos); 
+    PinholeCamera cam(cam_res, cam_fov);
+    cam.setDCM(A_cam2in); 
+    cam.setPos(cam_pos); 
    
 
     std::vector<std::string> demFiles;
@@ -270,7 +270,7 @@ int main(int argc, const char* argv[])
 
     LunarRayTracer tracer = LunarRayTracer(opts);
 
-    tracer.updateCamera(cam); 
+    tracer.updateCamera(&cam); 
     tracer.run(); 
 
     tracer.generateImageOptical("testImage5.png");

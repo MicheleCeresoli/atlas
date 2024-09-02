@@ -18,12 +18,13 @@ class World {
 
         World(const WorldOptions& opts, uint nThreads);
 
-        PixelData traceRay(const Ray& r, const double* tvals, int threadid); 
+        PixelData traceRay(const Ray& r, double tMin, double tMax, int threadid); 
         
-        double sampleDOM(const point2& p);
+        inline double sampleDEM(const point2& p) { return dem.getData(p, interp, 0); }; 
+        inline double sampleDOM(const point2& p) { return dom.getColor(p, interp, 0); };
 
         // Compute the distance at which points are evaluated along a ray
-        void computeRayResolution(const Camera& cam);
+        void computeRayResolution(const Camera* cam);
         // Manually update the ray resolution
         inline void setRayResolution(double res) { dt = res; }
 
@@ -51,7 +52,7 @@ class World {
         // True if DEM data should be interpolated because of resolution limitations.
         bool interp = false;
 
-        double computeGSD(const Camera& cam); 
+        double computeGSD(const Camera* cam); 
 
 };
 

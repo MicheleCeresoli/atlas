@@ -16,7 +16,11 @@ class Renderer {
 
         Renderer(const RenderingOptions& opts, uint nThreads); 
 
-        void render(const Camera& cam, World& w);
+        void render(const Camera* cam, World& w);
+
+        inline void updateRenderingOptions(const RenderingOptions& options) {
+            opts = options;
+        } 
 
         inline const std::vector<RenderedPixel>* getRenderedPixels() const {
             return &renderedPixels;
@@ -50,43 +54,44 @@ class Renderer {
  
         // This function renders a batch of pixels
         void renderTask(
-            const ThreadWorker&, const Camera& cam, World& w, 
+            const ThreadWorker&, const Camera* cam, World& w, 
             const std::vector<TaskedPixel>& pixels
         );
 
         // Add a rendering task to the thread pool
         void dispatchTaskQueue(
-            const std::vector<TaskedPixel>& task, const Camera& cam, World& w
+            const std::vector<TaskedPixel>& task, const Camera* cam, World& w
         );
 
         // Add a pixel to the task queue and dispatch it when batch-size is reached.
         inline void updateTaskQueue(const TaskedPixel& tp) { taskQueue.push_back(tp); } 
-        void updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w); 
+        void updateTaskQueue(const TaskedPixel& tp, const Camera* cam, World& w); 
 
         // Add the task to the thread pool and clear the vector 
-        void releaseTaskQueue(const Camera& cam, World& w); 
+        void releaseTaskQueue(const Camera* cam, World& w); 
 
         // This function generates all the tasks required to render an image.
-        void generateRenderTasks(const Camera& cam, World& w);
-        void generateBasicRenderTasks(const Camera& cam, World& w);
-        void generateAdaptiveRenderTasks(const Camera& cam, World& w);
+        void generateRenderTasks(const Camera* cam, World& w);
+        void generateBasicRenderTasks(const Camera* cam, World& w);
+        void generateAdaptiveRenderTasks(const Camera* cam, World& w);
 
         // Run anti-aliasing on the pixels with a large difference in the distance
-        uint generateAntiAliasingTasks(const Camera& cam, World& w);
-        uint generateDefocusBlurTasks(const Camera& cam, World& w); 
+        uint generateAntiAliasingTasks(const Camera* cam, World& w);
+        uint generateDefocusBlurTasks(const Camera* cam, World& w); 
+
+        void runAntiAliasing(const Camera* cam, World& w);  
+        void runDefocusBlur(const Camera* cam, World& w);
 
         // Update the storing of the rendered pixels
-        void setupRenderer(const Camera& cam, World& w); 
-
-        void postProcessRender(const PinholeCamera& cam, World& w);
-        void postProcessRender(const RealCamera& cam, World& w);  
+        void setupRenderer(const Camera* cam, World& w); 
+        void postProcessRender(const Camera* cam, World& w);  
 
         // This function post-processes the outputs of all tasks to generated an 
         // orderered list of pixels.
         void sortRenderOutput(); 
 
         // Retrieve the min\max t-values of each pixel depending on its boundaries
-        void getPixelBoundaries(const Camera& cam);
+        void computePixelBoundaries(const Camera* cam, uint s);
 
         // Display the real-time rendering status on the terminal.
         void displayRenderStatus(uint n, std::string m); 

@@ -22,7 +22,7 @@ class Camera {
 
         // Camera world placement 
         inline void setDCM(const dcm& orientation) { _dcm = orientation; }
-        inline void setPos(const point3& pos) { _pos = _pos; }
+        inline void setPos(const point3& pos) { _pos = pos; }
 
         inline const dcm& getDCM() const { return _dcm; } 
         inline const point3& getPos() const { return _pos; }
@@ -34,7 +34,10 @@ class Camera {
         void getPixelCoordinates(const uint& id, uint& u, uint& v) const; 
 
         // Ray shooter 
-        virtual Ray getRay(double u, double v, bool center = false) const; 
+        virtual Ray getRay(double u, double v, bool center = false) const = 0;
+
+        virtual bool hasAntiAliasing() const = 0;
+        virtual bool hasDefocusBlur() const = 0;
 
 
     protected: 
@@ -59,6 +62,9 @@ class PinholeCamera : public Camera {
 
         Ray getRay(double u, double v, bool center = false) const override; 
 
+        inline bool hasAntiAliasing() const override { return true; }
+        inline bool hasDefocusBlur() const override { return false; }
+
     private: 
 
         double fov;
@@ -77,6 +83,9 @@ class RealCamera : public Camera {
 
         Ray getRay(double u, double v, bool center = false) const override; 
 
+        inline bool hasAntiAliasing() const override { return false; }
+        inline bool hasDefocusBlur() const override { return true; }
+
     private: 
 
         double focalLength;     // (mm)
@@ -91,50 +100,5 @@ class RealCamera : public Camera {
         double aperture;        
 
 };
-
-// class RealCamera {
-
-//     public: 
-
-//         RealCamera() = default; 
-//         RealCamera(uint res, double focalLength, double sensorSize, double fstop);
-
-//         // Standard functions...
-
-//         inline const dcm& get_dcm() const { return A; }
-//         inline const point3& get_pos() const { return center; }
-
-//         inline void set_dcm(const dcm& orientation) { A = orientation; }
-//         inline void set_pos(const point3& pos) { center = pos; }
-
-//         inline uint width() const { return _width; }
-//         inline uint height() const { return _height; }
-//         inline uint nPixels() const { return _width*_height; }
-
-//         inline uint pixel_id(const uint& u, const uint& v) const { return u + _width*v; }; 
-//         inline uint pixel_id(const Pixel& p) const { return pixel_id(p[0], p[1]); }
-
-//         void pixel_coord(const uint& id, uint& u, uint& v) const; 
-
-//         Ray get_ray(double u, double v) const;
-
-//     private: 
-
-//         uint _width = 0;  // Horizontal resolution 
-//         uint _height = 0; // Vertical esolution 
-
-//         double focalLenght;     // (mm)
-//         double sensorSize;      // Camera film width  (mm)
-//         double fov;             // This time computed! 
-
-//         double pixSize;         // Physical pixel size (mm)
-
-//         double fstop;           // Defined as Aperture = focal_length / fstop
-//         double aperture;        
-
-//         point3 center; 
-//         dcm A; 
-
-// };
 
 #endif 

@@ -37,7 +37,7 @@ void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel>& pixels)
 
 // This function renders a batch of pixels
 void Renderer::renderTask(
-    const ThreadWorker& wk, const Camera& cam, World& w, 
+    const ThreadWorker& wk, const Camera* cam, World& w, 
     const std::vector<TaskedPixel>& pixels
 ) {
 
@@ -45,44 +45,54 @@ void Renderer::renderTask(
     std::vector<RenderedPixel> output;
     output.reserve(pixels.size()); 
 
-    double tj, tints[2];
+    // Pixel center coordinates
+    uint u, v; 
+    // Minimum/maximum t-values for the ray-tracing
+    double tMin, tMax; 
+    // Variable to keep track of the minimum distance reached. 
+    double tStart = 0;
+    // True if the ray should be shot from the pixel center (used only in Pinhole)
+    bool center;
+    // Get ray resolution 
+    double dt = w.getRayResolution();
 
     for (size_t j = 0; j < pixels.size(); j++)
     { 
-        tints[1] = pixels[j].tint[1];
-        
-        // If in adaptive-mode, retrieve the ray starting position from the 
-        // previous rendered pixel.
-        if ((opts.adaptiveTracing) && (j > 0) && (pixels[j].nSamples == 1)) {
-            tints[0] = output[j-1].data[0].t;
-            
-            /* TODO: Bisogna sistemare anche il valore massimo che gli viene dato. 
-             * Vale la pena riflettere un attimo su come si vuole gestire l'intera 
-             * catena anche a valle della "Real Camera" che spara raggi a caso. 
-             * 
-             * Potrebbe aver senso differenziare sin da subito tra il caso in cui spari 
-             * per calcolare il "centro del pixel" e quello in cui spari per generare 
-             * un immagine realistica, quindi o con aliasing o con defocus blur? */
-             
-            if (tints[0] == inf) 
-                tints[0] = 0;
+        // Initialise the pixel to be rendered.
+        RenderedPixel rPix(pixels[j]);
+
+        // Update the pixel boundaries
+        if (rPix.nSamples == 1) {
+
+            tMax = inf; 
+            center = true;
+
+            if (opts.adaptiveTracing && j > 0 && tStart != inf) {
+                tMin = tStart - 5*dt;
+            } else {
+                tMin = 0.0; 
+            }
 
         } else {
-            tints[0] = pixels[j].tint[0];
+            center = false; 
+            tMin = pixels[j].tMin - 5*dt; 
+            tMax = pixels[j].tMax + 5*dt;
         }
-        
-        RenderedPixel rPix(pixels[j].id, pixels[j].nSamples);
+
         for (size_t k = 0; k < rPix.nSamples; k++) 
         {
             // Retrieve camera ray for this pixel
-            Ray ray = cam.get_ray(pixels[j].u[k], pixels[j].v[k]); 
+            Ray ray = cam->getRay(pixels[j].u[k], pixels[j].v[k], center); 
             
             // Compute pixel data
-            rPix.addPixelData(w.traceRay(ray, tints, wk.id())); 
+            rPix.addPixelData(w.traceRay(ray, tMin, tMax, wk.id())); 
         }
 
         // Add the pixel to the list of computed pixels
         output.push_back(rPix); 
+
+        // Update the minimum distance reached in the last pixel
+        tStart = rPix.pixMinDistance(); 
     }
 
     // Save the rendered pixels in the Rendeder class 
@@ -91,16 +101,16 @@ void Renderer::renderTask(
 }
 
 void Renderer::dispatchTaskQueue(
-    const std::vector<TaskedPixel>& task, const Camera& cam, World& w
+    const std::vector<TaskedPixel>& task, const Camera* cam, World& w
 ) {
     pool.addTask(
-        [this, &cam, &w, task] (const ThreadWorker& worker) { 
+        [this, cam, &w, task] (const ThreadWorker& worker) { 
             renderTask(worker, cam, w, task); 
         } 
     );
 }
 
-void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& w) {
+void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera* cam, World& w) {
     
     // Update the task queue
     updateTaskQueue(tp);
@@ -110,13 +120,15 @@ void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera& cam, World& 
     
 }
 
-void Renderer::releaseTaskQueue(const Camera& cam, World& w) {
+void Renderer::releaseTaskQueue(const Camera* cam, World& w) {
     // Add the task to the thread pool and clear the vector 
-    dispatchTaskQueue(taskQueue, cam, w); 
-    taskQueue.clear(); 
+    if (taskQueue.size() > 0) {
+        dispatchTaskQueue(taskQueue, cam, w); 
+        taskQueue.clear(); 
+    }
 }
 
-void Renderer::generateRenderTasks(const Camera& cam, World& w) {
+void Renderer::generateRenderTasks(const Camera* cam, World& w) {
     
     if (opts.adaptiveTracing) {
         generateAdaptiveRenderTasks(cam, w);
@@ -127,14 +139,14 @@ void Renderer::generateRenderTasks(const Camera& cam, World& w) {
 }
 
 // This function generates all the tasks required to render an image.
-void Renderer::generateBasicRenderTasks(const Camera& cam, World& w) {
+void Renderer::generateBasicRenderTasks(const Camera* cam, World& w) {
     
     // Assign all the pixels to a specific rendering task.
 
     uint id, u, v;
     for (id = 0; id < nPixels; id++) {
         // Compute pixel coordinates and update rendering queue
-        cam.getPixelCoordinates(id, u, v);
+        cam->getPixelCoordinates(id, u, v);
         updateTaskQueue(TaskedPixel(id, u, v), cam, w); 
     }
 
@@ -145,19 +157,20 @@ void Renderer::generateBasicRenderTasks(const Camera& cam, World& w) {
 }
 
 // This function generates all the tasks required to render an image.
-void Renderer::generateAdaptiveRenderTasks(const Camera& cam, World& w) {
+void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
     
     const std::vector<double>* pRayDistances = w.getRayDistances();
 
-    uint id = 0;
-    for (size_t u = 0; u < cam.width(); u++) {
+    uint id;
+    for (size_t u = 0; u < cam->width(); u++) {
         
-        size_t idx_start = u*cam.height(); 
-        size_t idx_end   = idx_start + cam.height(); 
+        uint min_index = 0; 
 
-        uint min_index = 0;
+        size_t idx_start = u*cam->height(); 
+        size_t idx_end   = idx_start + cam->height(); 
+
         for (size_t j = idx_start + 1; j < idx_end; j++) {
-            
+
             // Update current minimum index value
             if ((pRayDistances->at(j-1) != inf) && 
                 (pRayDistances->at(j) > pRayDistances->at(j-1))) {
@@ -166,30 +179,22 @@ void Renderer::generateAdaptiveRenderTasks(const Camera& cam, World& w) {
 
             min_index++;
         }
-
-        // auto idxStart = pRayDistances->begin() + u*cam.height();
-        // auto idxEnd   = idxStart + cam.height(); 
         
-        // // Find the iterator to the minimum element
-        // auto min_it = std::min_element(idxStart, idxEnd);
-        // // Calculate the index
-        // int minIndex = std::distance(idxStart, min_it);
-
         if (min_index == 0) {
-
+        
             // Here we generate a single task starting from the top of the column
-            for (size_t v = 0; v < cam.height(); v++) {
-                id = cam.getPixelId(u, v);
+            for (size_t v = 0; v < cam->height(); v++) {
+                id = cam->getPixelId(u, v);
                 updateTaskQueue(TaskedPixel(id, u, v));
             }
 
             releaseTaskQueue(cam, w);
 
-        } else if (min_index == cam.height()-1) {
+        } else if (min_index == cam->height()-1) {
 
             // Here we generate a single task starting from the bottom of the column
-            for (int v = cam.height()-1; v >= 0; v--) {
-                id = cam.getPixelId(u, v); 
+            for (int v = cam->height()-1; v >= 0; v--) {
+                id = cam->getPixelId(u, v); 
                 updateTaskQueue(TaskedPixel(id, u, v));
             }
 
@@ -202,14 +207,14 @@ void Renderer::generateAdaptiveRenderTasks(const Camera& cam, World& w) {
              * of the column. */
             
             for (int v = min_index; v >= 0; v--) {
-                id = cam.getPixelId(u, v); 
+                id = cam->getPixelId(u, v); 
                 updateTaskQueue(TaskedPixel(id, u, v)); 
             }
 
             releaseTaskQueue(cam, w);
 
-            for (size_t v = min_index + 1; v < cam.height(); v++) {
-                id = cam.getPixelId(u, v); 
+            for (size_t v = min_index + 1; v < cam->height(); v++) {
+                id = cam->getPixelId(u, v); 
                 updateTaskQueue(TaskedPixel(id, u, v)); 
             }
 
@@ -231,13 +236,13 @@ void Renderer::sortRenderOutput() {
     });
 }
 
-void Renderer::postProcessRender(const PinholeCamera& cam, World& w) {
+void Renderer::runAntiAliasing(const Camera* cam, World& w) {
+
+    // Compute the min\max t-values that should be used for each pixel.
+    computePixelBoundaries(cam, 1); 
 
     if (opts.ssaa.active) 
     {
-        // Compute the min\max t-values that should be used for each pixel.
-        computePixelBoundaries(cam); 
-
         // Run Super-Sampling Antialiasing 
         uint nAliased = generateAntiAliasingTasks(cam, w); 
 
@@ -251,13 +256,11 @@ void Renderer::postProcessRender(const PinholeCamera& cam, World& w) {
 
 };
 
-void Renderer::postProcessRender(const RealCamera& cam, World& w) {
-
-    // Or maybe the first one is always from the center of the pixel, 
-    // all the others are random...? 
+void Renderer::runDefocusBlur(const Camera* cam, World& w) {
 
     // Compute the min\max t-values that should be used for each pixel.
-    computePixelBoundaries(cam); 
+    // TODO: this value should probably be increased...
+    computePixelBoundaries(cam, 1); 
 
     // Generate all the tasks for the defocus blur
     uint nTasked = generateDefocusBlurTasks(cam, w); 
@@ -271,11 +274,23 @@ void Renderer::postProcessRender(const RealCamera& cam, World& w) {
 
 }
 
+void Renderer::postProcessRender(const Camera* cam, World& w) {
 
-void Renderer::setupRenderer(const Camera& cam, World& w) {
+    if (cam->hasAntiAliasing()) {
+        runAntiAliasing(cam, w);
+    }
+    
+    if (cam->hasDefocusBlur()) {
+        runDefocusBlur(cam, w);
+    }
+
+}
+
+
+void Renderer::setupRenderer(const Camera* cam, World& w) {
 
     // Retrieve number of pixels to be rendered
-    nPixels = cam.nPixels(); 
+    nPixels = cam->nPixels(); 
     hasRendered = false; 
     
     // Start the Thread pool, if not started already.
@@ -290,10 +305,6 @@ void Renderer::setupRenderer(const Camera& cam, World& w) {
     // Clear the tasked pixels queue 
     taskQueue.clear(); 
 
-    // Clear the pixel boundaries
-    pixMinT.clear();
-    pixMaxT.clear(); 
-
     // Reserve space for all pixels
     pixMinT.reserve(nPixels); 
     pixMaxT.reserve(nPixels);
@@ -305,11 +316,12 @@ void Renderer::displayRenderStatus(uint n, std::string m) {
     // Store current time
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    double f = (double)opts.batchSize/n; 
 
-    size_t nTasks = pool.nPendingTasks(); 
-    size_t pTasks = nTasks; 
+    size_t nTasks = pool.nPendingTasks();
+    size_t pTasks = nTasks;
     size_t nThreads = pool.nThreads();
+
+    double f = 1.0/nTasks;
 
     while (nTasks > 0)
     {
@@ -319,7 +331,7 @@ void Renderer::displayRenderStatus(uint n, std::string m) {
         if ((pTasks - nTasks) >= nThreads) {
             pTasks = nTasks;
 
-            std::clog << "\r[" <<  std::setw(3) << int(100*(1 - (double)nTasks*f)) 
+            std::clog << "\r[" <<  std::setw(3) << int(100*(1 - pTasks*f)) 
                       << "%] \033[32m" + m + " image\033[0m" << std::flush;
         }
         
@@ -335,7 +347,7 @@ void Renderer::displayRenderStatus(uint n, std::string m) {
 }
 
 // This is the high-level function called by the user
-void Renderer::render(const Camera& cam, World& w) {
+void Renderer::render(const Camera* cam, World& w) {
 
     // Setup the render output variable.
     setupRenderer(cam, w); 
@@ -355,41 +367,45 @@ void Renderer::render(const Camera& cam, World& w) {
     sortRenderOutput(); 
 
     // Post process the first rendering depending on the camera type
-    processRenderOutput(cam, w);
+    postProcessRender(cam, w);
 
 }
 
-void Renderer::computePixelBoundaries(const Camera& cam) {
+void Renderer::computePixelBoundaries(const Camera* cam, uint s) {
+    
+    // Clear the pixel boundaries
+    pixMinT.clear();
+    pixMaxT.clear(); 
 
-    int u, v, ux, vx; 
     int uMin, uMax; 
     int vMin, vMax; 
 
+    uint u, v; 
     uint nBorders;
     size_t idx; 
 
-    double t;
+    double t1, t2;
     double tMin, tMax;
 
     for (size_t id = 0; id < nPixels; id++) {
 
         // Get pixel coordinates 
-        cam.getPixelCoordinates(id, u, v);
+        cam->getPixelCoordinates(id, u, v);
 
         // Go through all pixels 
-        uMin = u-1; uMax = u+1;
-        vMin = v-1; vMax = v+1;
+        uMin = u-s; uMax = u+s;
+        vMin = v-s; vMax = v+s;
 
-        if (uMin) < 0 
+        if (uMin < 0) 
             uMin = 0;
 
         if (vMin < 0)
             vMin = 0;
 
-        if (uMax > cam.width-1) 
+        if (uMax > cam->width()-s) 
             uMax = u;
 
-        if (vMax > cam.height-1)
+        if (vMax > cam->height()-s)
             vMax = v;  
 
         tMin = inf; tMax = -inf;
@@ -397,11 +413,13 @@ void Renderer::computePixelBoundaries(const Camera& cam) {
             for (size_t k = vMin; k < vMax; k++) {
 
                 // Retrieve new pixel id
-                idx = cam.getPixelId(j, ux, vx)
-                t = renderedPixels[idx].pixDistance(); 
+                idx = cam->getPixelId(j, k);
 
-                tMin = t < tMin ? t : tMin; 
-                tMax = t > tMax ? t : tMax; 
+                t1 = renderedPixels[idx].pixMinDistance(); 
+                t2 = renderedPixels[idx].pixMaxDistance();
+                
+                tMin = t1 < tMin ? t1 : tMin; 
+                tMax = t2 > tMax ? t2 : tMax; 
             }
         }
 
@@ -413,7 +431,7 @@ void Renderer::computePixelBoundaries(const Camera& cam) {
 }
 
 
-uint Renderer::generateAntiAliasingTasks(const Camera& cam, World& w) {
+uint Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
 
     // Retrieve current ray resolution.
     double rayRes = w.getRayResolution(); 
@@ -424,16 +442,18 @@ uint Renderer::generateAntiAliasingTasks(const Camera& cam, World& w) {
     for (size_t id = 0; id < nPixels; id++) {
 
         // Retrieve pixel coordinates
-        cam.getPixelCoordinates(id, u, v); 
+        cam->getPixelCoordinates(id, u, v); 
 
         if ((pixMaxT[id] - pixMinT[id]) >= opts.ssaa.threshold*rayRes) {
 
             // Generate pixel
-            TaskedPixel tp(id, u, v, opts.ssaa.nSamples); 
+            TaskedPixel tp(id, u, v, opts.ssaa.nSamples);
+            // Compute SSAA sampling points
+            updateSSAACoordinates(tp);
 
             // Update pixel boundaries
-            tp.tint[0] = pixMinT[id]; 
-            tp.tint[1] = pixMaxT[id];
+            tp.tMin = pixMinT[id]; 
+            tp.tMax = pixMaxT[id];
 
             // Add pixel to the rendering queue
             updateTaskQueue(tp, cam, w); 
@@ -447,21 +467,20 @@ uint Renderer::generateAntiAliasingTasks(const Camera& cam, World& w) {
 
 }
 
-uint Renderer::generateDefocusBlurTasks(const Camera& cam, World& w) {
+uint Renderer::generateDefocusBlurTasks(const Camera* cam, World& w) {
 
     uint u, v; 
-
     for (size_t id = 0; id < nPixels; id++) {
         
         // Retrieve pixel coordinates
-        cam.getPixelCoordinates(id, u, v); 
+        cam->getPixelCoordinates(id, u, v); 
 
         // Generate pixel 
         TaskedPixel tp(id, u, v, 9); 
 
         // Update pixel boundaries 
-        tp.tint[0] = pixMinT[id];
-        tp.tint[1] = pixMaxT[id]; 
+        tp.tMin = pixMinT[id];
+        tp.tMax = pixMaxT[id]; 
 
         // Add pixel to the rendering queue 
         updateTaskQueue(tp, cam, w); 
