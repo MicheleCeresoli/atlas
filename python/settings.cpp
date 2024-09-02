@@ -22,7 +22,8 @@ void init_settings(py::module_ &m) {
 
         .def_readwrite("ssaa", &RenderingOptions::ssaa)
         .def_readwrite("batchSize", &RenderingOptions::batchSize)
-        .def_readwrite("displayInfo", &RenderingOptions::displayInfo);
+        .def_readwrite("displayInfo", &RenderingOptions::displayInfo)
+        .def_readwrite("adaptiveTracing", &RenderingOptions::adaptiveTracing);
 
     /* WORLD OPTIONS */
     py::class_<WorldOptions>(m, "WorldOptions")

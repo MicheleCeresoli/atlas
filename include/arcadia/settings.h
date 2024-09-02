@@ -24,6 +24,7 @@ class RenderingOptions {
         SSAAOptions ssaa;
         size_t batchSize = 640; 
         bool displayInfo = false;
+        bool adaptiveTracing = false;
 
 };
 

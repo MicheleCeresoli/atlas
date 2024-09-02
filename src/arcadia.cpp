@@ -31,13 +31,14 @@ void LunarRayTracer::run() {
 // Settings Retrieval
 void LunarRayTracer::sampleAltitude() {
 
-    // Create a ray centered at the camera position in the Nadir direction
-    Ray nadir(cam.get_pos(), -cam.get_pos());
+    // Convert camera position to spherical coordinates
+    point3 sph = car2sph(cam->getPos()); 
 
-    double t[2] = {0.0, 0.0};
+    // Convert geographic coordinates to degrees
+    point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
-    // Update the altitude 
-    altitude = world.traceRay(nadir, t, 0).t;
+    // Retrieve the exact altitude from the DEM
+    altitude = world.sampleDEM(s2);
 
 }
 
@@ -49,7 +50,7 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename) {
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
     // Create a grayscale image (8-bit single-channel)
-    cv::Mat image(cam.height(), cam.width(), CV_8UC1, cv::Scalar(0));
+    cv::Mat image(cam->height(), cam->width(), CV_8UC1, cv::Scalar(0));
 
     double c; 
     point2 s; 
@@ -60,7 +61,7 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename) {
     for (auto& p : *pixels) {
         
         // Retrieve pixel coordinates on the image
-        cam.pixel_coord(p.id, u, v); 
+        cam->getPixelCoordinates(p.id, u, v); 
 
         c = 0.0;
         for (size_t k = 0; k < p.nSamples; k++) {

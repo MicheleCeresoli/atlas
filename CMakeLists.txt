@@ -24,10 +24,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 CONFIG REQUIRED)
 
-find_package(GDAL CONFIG)
-if (NOT GDAL_FOUND) 
-    find_package(GDAL REQUIRED)
-endif()
+find_package(GDAL REQUIRED)
 
 find_package(OpenCV CONFIG REQUIRED)
 

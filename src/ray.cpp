@@ -14,15 +14,18 @@ point3 Ray::at(double t) const {
     return p + t*d; 
 }
 
-double Ray::min_distance() const {
+double Ray::minDistance() const {
     // Compute the minimum distance of the ray from the origin
     return std::sqrt(p2 - pd2);
 }
 
-void Ray::get_parameter(double *t, double r) const {
+void Ray::getParameters(double r, double& tMin, double& tMax) const {
+    
     // Compute the parameter t at a given radial distance.
-    double s = std::sqrt(pd2 - p2 + r*r); 
-    t[0] = -pd - s; 
-    t[1] = -pd + s; 
-    return; 
+    double s = std::sqrt(pd2 - p2 + r*r);
+
+    // Compute minimum and maximum values 
+    tMin = -pd - s; 
+    tMax = -pd + s;  
+    
 }

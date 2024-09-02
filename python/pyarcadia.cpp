@@ -1,24 +1,26 @@
 #include <pybind11/pybind11.h>
 
-void init_affine(pybind11::module_ &m);  
-void init_arcadia(pybind11::module_ &m); 
-void init_camera(pybind11::module_ &m); 
-void init_dcm(pybind11::module_ &m); 
-void init_dem(pybind11::module_ &m);
-void init_dom(pybind11::module_ &m);
-void init_pixel(pybind11::module_ &m);
-void init_raster(pybind11::module_ &m);
-void init_ray(pybind11::module_ &m);
-void init_renderer(pybind11::module_ &m); 
-void init_settings(pybind11::module_ &m);
-void init_vec2(pybind11::module_ &m); 
-void init_vec3(pybind11::module_ &m); 
-void init_world(pybind11::module_ &m);
+namespace py = pybind11;
+
+void init_affine(py::module_ &m);  
+void init_arcadia(py::module_ &m); 
+void init_camera(py::module_ &m); 
+void init_dcm(py::module_ &m); 
+void init_dem(py::module_ &m);
+void init_dom(py::module_ &m);
+void init_pixel(py::module_ &m);
+void init_raster(py::module_ &m);
+void init_ray(py::module_ &m);
+void init_renderer(py::module_ &m); 
+void init_settings(py::module_ &m);
+void init_vec2(py::module_ &m); 
+void init_vec3(py::module_ &m); 
+void init_world(py::module_ &m);
 
 PYBIND11_MODULE(pyarcadia, m) {
 
     m.doc() = "Python/C++ bindings for the arcadia library."; 
-    
+
     init_vec2(m); 
     init_vec3(m);
     init_ray(m); 

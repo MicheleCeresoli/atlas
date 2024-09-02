@@ -17,6 +17,8 @@ void init_arcadia(py::module_ &m) {
 
         .def("run", &LunarRayTracer::run)
 
+        .def("updateRenderingOptions", &LunarRayTracer::updateRenderingOptions)
+
         .def("updateCamera", &LunarRayTracer::updateCamera)
         .def("updateCameraPosition", &LunarRayTracer::updateCameraPosition)
         .def("updateCameraOrientation", &LunarRayTracer::updateCameraOrientation)

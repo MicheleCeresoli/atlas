@@ -12,6 +12,7 @@ void init_world(py::module_ &m) {
             py::arg("opts") = WorldOptions(), py::arg("nThreads") = 1
         )
 
+        .def("sampleDEM", &World::sampleDEM)
         .def("sampleDOM", &World::sampleDOM)
 
         .def("cleanupDEM", &World::cleanupDEM)

@@ -9,56 +9,73 @@
                         TASKED PIXEL
 ---------------------------------------------------------- */
 
-TaskedPixel::TaskedPixel(uint id, double i, double j, size_t nSamples) : 
-    id(id), nSamples(nSamples) 
-{
+TaskedPixel::TaskedPixel(uint id, double u, double v, size_t nSamples) : 
+    id(id), nSamples(nSamples), tMin(0.0), tMax(inf) {
 
-    if (nSamples == 1) {
-        u[0] = i;
-        v[0] = j;
+    this->u.reserve(nSamples);
+    this->v.reserve(nSamples);
 
-    } else if (nSamples == 4) {
-
-        u[0] = i - 0.25; 
-        u[1] = i + 0.25;
-        u[2] = u[0]; 
-        u[3] = u[1];
-
-        v[0] = j - 0.25; 
-        v[1] = v[0];
-        v[2] = j + 0.25; 
-        v[3] = v[2];
-
-    } else if (nSamples = 8) {
-
-        u[0] = i - 0.25; 
-        u[1] = u[0];
-        u[2] = u[0]; 
-        u[3] = i;
-        u[4] = i;
-        u[5] = i + 0.25;
-        u[6] = u[5];
-        u[7] = u[5];
-
-        v[0] = j - 0.25; 
-        v[1] = j;
-        v[2] = j + 0.25; 
-        v[3] = v[0];
-        v[4] = v[2];
-        v[5] = v[0];
-        v[6] = v[1];
-        v[7] = v[2];
-
-    } else {
-        std::invalid_argument("unsupported number of pixel samples.");
+    // Fill the vectors with the desired number of samples
+    for (size_t j = 0; j < nSamples; j++)  {
+        this->u.push_back(u); 
+        this->v.push_back(v); 
     }
 
 }
 
-TaskedPixel::TaskedPixel(uint id, point2 p, size_t nSamples) : 
-    TaskedPixel(id, p[0], p[1], nSamples) {}
+void updateSSAACoordinates(TaskedPixel& tp) {
 
+    double u = tp.u[0]; 
+    double v = tp.v[0];
 
+    if (tp.nSamples == 4) {
+        
+        tp.u[0] -= 0.25; 
+        tp.u[1] += 0.25;
+        tp.u[2] = tp.u[0]; 
+        tp.u[3] = tp.u[1];
+        tp.v[0] -= 0.25; 
+        tp.v[1] = tp.v[0];
+        tp.v[2] += 0.25; 
+        tp.v[3] = tp.v[2];
+
+    } else if (tp.nSamples == 8) {
+
+        tp.u[0] -= 0.25; 
+        tp.u[1] = tp.u[0];
+        tp.u[2] = tp.u[0]; 
+        tp.u[5] += 0.25;
+        tp.u[6] = tp.u[5];
+        tp.u[7] = tp.u[5];
+
+        tp.v[0] -= 0.25; 
+        tp.v[2] += 0.25; 
+        tp.v[3] = tp.v[0];
+        tp.v[4] = tp.v[2];
+        tp.v[5] = tp.v[0];
+        tp.v[7] = tp.v[2];
+
+    } else if (tp.nSamples == 16) {
+
+        v -= 0.375;
+        u -= 0.375;
+
+        size_t cnt = 0;
+        for (size_t i = 0; i < tp.nSamples / 2; i++) {
+            for (size_t j = 0; j < tp.nSamples / 2; j++) {
+
+                tp.u[cnt] = u + 0.25*j;
+                tp.v[cnt] = v + 0.25*i;
+                
+                cnt++;
+            }
+        }
+
+    } else {
+        std::invalid_argument("unsupported number of SSAA pixel samples.");
+    }
+
+}
 
 
 /* -------------------------------------------------------
@@ -66,11 +83,10 @@ TaskedPixel::TaskedPixel(uint id, point2 p, size_t nSamples) :
 ---------------------------------------------------------- */
 
 RenderedPixel::RenderedPixel(uint id, size_t nSamples) : 
-    id(id), nSamples(nSamples), tMin(inf), tMax(-inf) 
-{
+    id(id), nSamples(nSamples), tMin(inf), tMax(-inf) {
     data.reserve(nSamples); 
-
 }
+
 
 void RenderedPixel::updateSamples(size_t newSamples) {
     nSamples = newSamples;

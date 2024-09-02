@@ -15,17 +15,21 @@ class TaskedPixel {
 
     public: 
     
-        TaskedPixel(uint id, double i, double j, size_t nSamples = 1);
-        TaskedPixel(uint id, point2 p, size_t nSamples = 1); 
+        TaskedPixel(uint id, double u, double v, size_t nSamples = 1);
 
         uint id; 
-        size_t nSamples = 1;
+        size_t nSamples;
 
-        double u[MAX_PIX_SAMPLES]; 
-        double v[MAX_PIX_SAMPLES]; 
+        double tMin; 
+        double tMax;
 
-        double tint[2] = {0.0, 0.0}; 
+        std::vector<double> u; 
+        std::vector<double> v;
+        
 };
+
+void updateSSAACoordinates(TaskedPixel& tp);
+
 
 struct PixelData {
 
@@ -43,6 +47,7 @@ class RenderedPixel {
         std::vector<PixelData> data;
 
         RenderedPixel(uint id, size_t nSamples);
+        inline RenderedPixel(TaskedPixel pix) : RenderedPixel(pix.id, pix.nSamples) {};
 
         void updateSamples(size_t newSamples); 
         void addPixelData(const PixelData& d); 

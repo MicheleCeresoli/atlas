@@ -13,8 +13,8 @@ class Ray {
 
         point3 at(double t) const;
 
-        double min_distance() const;
-        void get_parameter(double *t, double r) const;
+        double minDistance() const;
+        void getParameters(double r, double& tMin, double& tMax) const;
 
     private: 
         point3 p; 
