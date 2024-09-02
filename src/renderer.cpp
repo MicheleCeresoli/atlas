@@ -15,6 +15,9 @@ Renderer::Renderer(const RenderingOptions& opts, uint nThreads) :
     // Reserve enough space for the this task.
     taskQueue.reserve(opts.batchSize); 
 
+    // Update status
+    status = RenderingStatus::WAITING;
+
 }
 
 // This function stores the output of each render task in the original class
@@ -23,7 +26,7 @@ void Renderer::saveRenderTaskOutput(const std::vector<RenderedPixel>& pixels)
     {
         std::unique_lock<std::mutex> lock(renderMutex); 
         for (auto p : pixels) {
-            if (!hasRendered)
+            if (status >= RenderingStatus::TRACING)
                 renderedPixels.push_back(p);
             else 
             {
@@ -130,6 +133,9 @@ void Renderer::releaseTaskQueue(const Camera* cam, World& w) {
 
 void Renderer::generateRenderTasks(const Camera* cam, World& w) {
     
+    // Update current rendering status
+    status = RenderingStatus::TRACING;
+
     if (opts.adaptiveTracing) {
         generateAdaptiveRenderTasks(cam, w);
     } else {
@@ -226,9 +232,6 @@ void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
 
 
 void Renderer::sortRenderOutput() {
-    // Update render status
-    hasRendered = true; 
-    
     // Sort the rendered pixel vector to have increasing pixel IDs; 
     std::sort(renderedPixels.begin(), renderedPixels.end(), 
         [] (const RenderedPixel& p1, const RenderedPixel& p2) { 
@@ -237,18 +240,20 @@ void Renderer::sortRenderOutput() {
 }
 
 void Renderer::runAntiAliasing(const Camera* cam, World& w) {
-
-    // Compute the min\max t-values that should be used for each pixel.
-    computePixelBoundaries(cam, 1); 
-
+    
     if (opts.ssaa.active) 
     {
+        // Update rendering status
+        status = RenderingStatus::POST_SSAA; 
+
+        // Compute the min\max t-values that should be used for each pixel.
+        computePixelBoundaries(cam, 1); 
+
         // Run Super-Sampling Antialiasing 
         uint nAliased = generateAntiAliasingTasks(cam, w); 
 
-        if (opts.displayInfo) {
-            displayRenderStatus(nAliased, "Anti-Aliasing"); 
-        }
+        // Display status if required.
+        displayRenderStatus(nAliased); 
 
         // Wait for the completion of all jobs
         pool.waitCompletion();
@@ -258,6 +263,9 @@ void Renderer::runAntiAliasing(const Camera* cam, World& w) {
 
 void Renderer::runDefocusBlur(const Camera* cam, World& w) {
 
+    // Update rendering status
+    status = RenderingStatus::POST_DEFOCUS;
+
     // Compute the min\max t-values that should be used for each pixel.
     // TODO: this value should probably be increased...
     computePixelBoundaries(cam, 1); 
@@ -265,9 +273,8 @@ void Renderer::runDefocusBlur(const Camera* cam, World& w) {
     // Generate all the tasks for the defocus blur
     uint nTasked = generateDefocusBlurTasks(cam, w); 
 
-    if (opts.displayInfo) {
-        displayRenderStatus(nTasked, "Defocusing"); 
-    }
+    // Display status if required.
+    displayRenderStatus(nTasked); 
 
     // Wait for the completion of all jobs 
     pool.waitCompletion(); 
@@ -276,13 +283,18 @@ void Renderer::runDefocusBlur(const Camera* cam, World& w) {
 
 void Renderer::postProcessRender(const Camera* cam, World& w) {
 
+    // Perform SSAA
     if (cam->hasAntiAliasing()) {
         runAntiAliasing(cam, w);
     }
-    
+
+    // Add defocus blur effect
     if (cam->hasDefocusBlur()) {
         runDefocusBlur(cam, w);
     }
+
+    // Update rendering status
+    status = RenderingStatus::COMPLETED;
 
 }
 
@@ -309,19 +321,40 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
     pixMinT.reserve(nPixels); 
     pixMaxT.reserve(nPixels);
 
+    status = RenderingStatus::INITIALISED;
+
 }
 
-void Renderer::displayRenderStatus(uint n, std::string m) {
+void Renderer::displayRenderStatus(uint n) {
+
+    if (!opts.displayInfo)
+        return; 
 
     // Store current time
     auto t1 = std::chrono::high_resolution_clock::now();
-
 
     size_t nTasks = pool.nPendingTasks();
     size_t pTasks = nTasks;
     size_t nThreads = pool.nThreads();
 
     double f = 1.0/nTasks;
+
+    // Set string to be displayed 
+    std::string m; 
+    switch (status) {
+
+        case RenderingStatus::TRACING: 
+            m = "Ray-tracing";
+            break; 
+
+        case RenderingStatus::POST_SSAA:
+            m = "SSAA";
+            break; 
+
+        case RenderingStatus::POST_DEFOCUS: 
+            m = "Defocusing"; 
+            break; 
+    }
 
     while (nTasks > 0)
     {
@@ -355,10 +388,8 @@ void Renderer::render(const Camera* cam, World& w) {
     // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
     generateRenderTasks(cam, w); 
 
-    // Display the rendering status
-    if (opts.displayInfo) {
-        displayRenderStatus(nPixels, "Ray-tracing"); 
-    }
+    // Display the rendering status if required.
+    displayRenderStatus(nPixels); 
     
     // Wait for the completion of all jobs
     pool.waitCompletion();

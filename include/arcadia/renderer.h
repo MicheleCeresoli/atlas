@@ -10,6 +10,15 @@
 #include <mutex>
 #include <vector>
 
+enum class RenderingStatus {
+    WAITING,
+    INITIALISED, 
+    TRACING, 
+    POST_SSAA, 
+    POST_DEFOCUS, 
+    COMPLETED
+};
+
 class Renderer {
     
     public: 
@@ -31,6 +40,8 @@ class Renderer {
 
         ThreadPool pool; 
         RenderingOptions opts; 
+
+        RenderingStatus status;
 
         // Mutex to synchronise access to shared data.
         std::mutex renderMutex; 
@@ -94,7 +105,7 @@ class Renderer {
         void computePixelBoundaries(const Camera* cam, uint s);
 
         // Display the real-time rendering status on the terminal.
-        void displayRenderStatus(uint n, std::string m); 
+        void displayRenderStatus(uint n); 
 
 
 };
