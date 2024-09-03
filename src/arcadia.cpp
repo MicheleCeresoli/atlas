@@ -33,6 +33,10 @@ LunarRayTracer::LunarRayTracer(RayTracerOptions opts) :
 
 void LunarRayTracer::run() {
 
+    // We clean-up the DOM at each run since the data that would be required for it 
+    // is changed anyway.
+    world.cleanupDOM();
+
     // Compute the ray rendering resolution.
     world.computeRayResolution(cam); 
 
