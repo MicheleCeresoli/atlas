@@ -64,8 +64,7 @@ void Renderer::renderTask(
         // Initialise the pixel to be rendered.
         RenderedPixel rPix(pixels[j]);
 
-        // Update the pixel boundaries
-        if (rPix.nSamples == 1) {
+        if (status == RenderingStatus::TRACING) {
 
             tMax = inf; 
             center = true;
@@ -75,11 +74,12 @@ void Renderer::renderTask(
             } else {
                 tMin = 0.0; 
             }
-
         } else {
+
+            // Update the pixel boundaries
             center = false; 
-            tMin = pixels[j].tMin - 5*dt; 
-            tMax = pixels[j].tMax + 5*dt;
+            tMin = pixels[j].tMin - 3*dt; 
+            tMax = pixels[j].tMax + 3*dt;
         }
 
         for (size_t k = 0; k < rPix.nSamples; k++) 
