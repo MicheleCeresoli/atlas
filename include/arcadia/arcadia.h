@@ -34,13 +34,11 @@ class LunarRayTracer {
         bool generateImageDEM(const std::string& filename, int type = CV_8UC1); 
         bool generateDepthMap(const std::string& filename, int type = CV_8UC1); 
         
-        void generateImageGCPs(const std::string& filename); 
+        // Ground Control Point Generation
+        void generateGCPs(const std::string& filename, int stride); 
 
         // Settings Retrieval
         inline double getAltitude() { return altitude; }; 
-        
-        void getImageGCPs();
-
 
     private: 
 

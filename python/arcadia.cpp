@@ -35,6 +35,6 @@ void init_arcadia(py::module_ &m) {
             py::arg("filename"), py::arg("type")=CV_8UC1
         ) 
         
-        .def("generateImageGCPs", &LunarRayTracer::generateImageGCPs)
+        .def("generateGCPs", &LunarRayTracer::generateGCPs)
         .def("getAltitude", &LunarRayTracer::getAltitude);
 }

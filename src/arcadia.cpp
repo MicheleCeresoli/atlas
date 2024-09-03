@@ -16,11 +16,11 @@ void updateImageContent(cv::Mat& image, uint u, uint v, double c) {
     // Retrieve a pointer to the current pixel row and update the pixel value 
     if (image.type() == CV_8UC1) {
         uchar* pRow = image.ptr<uchar>(v); 
-        pRow[u] = 255.999*c; 
+        pRow[u] = static_cast<uint8_t>(255.999*c); 
 
     } else {
         uint16_t* pRow = image.ptr<uint16_t>(v); 
-        pRow[u] = 65535.999*c;
+        pRow[u] = static_cast<uint16_t>(65535.999*c);
     }
     
 }
@@ -230,12 +230,62 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
 }
 
 
+void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
 
-void LunarRayTracer::generateImageGCPs(const std::string& filename) {
+    // Generate filepath object 
+    auto filepath = std::filesystem::path(filename); 
 
-}
+    // Set the file delimiter depending on its format
+    std::string dl; 
+    if (filepath.extension() == ".txt") {
+        dl = " ";
+
+    } else if (filepath.extension() == ".csv") {
+        dl = ", ";
+
+    } else {
+        throw std::invalid_argument(
+            "GCP data can only be exported to TXT or CSV file formats."
+        );
+    }
+    
+    // Try to create the file
+    std::ofstream file(filename); 
+    if (!file.is_open()) {
+        throw std::runtime_error("unable to create the file in this path.");
+    }
+    
+    // Retrieve the pixel data
+    const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
+
+    uint id; 
+
+    double lon, lat; 
+    PixelData data;
+
+    for (size_t u = 0; u < cam->width(); u += stride) {
+        for (size_t v = 0; v < cam->height(); v += stride) {
+
+            // Retrieve pixel id 
+            id = cam->getPixelId(u, v);
+
+            // Retrieve data relative to the pixel center
+            data = (*pixels)[id].data[0]; 
+            if (data.t != inf) {
+            
+                // Retrieve longitude and latitude in degrees
+                lon = rad2deg(data.s[1]);
+                lat = rad2deg(data.s[2]);
+
+                // Write the data to the CSV file
+                file << u << dl << v << dl << lon << dl << lat << "\n"; 
+            
+            }
+        }
+    }
 
 
-void LunarRayTracer::getImageGCPs() {
+    // Close the file
+    file.close(); 
 
 }
