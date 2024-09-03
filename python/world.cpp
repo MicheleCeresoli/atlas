@@ -12,6 +12,11 @@ void init_world(py::module_ &m) {
             py::arg("opts") = WorldOptions(), py::arg("nThreads") = 1
         )
 
+        .def("minRadius", &World::minRadius)
+        .def("maxRadius", &World::maxRadius)
+        .def("minAltitude", &World::minAltitude)
+        .def("maxAltitude", &World::maxAltitude)
+
         .def("sampleDEM", &World::sampleDEM)
         .def("sampleDOM", &World::sampleDOM)
 

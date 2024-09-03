@@ -23,6 +23,12 @@ class World {
         inline double sampleDEM(const point2& p) { return dem.getData(p, interp, 0); }; 
         inline double sampleDOM(const point2& p) { return dom.getColor(p, interp, 0); };
 
+        // DEM interface functions
+        inline double maxRadius() const { return dem.maxRadius(); }
+        inline double minRadius() const { return dem.minRadius(); }
+        inline double minAltitude() const { return dem.minAltitude(); }
+        inline double maxAltitude() const { return dem.maxAltitude(); }
+
         // Compute the distance at which points are evaluated along a ray
         void computeRayResolution(const Camera* cam);
         // Manually update the ray resolution

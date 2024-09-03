@@ -97,7 +97,48 @@ void LunarRayTracer::generateImageLIDAR(const std::string& filename) {
 }
 
 
-void LunarRayTracer::generateImageDEM(const std::string& filename) {
+bool LunarRayTracer::generateImageDEM(const std::string& filename) {
+
+    const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
+
+    // Create a grayscale image (8-bit single-channel)
+    cv::Mat image(cam->height(), cam->width(), CV_8UC1, cv::Scalar(0));
+
+    double c; 
+
+    uint u, v;
+    uchar* pRow;
+
+    // Retrieve the DEM maximum and minimum radii 
+    double minR = world.minRadius();
+    double maxR = world.maxRadius(); 
+    double dR = maxR - minR; 
+
+    for (auto& p : *pixels) {
+        
+        // Retrieve pixel coordinates on the image
+        cam->getPixelCoordinates(p.id, u, v); 
+
+        c = 0.0;
+        for (size_t k = 0; k < p.nSamples; k++) {
+
+            if (p.data[k].t != inf) {
+                // Retrieve point distance from center and normalise 
+                c += (p.data[k].s[0] - minR)/dR;
+            }
+        }
+
+        // Average the pixel color through all the samples.
+        c /= p.nSamples; 
+
+        // Retrieve a pointer to the current pixel row and update the pixel value 
+        pRow = image.ptr<uchar>(v);
+        pRow[u] = uint(255.999*c); 
+
+    }
+
+    // Write the image
+    return cv::imwrite(filename, image); 
 
 }
 

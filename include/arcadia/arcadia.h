@@ -29,8 +29,9 @@ class LunarRayTracer {
 
         // Image Generation Routines
         bool generateImageOptical(const std::string& filename); 
+        bool generateImageDEM(const std::string& filename); 
+        
         void generateImageLIDAR(const std::string& filename); 
-        void generateImageDEM(const std::string& filename); 
         void generateImageGCPs(const std::string& filename); 
 
         // Settings Retrieval
