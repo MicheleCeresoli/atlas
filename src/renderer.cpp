@@ -303,7 +303,6 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
 
     // Retrieve number of pixels to be rendered
     nPixels = cam->nPixels(); 
-    hasRendered = false; 
     
     // Start the Thread pool, if not started already.
     pool.startPool(); 
@@ -321,6 +320,7 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
     pixMinT.reserve(nPixels); 
     pixMaxT.reserve(nPixels);
 
+    // Update status
     status = RenderingStatus::INITIALISED;
 
 }

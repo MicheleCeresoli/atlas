@@ -35,7 +35,6 @@ class Renderer {
             return &renderedPixels;
         }
         
-
     private: 
 
         ThreadPool pool; 
@@ -57,8 +56,8 @@ class Renderer {
         std::vector<double> pixMaxT; 
         std::vector<double> pixMinT; 
 
+        // Keep track of the total number of pixels to render
         uint nPixels;
-        bool hasRendered;
 
         // This function stores the output of each render task in the original class
         void saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels); 

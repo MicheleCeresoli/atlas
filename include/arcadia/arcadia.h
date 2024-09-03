@@ -6,6 +6,8 @@
 #include "renderer.h"
 #include "settings.h"
 
+#include "opencv2/opencv.hpp"
+
 #include <vector>
 #include <string> 
 
@@ -28,10 +30,10 @@ class LunarRayTracer {
         inline void updateCameraOrientation(const dcm& dcm) { cam->setDCM(dcm); } 
 
         // Image Generation Routines
-        bool generateImageOptical(const std::string& filename); 
-        bool generateImageDEM(const std::string& filename); 
+        bool generateImageOptical(const std::string& filename, int type = CV_8UC1); 
+        bool generateImageDEM(const std::string& filename, int type = CV_8UC1); 
+        bool generateDepthMap(const std::string& filename, int type = CV_8UC1); 
         
-        void generateImageLIDAR(const std::string& filename); 
         void generateImageGCPs(const std::string& filename); 
 
         // Settings Retrieval

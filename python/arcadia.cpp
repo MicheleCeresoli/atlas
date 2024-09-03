@@ -23,10 +23,18 @@ void init_arcadia(py::module_ &m) {
         .def("updateCameraPosition", &LunarRayTracer::updateCameraPosition)
         .def("updateCameraOrientation", &LunarRayTracer::updateCameraOrientation)
 
-        .def("generateImageOptical", &LunarRayTracer::generateImageOptical) 
-        .def("generateImageLIDAR", &LunarRayTracer::generateImageLIDAR) 
-        .def("generateImageDEM", &LunarRayTracer::generateImageDEM)
-        .def("generateImageGCPs", &LunarRayTracer::generateImageGCPs)
+        .def("generateImageOptical", &LunarRayTracer::generateImageOptical, 
+            py::arg("filename"), py::arg("type")=CV_8UC1
+        )
 
+        .def("generateImageDEM", &LunarRayTracer::generateImageDEM, 
+            py::arg("filename"), py::arg("type")=CV_8UC1
+        )
+
+        .def("generateDepthMap", &LunarRayTracer::generateDepthMap, 
+            py::arg("filename"), py::arg("type")=CV_8UC1
+        ) 
+        
+        .def("generateImageGCPs", &LunarRayTracer::generateImageGCPs)
         .def("getAltitude", &LunarRayTracer::getAltitude);
 }
