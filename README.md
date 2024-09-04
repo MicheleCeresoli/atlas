@@ -17,14 +17,13 @@ to install the python package in your current active environment.
 
 ### GLIBCXX 
 
-If when importing the `arcadia` module into your python script you get an error stating `/lib/libstdc++.so.6: version GLIBCXX_3.4.32 not found`, it means that the library was built against a `GLIBCXX` version that is not listed in your runtime system's `libstdc++`. If the import is trying to use the miniconda's `libstdc++`, the problem can be solved by running 
+If when importing the `arcadia` module into your python script you get an error stating `/lib/libstdc++.so.6: version GLIBCXX_3.4.32 not found`, it means that the library was built against a `GLIBCXX` version that is not listed in your runtime system's `libstdc++`. 
+
+If the import is trying to use the miniconda's `libstdc++`, the problem can be solved by running either one of these two commands:
 
 ```
 conda install -c conda-forge gcc=X.X
 ```
-
-or 
-
 ```
 conda install -c conda-forge libstdcxx-ng=Y
 ```
