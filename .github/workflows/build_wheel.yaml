@@ -1,0 +1,64 @@
+name: Build Wheels 
+
+on:  [push, pull_request]
+
+jobs: 
+  build-wheels: 
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix: 
+        os: [ubuntu-latest]
+
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3
+    
+      - name: Setup Python 
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.9'
+
+      - name: Install build dependencies
+        run: | 
+          python -m pip install -upgrade pip 
+          python -m pip install build 
+
+      - name: Build the wheel 
+        run: python -m build --wheel
+
+      - name: Archive the wheel 
+        uses: actions/upload-artifact@v3 
+        with: 
+          name: wheel 
+          path: dist/*.whl
+
+
+  upload-to-github: 
+    needs: build-wheels 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      - name: Download wheels 
+        uses: actions/download-artifact@v3 
+        with: 
+          name: wheel 
+          path: wheels 
+
+      - name: Create release 
+        uses: actions/create-release@v1
+        env: 
+          GITHUB_TOKER: ${{ secrets.GITHUB_TOKEN }}
+        with: 
+          tag_name: v0.1.0
+          release_name: Release v0.1.0
+          draft: false 
+          prerelease: false 
+
+      - name: Upload wheel to GitHub Release 
+        run: | 
+          for file in wheels/*whl; do
+            echo "Uploading $file"
+            gh release upload ${{ github.ref_name }} "$file"
+          done
