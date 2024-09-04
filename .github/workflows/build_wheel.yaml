@@ -9,8 +9,10 @@ jobs:
   build-wheels: 
     runs-on: ${{matrix.os}}
     strategy:
+
       matrix: 
         os: [ubuntu-latest]
+        # python-version: [3.9, 3.10, 3.11, 3.12]
 
     steps: 
       - name: Checkout code 
@@ -20,6 +22,7 @@ jobs:
         uses: actions/setup-python@v4
         with: 
           python-version: '3.9'
+          # python-version: ${{matrix.python-version}}
 
       - name: Install build dependencies
         run: | 
@@ -67,7 +70,8 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
-          echo "${{ github.ref }}"
+          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
           for file in wheels/*whl; do
             echo "Uploading $file"
             gh release upload v0.1.0 "$file"
