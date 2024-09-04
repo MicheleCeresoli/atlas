@@ -8,10 +8,12 @@ A simple ray tracer C++ implementation for Lunar DEM images.
 
 ## Installation 
 
-To install this library you need to have CMake 3.15 or greater installed on your system. You should also have the opencv2, gdal and pybind11 libraries properly installed. 
+This package can be installed by manually building it on your system or by downloading the appropriate python wheel depending on your environment. In both cases, the package requires the GDAL and OpenCV libraries to be already installed on your system. If they are not available, they can be installed via the `pip install libgdal-dev` and `pip install libopencv-dev` commands.
 
-Then open a terminal in this folder and type the command `pip install .`
-to install the python package in your current active environment.
+The Python wheels can be found under the latest published release.
+
+### Manual Library Build
+Manually building the library requires a C++ compiler and a CMake version greater or equal to 3.15. Additionally, the GDAL and OpenCV library must already be installed. Then open a terminal in this folder and type the command `pip install .` to install the python package in your current active environment.
 
 ## Troubleshooting
 
