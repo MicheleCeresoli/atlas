@@ -78,8 +78,8 @@ void Renderer::renderTask(
 
             // Update the pixel boundaries
             center = false; 
-            tMin = pixels[j].tMin - 3*dt; 
-            tMax = pixels[j].tMax + 3*dt;
+            tMin = pixels[j].tMin - 5*dt; 
+            tMax = pixels[j].tMax + 5*dt;
         }
 
         for (size_t k = 0; k < rPix.nSamples; k++) 
@@ -268,7 +268,7 @@ void Renderer::runDefocusBlur(const Camera* cam, World& w) {
 
     // Compute the min\max t-values that should be used for each pixel.
     // TODO: this value should probably be increased...
-    computePixelBoundaries(cam, 1); 
+    computePixelBoundaries(cam, 3); 
 
     // Generate all the tasks for the defocus blur
     uint nTasked = generateDefocusBlurTasks(cam, w); 
