@@ -86,8 +86,8 @@ Ray RealCamera::getRay(double u, double v, bool center) const {
         origin = _pos + 1e-3*(_dcm*lensPoint); 
         
         // For the direction, we sample the pixel in a random unit square around the center
-        x =  0.5*(sensorSize - pixSize) - (v + 0.5*randomNumber())*pixSize;
-        y = -0.5*(sensorSize - pixSize) + (u + 0.5*randomNumber())*pixSize;
+        x =  0.5*(sensorSize - pixSize) - (v + 0.5 - randomNumber())*pixSize;
+        y = -0.5*(sensorSize - pixSize) + (u + 0.5 - randomNumber())*pixSize;
 
         point3 pixSample(x, y, focalLength);
 
