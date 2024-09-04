@@ -434,10 +434,10 @@ void Renderer::computePixelBoundaries(const Camera* cam, uint s) {
             vMin = 0;
 
         if (uMax > cam->width()-s) 
-            uMax = u;
+            uMax = cam->width()-s;
 
         if (vMax > cam->height()-s)
-            vMax = v;  
+            vMax = cam->height()-s;  
 
         tMin = inf; tMax = -inf;
         for (size_t j = uMin; j < uMax; j++) {   
