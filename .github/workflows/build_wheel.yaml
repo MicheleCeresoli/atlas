@@ -4,6 +4,8 @@ on:
   push: 
     branches: 
       - main 
+    tags:   
+      - '*'
 
 jobs: 
   build-wheels: 
@@ -53,22 +55,13 @@ jobs:
           name: wheel 
           path: wheels 
 
-      - name: Extract tag name 
-        id: extract_tag 
-        run: |
-          git fetch --tags --force
-          latest_tag=$(git describe --tags --abbrev=0)
-          echo latest_tag
-          git tag -l "${latest_tag}" --format='%(contents:body)' >> $GITHUB_ENV
-
-
       - name: Create release 
         uses: actions/create-release@v1
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         with: 
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ env.latest_tag }}
+          release_name: Release ${{ env.ref_name }}
           draft: false 
           prerelease: false 
 
@@ -78,5 +71,5 @@ jobs:
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload `Release ${{ env.latest_tag }}` "$file"
+            gh release upload `Release ${{ env.ref_name }}` "$file"
           done
