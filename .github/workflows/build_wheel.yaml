@@ -55,7 +55,12 @@ jobs:
 
       - name: Extract tag name 
         id: extract_tag 
-        run: git tag -l "${latest_tag}" --format='%(contents:body)' >> $GITHUB_ENV
+      run: |
+        git fetch --tags --force
+        latest_tag=$(git describe --tags --abbrev=0)
+        echo latest_tag
+        git tag -l "${latest_tag}" --format='%(contents:body)' >> $GITHUB_ENV
+
 
       - name: Create release 
         uses: actions/create-release@v1
