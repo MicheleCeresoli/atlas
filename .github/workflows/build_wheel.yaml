@@ -61,8 +61,8 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         with: 
-          tag_name: v0.1.0
-          release_name: v0.1.0
+          tag_name: ${{ github.ref_name }}"
+          release_name: ${{ github.ref_name }}"
           draft: false 
           prerelease: false 
 
@@ -70,9 +70,7 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
-          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "Tag name from github.ref_name: ${{  github.ref_name }}"
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload v0.1.0 "$file"
+            gh release upload ${{ github.ref_name }}" "$file"
           done
