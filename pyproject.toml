@@ -42,23 +42,3 @@ wheel.expand-macos-universal-tags = true
 sdist.cmake = true 
 sdist.exclude = ["apps"]
 wheel.packages = ["python/arcadia"]
-
-# [tool.scikit-build-core]
-# include-paths = ["build/lib"]
-
-# build-commands = [
-#     "python setup.py"
-# ]
-
-# [tool.scikit-build-core]
-# # Include the directory where CMake outputs the shared library
-# include-paths = ["build/lib"]  
-
-# # Specify custom commands to run after building with CMake 
-# build-commands = [
-#     "cp build/lib/libarcadiacxx.so python/arcadia/"
-# ]
-
-# # Include the shared library in the package 
-# [tool.setuptools.package-data]
-# "arcadia" = ["*.so", "*.dll", "*.dylib"]
