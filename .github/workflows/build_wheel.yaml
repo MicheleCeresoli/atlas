@@ -59,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         with: 
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ env.ref_name }}
+          release_name: Release ${{ github.event.release.tag_name }}
           draft: false 
           prerelease: false 
 
@@ -69,5 +69,5 @@ jobs:
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload `${{ env.ref_name }}` "$file"
+            gh release upload `${{ github.event.release.tag_name }}` "$file"
           done
