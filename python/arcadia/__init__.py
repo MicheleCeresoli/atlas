@@ -1,2 +1,2 @@
 
-from ._arcadia import *
+from ._arcadia import * # type: ignore
