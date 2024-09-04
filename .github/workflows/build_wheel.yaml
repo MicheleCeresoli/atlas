@@ -61,8 +61,8 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         with: 
-          tag_name: ${{ github.ref_name }}"
-          release_name: ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
           draft: false 
           prerelease: false 
 
