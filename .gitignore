@@ -2,6 +2,9 @@
 build/
 resources/
 images/
+dist/
+
+.arcadia*
 
 *.jl
 
