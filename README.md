@@ -8,7 +8,7 @@ A simple ray tracer C++ implementation for Lunar DEM images.
 
 ## Installation 
 
-This package can be installed by manually building it on your system or by downloading the appropriate python wheel depending on your environment. In both cases, the package requires the GDAL and OpenCV libraries to be already installed on your system. If they are not available, they can be installed via the `pip install libgdal-dev` and `pip install libopencv-dev` commands.
+This package can be installed by manually building it on your system or by downloading the appropriate python wheel depending on your environment. In both cases, the package requires the GDAL and OpenCV libraries to be already installed on your system. If they are not available, they can be installed via the `apt install libgdal-dev` and `apt install libopencv-dev` commands.
 
 The Python wheels can be found under the latest published release.
 
