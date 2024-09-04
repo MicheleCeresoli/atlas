@@ -22,12 +22,11 @@ jobs:
         run: | 
           sudo apt-get update 
           sudo apt-get install -y libgdal-dev
-          sudo apt-get install -y python3-opencv
+          sudo apt-get install -y libopencv-dev
           
           python -m pip install --upgrade pip 
           python -m pip install build 
-          python -m pop install opencv-python 
-          
+
       - name: Build the wheel 
         run: python -m build --wheel
 
