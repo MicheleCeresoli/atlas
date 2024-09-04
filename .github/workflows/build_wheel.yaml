@@ -58,8 +58,8 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         with: 
-          tag_name: v0.1.0
-          release_name: Release v0.1.0
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: Release ${{ env.TAG_NAME }}
           draft: false 
           prerelease: false 
 
@@ -69,5 +69,5 @@ jobs:
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload ${{ github.ref_name }} "$file"
+            gh release upload `Release ${{ env.TAG_NAME }}` "$file"
           done
