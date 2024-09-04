@@ -4,6 +4,8 @@ resources/
 images/
 dist/
 
+apps/*.py
+
 .arcadia*
 
 *.jl
