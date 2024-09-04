@@ -67,8 +67,8 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
-          echo $ {{ github.ref }}
+          echo "${{ github.ref }}"
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload `v0.1.0` "$file"
+            gh release upload v0.1.0 "$file"
           done
