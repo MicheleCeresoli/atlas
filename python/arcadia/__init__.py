@@ -1,2 +1,2 @@
 
-from ._arcadia import __doc__ 
+from ._arcadia import *
