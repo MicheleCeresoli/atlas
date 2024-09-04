@@ -64,6 +64,8 @@ jobs:
           prerelease: false 
 
       - name: Upload wheel to GitHub Release 
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
