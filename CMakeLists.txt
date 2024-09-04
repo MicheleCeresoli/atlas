@@ -1,5 +1,5 @@
 
-cmake_minimum_required ( VERSION 3.1.0...3.27.0)
+cmake_minimum_required ( VERSION 3.15...3.27.0)
 
 # This is to automatically update the vs-code settings
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -12,10 +12,13 @@ set(CMAKE_CXX_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(
-    arcadia 
+    arcadia
     VERSION 0.1 
     DESCRIPTION "Ray Tracing Lunar DEM Images"
     LANGUAGES CXX)
+
+# This command tells CMake to put the shared library in the build/lib folder
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Support folders in the IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

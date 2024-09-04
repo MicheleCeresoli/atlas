@@ -17,10 +17,24 @@ set(PYTHON_FILES
     world.cpp
 )
 
-pybind11_add_module(pyarcadia MODULE 
-    ${PYTHON_FILES}
+pybind11_add_module(_arcadia MODULE ${PYTHON_FILES})
+
+target_link_libraries(_arcadia PUBLIC arcadia)
+target_link_libraries(_arcadia PRIVATE GDAL::GDAL)
+target_link_libraries(_arcadia PRIVATE ${OpenCV_LIBS})
+
+# This is passing the version 
+target_compile_definitions(_arcadia PRIVATE VERSION_INFO=${PROJECT_VERSION})
+
+# Set the RPATH (runtime library search path) for the _arcadia target to 
+# make sure it looks for the libarcadia.so file in its own directory
+set_target_properties(_arcadia PROPERTIES 
+        BUILD_WITH_INSTALL_RPATH TRUE 
+        INSTALL_RPATH "$ORIGIN"
+        INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
-target_link_libraries(pyarcadia PUBLIC arcadiacxx)
-target_link_libraries(pyarcadia PRIVATE GDAL::GDAL)
-target_link_libraries(pyarcadia PRIVATE ${OpenCV_LIBS})
+
+# This installs the python shared library in the same wheel directory
+install(TARGETS _arcadia 
+        LIBRARY DESTINATION arcadia)

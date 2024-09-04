@@ -1,0 +1,64 @@
+[build-system]
+requires = ["scikit-build-core>=0.3.3", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "arcadia"
+version = "0.1"
+description = "A Ray Tracer for Lunar Imagery"
+authors = [ { name = "Michele Ceresoli", email = "michele.ceresoli@polimi.it"} ]
+readme = "README.md"
+license = {file = "LICENSE" }
+keywords = ["raytracing", "moon", "dem", "image-generation"]
+requires-python = ">=3.9"
+
+classifiers = [    
+
+    # Prevents the package from being uploaded to PyPI 
+    "Private :: Do Not Upload",
+
+    # Project matury level 
+    "Development Status :: 3 - Alpha", 
+
+    # Who the project is intended for
+    "Intended Audience :: Developers", 
+    "Topic :: Scientific/Engineering :: Image Processing", 
+
+    # Package license 
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+
+    # Supported Python versions 
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+]
+
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+
+sdist.cmake = true 
+sdist.exclude = ["apps"]
+wheel.packages = ["python/arcadia"]
+
+# [tool.scikit-build-core]
+# include-paths = ["build/lib"]
+
+# build-commands = [
+#     "python setup.py"
+# ]
+
+# [tool.scikit-build-core]
+# # Include the directory where CMake outputs the shared library
+# include-paths = ["build/lib"]  
+
+# # Specify custom commands to run after building with CMake 
+# build-commands = [
+#     "cp build/lib/libarcadiacxx.so python/arcadia/"
+# ]
+
+# # Include the shared library in the package 
+# [tool.setuptools.package-data]
+# "arcadia" = ["*.so", "*.dll", "*.dylib"]

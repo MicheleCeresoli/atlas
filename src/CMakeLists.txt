@@ -44,15 +44,15 @@ set(SOURCE_LIST
 )
 
 # Make a library - static or dynamic based on user settings 
-add_library(arcadiacxx SHARED ${SOURCE_LIST} ${HEADER_LIST})
+add_library(arcadia SHARED ${SOURCE_LIST} ${HEADER_LIST})
 
 # Add these directories (users won't use GDAL)
-target_include_directories(arcadiacxx PUBLIC ${HEADER_DIR})
-target_include_directories(arcadiacxx PRIVATE ${GDAL_INCLUDE_DIR})
-target_include_directories(arcadiacxx PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_include_directories(arcadia PUBLIC ${HEADER_DIR})
+target_include_directories(arcadia PRIVATE ${GDAL_INCLUDE_DIR})
+target_include_directories(arcadia PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Users require at least C++17
-target_compile_features(arcadiacxx PUBLIC cxx_std_17)
+target_compile_features(arcadia PUBLIC cxx_std_17)
 
 # IDEs should put the headers in a nice place
 source_group(
@@ -60,3 +60,7 @@ source_group(
     PREFIX "Header Files"
     FILES ${HEADER_LIST}
 )
+
+# This allows to install the libarcadia.so in the python wheel directory
+install(TARGETS arcadia 
+        LIBRARY DESTINATION arcadia)

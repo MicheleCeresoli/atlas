@@ -17,7 +17,7 @@ void init_vec2(py::module_ &m);
 void init_vec3(py::module_ &m); 
 void init_world(py::module_ &m);
 
-PYBIND11_MODULE(pyarcadia, m) {
+PYBIND11_MODULE(_arcadia, m) {
 
     m.doc() = "Python/C++ bindings for the arcadia library."; 
 
