@@ -69,5 +69,5 @@ jobs:
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
-            gh release upload `Release ${{ env.ref_name }}` "$file"
+            gh release upload `${{ env.ref_name }}` "$file"
           done
