@@ -522,3 +522,14 @@ uint Renderer::generateDefocusBlurTasks(const Camera* cam, World& w) {
     return nPixels;
 
 }
+
+
+void Renderer::importRenderedData(const std::vector<RenderedPixel>& pixels) {
+
+    // Copy the content 
+    renderedPixels = pixels;
+
+    // Update the rendering status
+    status = RenderingStatus::COMPLETED;
+
+}

@@ -298,6 +298,12 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
     if (!file.is_open()) {
         throw std::runtime_error("unable to create the file in this path.");
     }
+    
+    uint camWidth, camHeight; 
+
+    // Write the camera resolution 
+    file.write(reinterpret_cast<const char*>(&camWidth), sizeof(camWidth));
+    file.write(reinterpret_cast<const char*>(&camHeight), sizeof(camHeight));
 
     vec3 camPos = cam->getPos(); 
     dcm  camDCM = cam->getDCM();
@@ -314,7 +320,7 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
     file.write(reinterpret_cast<const char*>(&nPix), sizeof(nPix));
 
     // Write rendered pixels data
-    for (size_t k = 0; k < pixels->size(); k++) {
+    for (size_t k = 0; k < nPix; k++) {
         
         RenderedPixel p = (*pixels)[k];
 
@@ -339,6 +345,15 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary); 
     if (!file.is_open()){
         std::runtime_error("unable to open the file in this path.");
+    }
+
+    // Retrieve camera width and height 
+    uint camWidth, camHeight; 
+    file.read(reinterpret_cast<char*>(&camWidth), sizeof(camWidth));
+    file.read(reinterpret_cast<char*>(&camHeight), sizeof(camHeight));
+
+    if ((camHeight != cam->height()) || (camWidth != cam->width())) {
+        throw std::runtime_error("incompatible camera dimensions found.");
     }
 
     vec3 camPos;                      
@@ -382,7 +397,8 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
 
     }
 
-    
+    // Update the renderer status with this pixels
+    renderer.importRenderedData(pixels);
 
     // Close the file 
     file.close();
