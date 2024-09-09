@@ -30,4 +30,9 @@ conda install -c conda-forge gcc=X.X
 conda install -c conda-forge libstdcxx-ng=Y
 ```
 
-where `X` and `Y` are the package versions that ensure the desired GLIBCXX version is available.
+where `X` and `Y` are the package versions that ensure the desired GLIBCXX version is available. Another solution involves linking with 
+the system library via: 
+
+```
+ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${CONDA_PREFIX}/lib/libstdc++.so.6
+```
