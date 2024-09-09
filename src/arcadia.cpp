@@ -62,7 +62,7 @@ void LunarRayTracer::sampleAltitude() {
     point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
     // Retrieve the exact altitude from the DEM
-    altitude = world.sampleDEM(s2);
+    altitude = sph[0] - world.sampleDEM(s2);
 
 }
 
