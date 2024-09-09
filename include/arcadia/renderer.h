@@ -31,6 +31,8 @@ class Renderer {
             opts = options;
         } 
 
+        void importRenderedData(const std::vector<RenderedPixel> pixels); 
+
         inline const std::vector<RenderedPixel>* getRenderedPixels() const {
             return &renderedPixels;
         }

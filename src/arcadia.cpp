@@ -315,16 +315,76 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
 
     // Write rendered pixels data
     for (size_t k = 0; k < pixels->size(); k++) {
-        // Write the ID 
-        file.write(reinterpret_cast<const char*>(*pixels)
-        // Write the number of samples 
+        
+        RenderedPixel p = (*pixels)[k];
 
-        // Writ the data of each subsample
-        file.write(reinterpret_cast<const char*>(&((*pixels)[k]), sizeof((*pixels)[k]))); 
+        // Write the ID 
+        file.write(reinterpret_cast<const char*>(&p.id), sizeof(p.id));
+        // Write the number of samples
+        file.write(reinterpret_cast<const char*>(&p.nSamples), sizeof(p.nSamples));
+
+        for (size_t j = 0; j < p.nSamples; j++) {
+            file.write(reinterpret_cast<const char*>(&p.data[j]), sizeof(p.data[j]));
+        }
+
     }
 
     // Close the file 
     file.close();
     
+}
+
+void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
+
+    std::ifstream file(filename, std::ios::binary); 
+    if (!file.is_open()){
+        std::runtime_error("unable to open the file in this path.");
+    }
+
+    vec3 camPos;                      
+    dcm camDCM;
+
+    // Read the camera position and orientation
+    file.read(reinterpret_cast<char*>(&camPos), sizeof(camPos));
+    file.read(reinterpret_cast<char*>(&camDCM), sizeof(camDCM));
+
+    // Update the camera 
+    cam->setPos(camPos); 
+    cam->setDCM(camDCM); 
+
+    // Retrieve the number of pixels to be read
+    size_t nPix; 
+    file.read(reinterpret_cast<char*>(&nPix), sizeof(nPix)); 
+
+    std::vector<RenderedPixel> pixels; 
+    pixels.reserve(nPix); 
+
+    uint id;         
+    size_t nSamples; 
+    PixelData data;
+
+    for (size_t k = 0; k < nPix; k++) {
+
+        // Retrieve pixel ID and number of samples
+        file.read(reinterpret_cast<char*>(&id), sizeof(id)); 
+        file.read(reinterpret_cast<char*>(&nSamples), sizeof(nSamples));
+
+        // Retrieve the data of each sample
+        RenderedPixel pk(id, nSamples);
+
+        for (size_t j = 0; j < nSamples; j++) {
+            file.read(reinterpret_cast<char*>(&data), sizeof(data));
+            pk.addPixelData(data); 
+        }
+
+        // Append the rendered pixel
+        pixels.push_back(pk);
+
+    }
+
+    
+
+    // Close the file 
+    file.close();
 
 }

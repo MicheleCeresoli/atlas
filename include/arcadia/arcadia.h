@@ -35,6 +35,7 @@ class LunarRayTracer {
         bool generateDepthMap(const std::string& filename, int type = CV_8UC1);
 
         void exportRayTracedInfo(const std::string& filename); 
+        void importRayTracedInfo(const std::string& filename);
         
         // Ground Control Point Generation
         void generateGCPs(const std::string& filename, int stride); 
