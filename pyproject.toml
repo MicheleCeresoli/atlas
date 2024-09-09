@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "arcadia"
-version = "0.1.1"
+version = "0.2.0"
 description = "A Ray Tracer for Lunar Imagery"
 authors = [ { name = "Michele Ceresoli", email = "michele.ceresoli@polimi.it"} ]
 readme = "README.md"

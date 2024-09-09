@@ -51,7 +51,7 @@ void Renderer::renderTask(
     // Pixel center coordinates
     uint u, v; 
     // Minimum/maximum t-values for the ray-tracing
-    double tMin, tMax; 
+    double tMin, tMax = inf;
     // Variable to keep track of the minimum distance reached. 
     double tStart = 0;
     // True if the ray should be shot from the pixel center (used only in Pinhole)
@@ -66,7 +66,7 @@ void Renderer::renderTask(
 
         if (status == RenderingStatus::TRACING) {
 
-            tMax = inf; 
+            // tMax = inf; 
             center = true;
 
             if (opts.adaptiveTracing && j > 0 && tStart != inf) {
@@ -78,8 +78,8 @@ void Renderer::renderTask(
 
             // Update the pixel boundaries
             center = false; 
-            tMin = pixels[j].tMin - 5*dt; 
-            tMax = pixels[j].tMax + 5*dt;
+            tMin = pixels[j].tMin - opts.ssaa.resMultiplier*dt; 
+            // tMax = pixels[j].tMax + opts.ssaa.resMultiplier*dt;
         }
 
         for (size_t k = 0; k < rPix.nSamples; k++) 
@@ -247,7 +247,7 @@ void Renderer::runAntiAliasing(const Camera* cam, World& w) {
         status = RenderingStatus::POST_SSAA; 
 
         // Compute the min\max t-values that should be used for each pixel.
-        computePixelBoundaries(cam, 1); 
+        computePixelBoundaries(cam, opts.ssaa.boundarySize); 
 
         // Run Super-Sampling Antialiasing 
         uint nAliased = generateAntiAliasingTasks(cam, w); 

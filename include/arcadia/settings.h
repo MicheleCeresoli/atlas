@@ -14,6 +14,9 @@ class SSAAOptions {
         bool active = true;
         double threshold = 3.0;
 
+        uint boundarySize = 1;
+        double resMultiplier = 5;
+
 };
 
 
@@ -25,6 +28,7 @@ class RenderingOptions {
         size_t batchSize = 640; 
         bool displayInfo = false;
         bool adaptiveTracing = true;
+
 
 };
 

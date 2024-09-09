@@ -289,3 +289,42 @@ void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
     file.close(); 
 
 }
+
+
+void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
+
+    // Try to create the file
+    std::ofstream file(filename, std::ios::binary); 
+    if (!file.is_open()) {
+        throw std::runtime_error("unable to create the file in this path.");
+    }
+
+    vec3 camPos = cam->getPos(); 
+    dcm  camDCM = cam->getDCM();
+
+    // Write camera position and orientation
+    file.write(reinterpret_cast<const char*>(&camPos), sizeof(camPos));
+    file.write(reinterpret_cast<const char*>(&camDCM), sizeof(camDCM));
+
+    const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
+
+    size_t nPix = pixels->size();
+    
+    // Write the number of rendered pixels that are going to be written 
+    file.write(reinterpret_cast<const char*>(&nPix), sizeof(nPix));
+
+    // Write rendered pixels data
+    for (size_t k = 0; k < pixels->size(); k++) {
+        // Write the ID 
+        file.write(reinterpret_cast<const char*>(*pixels)
+        // Write the number of samples 
+
+        // Writ the data of each subsample
+        file.write(reinterpret_cast<const char*>(&((*pixels)[k]), sizeof((*pixels)[k]))); 
+    }
+
+    // Close the file 
+    file.close();
+    
+
+}

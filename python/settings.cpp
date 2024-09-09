@@ -12,7 +12,9 @@ void init_settings(py::module_ &m) {
         .def(py::init<>())
         .def_readwrite("nSamples", &SSAAOptions::nSamples)
         .def_readwrite("active", &SSAAOptions::active)
-        .def_readwrite("threshold", &SSAAOptions::threshold);
+        .def_readwrite("threshold", &SSAAOptions::threshold)
+        .def_readwrite("resMultiplier", &SSAAOptions::resMultiplier)
+        .def_readwrite("boundarySize", &SSAAOptions::boundarySize);
 
 
     /* RENDERING OPTIONS */
