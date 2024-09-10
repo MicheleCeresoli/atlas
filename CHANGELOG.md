@@ -2,6 +2,7 @@
 
 ## v0.2.0 
 - Added `exportRayTracedInfo` and `importRayTracedInfo` to store in binary files the ray traced data from the DEM model. 
+- Added `LogLevel` to handle log status display.
 - Maximum ray distance threshold in post-processing is now infinite. 
 - Added additional SSAA settings customisation.
 - Minor improvements.
