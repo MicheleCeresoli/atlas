@@ -364,8 +364,10 @@ void Renderer::displayRenderStatus(uint n) {
         if ((pTasks - nTasks) >= nThreads) {
             pTasks = nTasks;
 
-            std::clog << "\r[" <<  std::setw(3) << int(100*(1 - pTasks*f)) 
-                      << "%] \033[32m" + m + " image\033[0m" << std::flush;
+            displayTime(); 
+            std::clog << "\033[32m[\033[1;32m" <<  std::setw(3) 
+                      << int(100*(1 - pTasks*f)) 
+                      << "%\033[0;32m] " + m + " image\033[0m" << std::flush;
         }
         
     }
@@ -374,8 +376,8 @@ void Renderer::displayRenderStatus(uint n) {
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
     
-    std::clog << "\r[100%] " + m + " completed in " << duration.count() 
-              << " seconds." << std::endl; 
+    displayTime(); 
+    std::clog << m + " completed in " << duration.count() << " seconds. " << std::endl; 
 
 }
 
@@ -401,6 +403,7 @@ void Renderer::render(const Camera* cam, World& w) {
     postProcessRender(cam, w);
      
     if (opts.logLevel >= LogLevel::MINIMAL) {
+        displayTime(); 
         std::clog << "Rendering process completed." << std::endl;
     }
 

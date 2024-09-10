@@ -560,19 +560,22 @@ void RasterContainer::displayLoadingStatus(RasterLoadingStatus s, size_t nFiles)
         displayMessage = dl > 0 ? filename + std::string(dl, ' ') : filename;
         
         // Print the message to terminal
-        std::clog << "\r[" <<  std::setw(3) << progress 
-                  << "%] \033[32mLoading raster file:\033[0m " 
+        displayTime(); 
+
+        std::clog << "\033[32m[\033[1;32m" << std::setw(3) << progress 
+                  << "%\033[0;32m] Loading raster file:\033[0m " 
                   << displayMessage << std::flush;
 
     } else {
 
         // Generate completion message. 
-        displayMessage = "\r[100%] Raster files loaded.";
+        displayMessage = "Raster files loaded.";
         dl = 29 + filename.length() - displayMessage.length();
 
         if (dl > 0) 
             displayMessage += std::string(dl, ' '); 
         
+        displayTime(); 
         std::clog << displayMessage << std::endl;
     }
 

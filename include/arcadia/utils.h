@@ -29,6 +29,8 @@ point3 sph2car(const point3& sph);
 
 std::string readFileContent(const std::string& filename); 
 
+void displayTime();
+
 
 // RANDOM NUMBER GENERATION
 

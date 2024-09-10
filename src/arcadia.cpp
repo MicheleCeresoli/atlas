@@ -125,7 +125,8 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
     }
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "Optical image generated: " << filename << std::endl;
+        displayTime();
+        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
     }
 
     return flag;
@@ -187,7 +188,8 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
     }
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "DEM image generated: " << filename << std::endl;
+        displayTime();
+        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
     }
 
     return flag;
@@ -265,7 +267,8 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
     }
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "Depth map generated: " << filename << std::endl;
+        displayTime();
+        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
     }
 
     return flag;
@@ -337,9 +340,10 @@ void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
     file.close(); 
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "GCPs exported to: " << filename << std::endl;
+        displayTime();
+        std::clog << "Exported GPCs to: " << "\033[32m" 
+                  << filename << "\033[0m" << std::endl;
     }
-
 
 }
 
@@ -398,7 +402,9 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
     file.close();
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "Ray-traced data exported to: " << filename << std::endl;
+        displayTime();
+        std::clog << "Exported ray-traced data to: " << "\033[31m" 
+                  << filename << "\033[0m" << std::endl;
     }
 
 }
@@ -470,7 +476,9 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     file.close();
 
     if (logLevel >= LogLevel::MINIMAL) {
-        std::clog << "Ray-traced data imported from: " << filename << std::endl;
+        displayTime();
+        std::clog << "Imported ray-traced data from: " << "\033[31m" 
+                  << filename << "\033[0m" << std::endl;
     }
 
 }

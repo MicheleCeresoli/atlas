@@ -1,6 +1,10 @@
 
 #include "utils.h"
+
+#include <chrono>
 #include <cmath>
+#include <ctime>
+#include <iomanip>
 
 
 // Convert cartesian pos to radius, longitude and latitude 
@@ -51,4 +55,19 @@ std::string readFileContent(const std::string& filename) {
     file.read(&content[0], fileSize);
 
     return content; 
+}
+
+void displayTime() {
+
+    // Get the current time point
+    auto now = std::chrono::system_clock::now();
+    
+    // Convert to time_t to use with std::localtime
+    std::time_t current_time = std::chrono::system_clock::to_time_t(now);
+
+    // Convert to tm structure for local time
+    std::tm* local_time = std::localtime(&current_time);
+
+    std::clog << "\r\033[33m[" << std::put_time(local_time, "%H:%M:%S") << "]\033[0m ";
+
 }
