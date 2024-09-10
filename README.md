@@ -8,12 +8,32 @@ A simple ray tracer C++ implementation for Lunar DEM images.
 
 ## Installation 
 
-This package can be installed by manually building it on your system or by downloading the appropriate python wheel depending on your environment. In both cases, the package requires the GDAL and OpenCV libraries to be already installed on your system. If they are not available, they can be installed via the `apt install libgdal-dev` and `apt install libopencv-dev` commands.
+This package can either be installed by manually building the library on your system or by downloading the appropriate python wheel from the latest published package release. In both cases, the package requires the GDAL and OpenCV libraries to be installed. If they are not available, they can be installed with:
 
-The Python wheels can be found under the latest published release.
+```
+sudo apt install libgdal-dev
+```
+```
+sudo apt install libopencv-dev
+```
 
-### Manual Library Build
-Manually building the library requires a C++ compiler and a CMake version greater or equal to 3.15. Additionally, the GDAL and OpenCV library must already be installed. Then open a terminal in this folder and type the command `pip install .` to install the python package in your current active environment.
+### From Python Wheel 
+Once a Python wheel has been downloaded, simply run: `pip install {NAME}.whl`, with NAME is the filename of the target python wheel, to install the ARCADIA module in the current active environment.
+
+### From Sources
+Manually building the library requires a C++ compiler and a CMake version greater or equal to 3.15. The GDAL and OpenCV libraries must already be installed, as well as the _pybind11_ package. To properly work, CMake requires a `pybind11Config.cmake` file which is automatically installed only if the package is installed via conda, i.e., with:
+
+```
+conda install pybind11 -c conda-forge
+```
+
+Then, open a terminal in this folder and build the library with: 
+```
+mkdir build 
+cd build 
+cmake --build .
+```
+Finally, activate your target python environment, and in the root directory of the package type `pip install .`.
 
 ## Troubleshooting
 
