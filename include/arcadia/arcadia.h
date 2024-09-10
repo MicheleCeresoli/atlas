@@ -51,7 +51,6 @@ class LunarRayTracer {
         
         LogLevel logLevel;
 
-        void sampleAltitude();
         void checkCamPointer(); 
         void checkRenderStatus(); 
 
