@@ -3,7 +3,9 @@
 
 _Ray Tracing Lunar DEM Images_
 
-A simple ray tracer C++ implementation for Lunar DEM images.
+ARCADIA is a C++ library with Python bindings that allows to generate highly realistic 
+optical images, DEM measurements and depth maps via ray-tracing techniques. It is designed 
+around Chang'e 2 Digital Elevation Model (DEM) and Digital Orthophoto Model (DOM) products.
 
 
 ## Installation 
@@ -33,7 +35,7 @@ mkdir build
 cd build 
 cmake --build .
 ```
-Finally, activate your target python environment, and in the root directory of the package type `pip install .`.
+Finally, activate your target python environment, and in the root directory of the package type `pip install .`
 
 ## Troubleshooting
 
