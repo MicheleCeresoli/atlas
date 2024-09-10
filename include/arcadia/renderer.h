@@ -27,6 +27,7 @@ class Renderer {
 
         void render(const Camera* cam, World& w);
 
+        inline RenderingStatus getStatus() const { return status; }
         inline void updateRenderingOptions(const RenderingOptions& options) {
             opts = options;
         } 

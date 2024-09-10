@@ -2,6 +2,8 @@
 #include "arcadia.h"
 #include "utils.h"
 
+#include <filesystem>
+
 #include "opencv2/imgcodecs.hpp"
 
 // Utility function to ensure images have the proper bits
@@ -33,28 +35,27 @@ LunarRayTracer::LunarRayTracer(RayTracerOptions opts) :
 
 void LunarRayTracer::run() {
 
-    // We clean-up the DOM at each run since the data that would be required for it 
-    // is changed anyway.
-    world.cleanupDOM();
+    // Check a CAM has been assigned 
+    checkCamPointer(); 
+
+    // Unloads unused DEM and DOM files data from memory.
+    world.cleanup();
 
     // Compute the ray rendering resolution.
     world.computeRayResolution(cam); 
 
     // Ray trace all the pixels in the camera
     renderer.render(cam, world);    
-
-    // Compute the Camera altitude wrt the DEM surface
-    sampleAltitude();
     
-    // Unloads unused DEM files data from memory.
-    world.cleanupDEM();
-
 }
 
 
 // Settings Retrieval
-void LunarRayTracer::sampleAltitude() {
+double LunarRayTracer::getAltitude() {
 
+    // Check a CAM has been assigned 
+    checkCamPointer(); 
+    
     // Convert camera position to spherical coordinates
     point3 sph = car2sph(cam->getPos()); 
 
@@ -62,8 +63,8 @@ void LunarRayTracer::sampleAltitude() {
     point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
     // Retrieve the exact altitude from the DEM
-    altitude = sph[0] - world.sampleDEM(s2);
-
+    return sph[0] - world.sampleDEM(s2);
+    
 }
 
 
@@ -73,6 +74,10 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
 
     // Check bits
     checkImageBits(type); 
+    // Check camera pointer
+    checkCamPointer();
+    // Check rendering status 
+    checkRenderStatus();
 
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
@@ -122,6 +127,10 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
 
     // Check bits
     checkImageBits(type);
+    // Check camera pointer
+    checkCamPointer();
+    // Check rendering status 
+    checkRenderStatus();
 
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
@@ -170,6 +179,10 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
 
     // Check bits
     checkImageBits(type);
+    // Check camera pointer
+    checkCamPointer();
+    // Check rendering status 
+    checkRenderStatus();
 
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
@@ -232,6 +245,11 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
 
 void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
 
+    // Check camera pointer
+    checkCamPointer();
+    // Check rendering status 
+    checkRenderStatus();
+
     // Generate filepath object 
     auto filepath = std::filesystem::path(filename); 
 
@@ -293,13 +311,19 @@ void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
 
 void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
 
+    // Check camera pointer
+    checkCamPointer();
+    // Check rendering status 
+    checkRenderStatus();
+
     // Try to create the file
     std::ofstream file(filename, std::ios::binary); 
     if (!file.is_open()) {
         throw std::runtime_error("unable to create the file in this path.");
     }
-    
-    uint camWidth, camHeight; 
+
+    uint camWidth = cam->width(); 
+    uint camHeight = cam->height();
 
     // Write the camera resolution 
     file.write(reinterpret_cast<const char*>(&camWidth), sizeof(camWidth));
@@ -342,9 +366,12 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
 
 void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
 
+    // Check camera pointer
+    checkCamPointer();
+
     std::ifstream file(filename, std::ios::binary); 
     if (!file.is_open()){
-        std::runtime_error("unable to open the file in this path.");
+        throw std::runtime_error("unable to open the file in this path.");
     }
 
     // Retrieve camera width and height 
@@ -403,4 +430,16 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     // Close the file 
     file.close();
 
+}
+
+void LunarRayTracer::checkCamPointer() {
+    if (cam == NULL) {
+        throw std::runtime_error("missing camera information.");
+    }
+}
+
+void LunarRayTracer::checkRenderStatus() {
+    if (renderer.getStatus() != RenderingStatus::COMPLETED) {
+        throw std::runtime_error("missing ray-tracing information.");
+    }
 }

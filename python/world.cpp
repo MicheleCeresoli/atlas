@@ -20,6 +20,7 @@ void init_world(py::module_ &m) {
         .def("sampleDEM", &World::sampleDEM)
         .def("sampleDOM", &World::sampleDOM)
 
+        .def("cleanup", &World::cleanup)
         .def("cleanupDEM", &World::cleanupDEM)
         .def("cleanupDOM", &World::cleanupDOM)
 

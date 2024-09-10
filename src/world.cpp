@@ -185,3 +185,9 @@ double World::computeGSD(const Camera* cam) {
     return gsd;
 
 }
+
+void World::cleanup() {
+    // Unload both DEM and DOM unused files from memory
+    cleanupDEM(); 
+    cleanupDOM();
+}

@@ -19,6 +19,7 @@ void init_renderer(py::module_ &m) {
             py::return_value_policy::reference)
 
         .def("render", &Renderer::render)
-        .def("updateRenderingOptions", &Renderer::updateRenderingOptions);
+        .def("updateRenderingOptions", &Renderer::updateRenderingOptions)
+        .def("getStatus", &Renderer::getStatus);
 
 }

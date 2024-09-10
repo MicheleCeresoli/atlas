@@ -41,7 +41,7 @@ class LunarRayTracer {
         void generateGCPs(const std::string& filename, int stride); 
 
         // Settings Retrieval
-        inline double getAltitude() { return altitude; }; 
+        double getAltitude(); 
 
     private: 
 
@@ -49,9 +49,9 @@ class LunarRayTracer {
         Renderer renderer;
         Camera* cam; 
 
-        double altitude;
-
         void sampleAltitude();
+        void checkCamPointer(); 
+        void checkRenderStatus(); 
 
 };
 

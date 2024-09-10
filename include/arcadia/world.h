@@ -34,6 +34,8 @@ class World {
         // Manually update the ray resolution
         inline void setRayResolution(double res) { dt = res; }
 
+        // Removes both DEM and DOM unused files
+        void cleanup(); 
         // Unloads unused DEM files to reduce memory consumption.
         inline void cleanupDEM() { dem.cleanupRasters(opts.rasterUsageThreshold); }
         // Unloads unused DOM files to reduce memory consumption.
