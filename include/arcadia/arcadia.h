@@ -46,8 +46,10 @@ class LunarRayTracer {
     private: 
 
         World world; 
-        Renderer renderer;
+        Renderer renderer; 
         Camera* cam; 
+        
+        LogLevel logLevel;
 
         void sampleAltitude();
         void checkCamPointer(); 

@@ -327,7 +327,7 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
 
 void Renderer::displayRenderStatus(uint n) {
 
-    if (!opts.displayInfo)
+    if (opts.logLevel < LogLevel::DETAILED)
         return; 
 
     // Store current time
@@ -399,6 +399,10 @@ void Renderer::render(const Camera* cam, World& w) {
 
     // Post process the first rendering depending on the camera type
     postProcessRender(cam, w);
+     
+    if (opts.logLevel >= LogLevel::MINIMAL) {
+        std::clog << "Rendering process completed." << std::endl;
+    }
 
 }
 

@@ -191,13 +191,13 @@ class RasterContainer {
     public: 
 
         RasterContainer(
-            std::string filename, size_t nThreads = 1, bool displayInfo = false
+            std::string filename, size_t nThreads = 1, bool displayLogs = false
         ); 
 
         RasterContainer(
             std::vector<std::string> files, 
             size_t nThreads = 1, 
-            bool displayInfo = false
+            bool displayLogs = false
         );
 
         virtual ~RasterContainer() = default;

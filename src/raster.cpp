@@ -363,7 +363,7 @@ void RasterFile::computeRasterBounds() {
 // Constructors 
 
 RasterContainer::RasterContainer(
-    std::vector<std::string> files, size_t nThreads, bool displayInfo
+    std::vector<std::string> files, size_t nThreads, bool displayLogs
 ) {
 
     // If there are no files, throw an error
@@ -395,7 +395,7 @@ RasterContainer::RasterContainer(
         // Add the raster and retrieve its name.
         rasters.push_back(RasterFile(f, nThreads));
 
-        if (displayInfo) {
+        if (displayLogs) {
             displayLoadingStatus(RasterLoadingStatus::LOADING, nFiles);
         }
             
@@ -415,14 +415,14 @@ RasterContainer::RasterContainer(
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
 
-    if (displayInfo) {
+    if (displayLogs) {
         displayLoadingStatus(RasterLoadingStatus::COMPLETED, nFiles); 
     }
 
 }
 
-RasterContainer::RasterContainer(std::string filename, size_t nThreads, bool displayInfo) : 
-    RasterContainer(std::vector<std::string>{filename}, nThreads, displayInfo) {}
+RasterContainer::RasterContainer(std::string filename, size_t nThreads, bool displayLogs) : 
+    RasterContainer(std::vector<std::string>{filename}, nThreads, displayLogs) {}
 
 
 void RasterContainer::loadRasters() {

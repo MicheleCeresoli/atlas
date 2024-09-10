@@ -12,7 +12,7 @@ void init_arcadia(py::module_ &m) {
     py::class_<LunarRayTracer>(m, "LunarRayTracer")
 
         .def(py::init<RayTracerOptions>(), 
-            py::arg("opts") = RayTracerOptions()
+            py::arg("opts") = RayTracerOptions(1)
         )
 
         .def("run", &LunarRayTracer::run)

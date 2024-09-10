@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
  
+enum class LogLevel {
+    NONE, 
+    MINIMAL, 
+    DETAILED
+} ;
 
 class SSAAOptions {
 
@@ -26,7 +31,9 @@ class RenderingOptions {
 
         SSAAOptions ssaa;
         size_t batchSize = 640; 
-        bool displayInfo = false;
+
+        LogLevel logLevel; 
+
         bool adaptiveTracing = true;
 
 
@@ -46,7 +53,7 @@ class WorldOptions {
         std::vector<std::string> demFiles; 
         std::vector<std::string> domFiles;
 
-        bool displayInfo = false;
+        LogLevel logLevel;
 
         uint rasterUsageThreshold = 2;
 
@@ -56,7 +63,12 @@ class RayTracerOptions {
 
     public: 
 
+        RayTracerOptions(size_t nThreads, LogLevel level = LogLevel::MINIMAL);
+
+        void setLogLevel(LogLevel level); 
+
         size_t nThreads = 1;
+        LogLevel logLevel;
 
         WorldOptions optsWorld;
         RenderingOptions optsRenderer; 

@@ -118,7 +118,17 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
     }
 
     // Write the image
-    return cv::imwrite(filename, image); 
+    bool flag = cv::imwrite(filename, image); 
+
+    if (!flag) {
+        throw std::runtime_error("failed to generate optical image.");
+    }
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "Optical image generated: " << filename << std::endl;
+    }
+
+    return flag;
 
 }
 
@@ -170,7 +180,17 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
     }
 
     // Write the image
-    return cv::imwrite(filename, image); 
+    bool flag = cv::imwrite(filename, image); 
+
+    if (!flag) {
+        throw std::runtime_error("failed to generate DEM image.");
+    }
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "DEM image generated: " << filename << std::endl;
+    }
+
+    return flag;
 
 }
 
@@ -238,7 +258,17 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
     }
 
     // Write the image
-    return cv::imwrite(filename, image); 
+    bool flag = cv::imwrite(filename, image); 
+
+    if (!flag) {
+        throw std::runtime_error("failed to generate depth map.");
+    }
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "Depth map generated: " << filename << std::endl;
+    }
+
+    return flag;
     
 }
 
@@ -306,6 +336,11 @@ void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
     // Close the file
     file.close(); 
 
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "GCPs exported to: " << filename << std::endl;
+    }
+
+
 }
 
 
@@ -361,7 +396,11 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
 
     // Close the file 
     file.close();
-    
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "Ray-traced data exported to: " << filename << std::endl;
+    }
+
 }
 
 void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
@@ -429,6 +468,10 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
 
     // Close the file 
     file.close();
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        std::clog << "Ray-traced data imported from: " << filename << std::endl;
+    }
 
 }
 

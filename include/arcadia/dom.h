@@ -10,7 +10,7 @@ class DOM : public RasterContainer {
     public: 
 
         DOM(WorldOptions opts, uint nThreads);
-        DOM(const std::vector<std::string>& files, uint nThreads, bool displayInfo); 
+        DOM(const std::vector<std::string>& files, uint nThreads, bool displayLogs); 
 
         double getColor(const point2& s, bool interp, uint threadid = 0); 
 
