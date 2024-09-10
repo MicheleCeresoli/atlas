@@ -3,6 +3,7 @@ build/
 resources/
 images/
 dist/
+docs/
 
 apps/*.py
 
