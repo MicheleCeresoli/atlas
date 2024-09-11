@@ -1,6 +1,5 @@
 
 #include "vec2.h"
-#include <cmath>
 
 // Constructors 
 vec2::vec2() : e{0, 0} {}
@@ -29,15 +28,6 @@ vec2& vec2::operator*=(double t) {
 
 vec2& vec2::operator/=(double t) {
     return *this *= 1/t; 
-}
-
-
-double vec2::norm() const {
-    return std::sqrt(norm2());
-}
-
-double vec2::norm2() const {
-    return e[0]*e[0] + e[1]*e[1]; 
 }
 
 std::string vec2::toString() const {

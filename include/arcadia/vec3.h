@@ -1,6 +1,7 @@
 #ifndef VEC3_H 
 #define VEC3_H
 
+#include <cmath>
 #include <iostream> 
 #include <string>
 
@@ -26,8 +27,8 @@ class vec3 {
         vec3& operator*=(double t);
         vec3& operator/=(double t);
 
-        double norm() const;
-        double norm2() const;
+        inline double norm() const { return std::sqrt(norm2()); };
+        inline double norm2() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; };
 
         std::string toString() const; 
 

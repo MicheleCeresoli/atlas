@@ -1,6 +1,5 @@
 
 #include "vec3.h"
-#include <cmath>
 
 // Constructors 
 vec3::vec3() : e{0, 0, 0} {}
@@ -32,15 +31,6 @@ vec3& vec3::operator*=(double t) {
 
 vec3& vec3::operator/=(double t) {
     return *this *= 1/t; 
-}
-
-
-double vec3::norm() const {
-    return std::sqrt(norm2());
-}
-
-double vec3::norm2() const {
-    return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; 
 }
 
 std::string vec3::toString() const {
