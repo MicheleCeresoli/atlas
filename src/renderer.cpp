@@ -182,7 +182,7 @@ void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
 
             // Update current minimum index value
             if ((pRayDistances->at(vp) != inf) && 
-                (pRayDistances->at(v) > pRayDistances->at(vp))) {
+                (pRayDistances->at(vn) > pRayDistances->at(vp))) {
                 break;
             }
 
