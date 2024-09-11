@@ -11,7 +11,14 @@ apps/*.py
 
 *.jl
 
+*.jpg 
+*.png 
+*.tif
+*.prj
+*.twf
+
 *.o
 *.ppm
+*.brd 
 
 CE2_GRAS_*
