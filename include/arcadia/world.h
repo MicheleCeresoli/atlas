@@ -61,6 +61,7 @@ class World {
         bool interp = false;
 
         double computeGSD(const Camera* cam); 
+        void findImpactLocation(PixelData& data, const Ray& ray, double tk, int threadid);
 
 };
 

@@ -4,6 +4,7 @@
 - Added ray resolution logging. 
 - Fixed adaptive ray tracing algorithm not returning the correct values in certain scenarios.
 - Exported ray-traced data files now have the `.brd` (Binary Raytraced Data) extension.
+- Ray impact position error is now ensured to always be smaller than the DEM resolution.
 
 ## v0.2.0 
 - Added `exportRayTracedInfo` and `importRayTracedInfo` to store in binary files the ray traced data from the DEM model. 
@@ -17,6 +18,5 @@
 - Fixed `getAltitude` not returning the actual camera altitude.
 
 ## v0.1.0 
-
 - First release of the ARCADIA package. 
 - Support for Optical, DEM and Depth image generation. 

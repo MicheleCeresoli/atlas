@@ -73,11 +73,13 @@ PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid
         hk = dem.getData(s2, interp, threadid); 
 
         if (sph[0] <= (hk + dem.meanRadius())) {
-             /* By putting t at halfway between the two values, we halve the maximum 
-              * error we are commiting in the intersection location. */
+            
+            // We have an intersection
             hit = true;
-            data.t = tk - dt/2;
-            data.s = car2sph(ray.at(data.t));   
+
+            // Find the ray impact position minimising the localisation error.
+            findImpactLocation(data, ray, tk, threadid);
+
         } 
         else if (sph[0] < dem.minRadius()) {
             /* This means that the ray has crossed the Moon in an area 
@@ -90,6 +92,66 @@ PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid
     }
 
     return data; 
+
+}
+
+void World::findImpactLocation(PixelData& data, const Ray& ray, double tk, int threadid) {
+
+    // We had an intersection at tk, thus we move backwards along the ray.
+    double dtn = dt/2; 
+    data.t = tk - dtn; 
+    
+    point3 pos1 = ray.at(tk); 
+    point3 pos2 = ray.at(data.t); 
+    data.s = car2sph(pos2);
+    
+    /* If the position error is below the DEM resolution, we return straight away 
+     * after halving the actual resolution, so that the maximum error we commit is 
+     * still bounded to half the actual ray resolution. */
+
+    point3 dp = pos2 - pos1;
+    double errPos = dp.norm();
+    if (errPos < dem.getResolution()) {
+        return;
+    }
+
+    double hk; 
+    point2 s2; 
+
+    /* If we are here, we keep halving the ray resolution until the difference between 
+     * the impact locations is below the dem resolution. */
+    while (errPos > dem.getResolution()) {
+        
+        // Update ray resolution
+        dtn /= 2;
+
+        // Convert geographic coordinates to degrees
+        s2 = rad2deg(point2(data.s[1], data.s[2])); 
+
+        // Retrieve altitude from DEM 
+        hk = dem.getData(s2, interp, threadid); 
+
+        if (data.s[0] <= (hk + dem.meanRadius())) {
+            // We have intersection, we need to move backwards
+            data.t -= dtn;
+
+        } else {
+            // No intersection, we move forward
+            data.t += dtn;
+        }
+
+        pos1 = pos2;
+        pos2 = ray.at(data.t); 
+
+        data.s = car2sph(pos2); 
+
+        // Update position error
+        dp = pos2 - pos1; 
+        errPos = dp.norm(); 
+
+    }
+    
+    return;
 
 }
 
