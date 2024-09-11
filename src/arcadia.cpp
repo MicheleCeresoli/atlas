@@ -356,7 +356,7 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
     checkRenderStatus();
 
     // Try to create the file
-    std::ofstream file(filename, std::ios::binary); 
+    std::ofstream file(filename + ".brd", std::ios::binary); 
     if (!file.is_open()) {
         throw std::runtime_error("unable to create the file in this path.");
     }
@@ -404,7 +404,7 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
     if (logLevel >= LogLevel::MINIMAL) {
         displayTime();
         std::clog << "Exported ray-traced data to: " << "\033[31m" 
-                  << filename << "\033[0m" << std::endl;
+                  << filename + ".brd" << "\033[0m" << std::endl;
     }
 
 }
@@ -414,7 +414,7 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     // Check camera pointer
     checkCamPointer();
 
-    std::ifstream file(filename, std::ios::binary); 
+    std::ifstream file(filename + ".brd", std::ios::binary); 
     if (!file.is_open()){
         throw std::runtime_error("unable to open the file in this path.");
     }
@@ -478,7 +478,7 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     if (logLevel >= LogLevel::MINIMAL) {
         displayTime();
         std::clog << "Imported ray-traced data from: " << "\033[31m" 
-                  << filename << "\033[0m" << std::endl;
+                  << filename + ".brd" << "\033[0m" << std::endl;
     }
 
 }

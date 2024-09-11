@@ -86,7 +86,10 @@ class Renderer {
         // This function generates all the tasks required to render an image.
         void generateRenderTasks(const Camera* cam, World& w);
         void generateBasicRenderTasks(const Camera* cam, World& w);
+
         void generateAdaptiveRenderTasks(const Camera* cam, World& w);
+        void generateRowAdaptiveRenderTasks(const Camera* cam, World& w); 
+        void generateColAdaptiveRenderTasks(const Camera* cam, World& w); 
 
         // Run anti-aliasing on the pixels with a large difference in the distance
         uint generateAntiAliasingTasks(const Camera* cam, World& w);

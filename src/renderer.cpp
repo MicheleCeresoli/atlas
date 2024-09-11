@@ -162,24 +162,27 @@ void Renderer::generateBasicRenderTasks(const Camera* cam, World& w) {
 
 }
 
-// This function generates all the tasks required to render an image.
-void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
-    
+void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
+
+    if (opts.logLevel >= LogLevel::DETAILED) {
+        displayTime(); 
+        std::clog << "Selected Adaptive Column Tracing." << std::endl;
+    }
+
     const std::vector<double>* pRayDistances = w.getRayDistances();
 
     uint id;
     for (size_t u = 0; u < cam->width(); u++) {
         
         uint min_index = 0; 
+        for (size_t v = 1; v < cam->height(); v++) {
 
-        size_t idx_start = u*cam->height(); 
-        size_t idx_end   = idx_start + cam->height(); 
-
-        for (size_t j = idx_start + 1; j < idx_end; j++) {
+            size_t vp = v - 1 + u*cam->height();
+            size_t vn = vp + 1;
 
             // Update current minimum index value
-            if ((pRayDistances->at(j-1) != inf) && 
-                (pRayDistances->at(j) > pRayDistances->at(j-1))) {
+            if ((pRayDistances->at(vp) != inf) && 
+                (pRayDistances->at(v) > pRayDistances->at(vp))) {
                 break;
             }
 
@@ -226,6 +229,146 @@ void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
 
             releaseTaskQueue(cam, w);
         }
+    }
+
+}
+
+void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
+
+    if (opts.logLevel >= LogLevel::DETAILED) {
+        displayTime(); 
+        std::clog << "Selected Adaptive Row Tracing." << std::endl;
+    }
+
+    const std::vector<double>* pRayDistances = w.getRayDistances();
+
+    uint id;
+    for (size_t v = 0; v < cam->height(); v++) {
+        
+        uint min_index = 0; 
+        for (size_t u = 1; u < cam->width(); u++) {
+
+            size_t up = v + (u-1)*cam->height();
+            size_t un = up + cam->height();
+
+            // Update current minimum index value
+            if ((pRayDistances->at(up) != inf) && 
+                (pRayDistances->at(un) > pRayDistances->at(up))) {
+                break;
+            }
+
+            min_index++;
+        }
+        
+        if (min_index == 0) {
+        
+            // Here we generate a single task starting from the left of the row
+            for (size_t u = 0; u < cam->width(); u++) {
+                id = cam->getPixelId(u, v);
+                updateTaskQueue(TaskedPixel(id, u, v));
+            }
+
+            releaseTaskQueue(cam, w);
+
+        } else if (min_index == cam->width()-1) {
+
+            // Here we generate a single task starting from the right of the row
+            for (int u = cam->width()-1; u >= 0; u--) {
+                id = cam->getPixelId(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v));
+            }
+
+            releaseTaskQueue(cam, w);
+
+        } else {
+
+            /* Here we generate two tasks. The first one goes from the min element to the 
+             * left of the row. The second one from the one after the min to the end 
+             * of the row. */
+            
+            for (int u = min_index; u >= 0; u--) {
+                id = cam->getPixelId(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v)); 
+            }
+
+            releaseTaskQueue(cam, w);
+
+            for (size_t u = min_index + 1; u < cam->width(); u++) {
+                id = cam->getPixelId(u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v)); 
+            }
+
+            releaseTaskQueue(cam, w);
+        }
+    }
+}
+
+// This function generates all the tasks required to render an image.
+void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
+
+    /* The idea is the following: we need to find out whether the variation along 
+     * the ray distances is greater along the rows or the columns. This allows to avoid 
+     * issues when all the pixels are at more or less the same distance causing the 
+     * actual closest pixel to be further from its neighbours when the DEM is used. */
+    
+    const std::vector<double>* pRayDistances = w.getRayDistances();
+
+    double cMeanDist = 0, rMeanDist = 0; 
+    double dMin, dMax, dj;
+    
+    size_t u, v; 
+
+    // Check the average distance along the columns 
+    for (u = 0; u < cam->width(); u++) {
+
+        dMin =  inf; 
+        dMax = -inf; 
+        
+        for (v = 0; v < cam->height(); v++) {
+            dj = pRayDistances->at(v + u*cam->height());
+
+            // Update the min\maximum distances 
+            if (dj != inf) {
+                dMin = dj < dMin ? dj : dMin; 
+                dMax = dj > dMax ? dj : dMax;
+            }
+        }
+
+        if (dMax > 0.0) {
+            cMeanDist += dMax - dMin; 
+        }
+    }
+
+    // Check the average distance along the rows
+    for (v = 0; v < cam->height(); v++) {
+        
+        dMin =  inf; 
+        dMax = -inf; 
+
+        for (u = 0; u < cam->width(); u++) {
+            dj = pRayDistances->at(v + u*cam->height());
+
+            // Update the min\maximum distances 
+            if (dj != inf) {
+                dMin = dj < dMin ? dj : dMin; 
+                dMax = dj > dMax ? dj : dMax;
+            }
+        }
+
+        if (dMax > 0.0) {
+            rMeanDist += dMax - dMin; 
+        }
+    }
+
+    // Average the distance between the number of columns\rows
+    cMeanDist /= cam->width();
+    rMeanDist /= cam->height();
+
+    // User rows if the distance excursion along the rows is greater than along the columns
+    if (rMeanDist > cMeanDist) {
+        generateRowAdaptiveRenderTasks(cam, w);
+    } else {
+        generateColAdaptiveRenderTasks(cam, w);
     }
 
 }
