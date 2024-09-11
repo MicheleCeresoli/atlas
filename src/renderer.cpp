@@ -348,7 +348,7 @@ void Renderer::displayRenderStatus(uint n) {
             break; 
 
         case RenderingStatus::POST_SSAA:
-            m = "SSAA";
+            m = "Antialiasing (SSAA)";
             break; 
 
         case RenderingStatus::POST_DEFOCUS: 

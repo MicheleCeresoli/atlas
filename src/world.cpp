@@ -119,6 +119,13 @@ void World::computeRayResolution(const Camera* cam) {
         dt = gsd/2; 
     }
 
+    // Display the new ray resolution
+    if (opts.logLevel >= LogLevel::DETAILED) {
+        displayTime(); 
+        std::clog << "Ray resolution set to: " 
+                  << "\033[35m" << int(floor(dt)) << "m" << "\033[0m" << std::endl;
+    }
+
 }
 
 double World::computeGSD(const Camera* cam) {
