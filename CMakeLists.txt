@@ -13,7 +13,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(
     arcadia
-    VERSION 0.1 
+    VERSION 0.2.1 
     DESCRIPTION "Ray Tracing Lunar DEM Images"
     LANGUAGES CXX)
 

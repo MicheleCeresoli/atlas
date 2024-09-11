@@ -3,6 +3,7 @@
 ## v0.2.1
 - Added ray resolution logging. 
 - Fixed adaptive ray tracing algorithm not returning the correct values in certain scenarios.
+- Exported ray-traced data files now have the `.brd` (Binary Raytraced Data) extension.
 
 ## v0.2.0 
 - Added `exportRayTracedInfo` and `importRayTracedInfo` to store in binary files the ray traced data from the DEM model. 
