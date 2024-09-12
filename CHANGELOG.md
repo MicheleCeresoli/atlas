@@ -1,6 +1,6 @@
 # All Releases 
 
-## v0.2.1
+## v0.3.0
 - Added ray resolution logging. 
 - Fixed adaptive ray tracing algorithm not returning the correct values in certain scenarios.
 - Exported ray-traced data files now have the `.brd` (Binary Raytraced Data) extension.
