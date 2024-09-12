@@ -5,6 +5,7 @@
 - Fixed adaptive ray tracing algorithm not returning the correct values in certain scenarios.
 - Exported ray-traced data files now have the `.brd` (Binary Raytraced Data) extension.
 - Ray impact position error is now ensured to always be smaller than the DEM resolution.
+- The `RayTracerOptions` class can now be created using a YAML configuration file.
 
 ## v0.2.0 
 - Added `exportRayTracedInfo` and `importRayTracedInfo` to store in binary files the ray traced data from the DEM model. 
