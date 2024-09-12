@@ -12,6 +12,12 @@ license = {file = "LICENSE" }
 keywords = ["raytracing", "moon", "dem", "image-generation"]
 requires-python = ">=3.9"
 
+# Python dependencies (runtime)
+dependencies = [
+    "pyyaml",
+]
+
+
 classifiers = [    
 
     # Prevents the package from being uploaded to PyPI 
