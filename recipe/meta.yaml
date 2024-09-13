@@ -1,0 +1,38 @@
+package: 
+  name: atlas
+  version: "0.3.1"
+
+source: 
+  # This is the path to the source code (i.e., where the pyproject.toml is located)
+  # path: ../
+  git_url: https://github.com/MicheleCeresoli/atlas.git
+
+requirements: 
+  build: 
+    - {{ compiler('cxx') }}
+    - cmake
+    - make
+    - ninja
+
+  host: 
+    - python >=3.9
+    - pip 
+    - pybind11
+    - scikit-build-core >=0.3.3
+    - numpy >=1.26
+    - gdal           
+    - opencv         
+
+  run: 
+    # Specifies the runtime dependencies
+    - python >=3.9
+    - pyyaml
+    - gdal 
+    - opencv 
+
+
+about: 
+
+  home: https://github.com/MicheleCeresoli/atlas  
+  summary: "Ray Tracing Lunar DEM Images"
+  license: GPL-3.0
