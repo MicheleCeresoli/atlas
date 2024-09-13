@@ -38,11 +38,15 @@ jobs:
           CONDA_BUILD_FILE=$(conda build recipe --output)
           echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
+      - name: list stuff 
+        run: | 
+          ls -la ${{env.CONDA_BUILD_PATH}}
+
       - name: Archive the Package 
         uses: actions/upload-artifact@v3 
         with: 
           name: conda-packages
-          path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
+          path: ${{ env.CONDA_BUILD_PATH }}/*.tar
 
 
   upload-package: 
