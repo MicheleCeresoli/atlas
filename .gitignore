@@ -16,7 +16,6 @@ apps/*.py
 *.tif
 *.prj
 *.twf
-*.yaml 
 
 *.o
 *.ppm
