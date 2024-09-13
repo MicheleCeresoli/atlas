@@ -14,7 +14,8 @@ jobs:
 
       matrix: 
         os: [ubuntu-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.12']
+        # python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps: 
       - name: Checkout code 
@@ -56,6 +57,10 @@ jobs:
         with: 
           name: conda-packages 
           path: conda-packages
+
+      - name: List Artifacts 
+        run: | 
+          ls -la conda-packages
 
       - name: Upload package to GitHub Release 
         env: 
