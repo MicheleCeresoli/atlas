@@ -17,8 +17,15 @@ sudo apt install libgdal-dev
 sudo apt install libopencv-dev
 ```
 
-### From Python Wheel 
-Once a Python wheel has been downloaded, to install the ATLAS module in the current active environmen simply run: `pip install {NAME}.whl`, where NAME is the filename of the target python wheel, 
+### From Python Wheel (pip)
+Once a Python wheel has been downloaded, to install the ATLAS module in the current active environment simply run: `pip install {NAME}.whl`, where NAME is the filename of the target python wheel,.
+
+### From Conda Package 
+From the latest release, download the appropriate `.tar` package according to your python version and system build. Then, once the conda environment has been activated, run:
+
+```conda install --use-local atlas```
+
+which will also automatically install all package dependencies.
 
 ### From Sources
 Manually building the library requires a C++ compiler and a CMake version greater or equal to 3.15. The GDAL and OpenCV libraries must already be installed, as well as the _pybind11_ package. To properly work, CMake requires a `pybind11Config.cmake` file which is automatically installed only if the package is installed via conda, i.e., with:
