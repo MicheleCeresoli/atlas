@@ -1,8 +1,8 @@
 
 set(PYTHON_FILES
-    pyarcadia.cpp
+    pyatlas.cpp
     affine.cpp
-    arcadia.cpp
+    atlas.cpp
     camera.cpp
     dcm.cpp
     dem.cpp
@@ -17,18 +17,18 @@ set(PYTHON_FILES
     world.cpp
 )
 
-pybind11_add_module(_arcadia MODULE ${PYTHON_FILES})
+pybind11_add_module(_atlas MODULE ${PYTHON_FILES})
 
-target_link_libraries(_arcadia PUBLIC arcadia)
-target_link_libraries(_arcadia PRIVATE GDAL::GDAL)
-target_link_libraries(_arcadia PRIVATE ${OpenCV_LIBS})
+target_link_libraries(_atlas PUBLIC atlas)
+target_link_libraries(_atlas PRIVATE GDAL::GDAL)
+target_link_libraries(_atlas PRIVATE ${OpenCV_LIBS})
 
 # This is passing the version 
-target_compile_definitions(_arcadia PRIVATE VERSION_INFO=${PROJECT_VERSION})
+target_compile_definitions(_atlas PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
-# Set the RPATH (runtime library search path) for the _arcadia target to 
-# make sure it looks for the libarcadia.so file in its own directory
-set_target_properties(_arcadia PROPERTIES 
+# Set the RPATH (runtime library search path) for the _atlas target to 
+# make sure it looks for the libatlas.so file in its own directory
+set_target_properties(_atlas PROPERTIES 
         BUILD_WITH_INSTALL_RPATH TRUE 
         INSTALL_RPATH "$ORIGIN"
         INSTALL_RPATH_USE_LINK_PATH TRUE
@@ -36,5 +36,5 @@ set_target_properties(_arcadia PROPERTIES
 
 
 # This installs the python shared library in the same wheel directory
-install(TARGETS _arcadia 
-        LIBRARY DESTINATION arcadia)
+install(TARGETS _atlas 
+        LIBRARY DESTINATION atlas)

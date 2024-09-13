@@ -3,7 +3,7 @@
 namespace py = pybind11;
 
 void init_affine(py::module_ &m);  
-void init_arcadia(py::module_ &m); 
+void init_atlas(py::module_ &m); 
 void init_camera(py::module_ &m); 
 void init_dcm(py::module_ &m); 
 void init_dem(py::module_ &m);
@@ -17,9 +17,9 @@ void init_vec2(py::module_ &m);
 void init_vec3(py::module_ &m); 
 void init_world(py::module_ &m);
 
-PYBIND11_MODULE(_arcadia, m) {
+PYBIND11_MODULE(_atlas, m) {
 
-    m.doc() = "Python/C++ bindings for the arcadia library."; 
+    m.doc() = "Python/C++ bindings for the ATLAS library."; 
 
     init_vec2(m); 
     init_vec3(m);
@@ -40,6 +40,6 @@ PYBIND11_MODULE(_arcadia, m) {
     init_world(m); 
     init_renderer(m);
 
-    init_arcadia(m); 
+    init_atlas(m); 
 
 }

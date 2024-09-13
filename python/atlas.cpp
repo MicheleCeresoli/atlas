@@ -2,11 +2,11 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include "arcadia.h"
+#include "atlas.h"
 
 namespace py = pybind11;
 
-void init_arcadia(py::module_ &m) {
+void init_atlas(py::module_ &m) {
 
 
     py::class_<LunarRayTracer>(m, "LunarRayTracer")

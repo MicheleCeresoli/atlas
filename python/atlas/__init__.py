@@ -1,9 +1,9 @@
-# import _arcadia  # type: ignore
+# import _atlas  # type: ignore
 
-from ._arcadia import PinholeCamera, RealCamera         # type: ignore
-from ._arcadia import LunarRayTracer                    # type: ignore
-from ._arcadia import DEM, DOM                          # type: ignore
-from ._arcadia import LogLevel                          # type: ignore
+from ._atlas import PinholeCamera, RealCamera         # type: ignore
+from ._atlas import LunarRayTracer                    # type: ignore
+from ._atlas import DEM, DOM                          # type: ignore
+from ._atlas import LogLevel                          # type: ignore
 
 import glob 
 import yaml
@@ -26,7 +26,7 @@ def RayTracerOptions(filename: str):
     else: 
         log_level = LogLevel.MINIMAL   
 
-    opts = _arcadia.RayTracerOptions(nthreads, log_level)
+    opts = _atlas.RayTracerOptions(nthreads, log_level)
     
     # Retrieve rendering options
     if 'rendering' in config.keys(): 

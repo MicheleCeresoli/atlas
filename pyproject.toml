@@ -3,7 +3,7 @@ requires = ["scikit-build-core>=0.3.3", "pybind11"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "arcadia"
+name = "atlas"
 version = "0.3.0"
 description = "A Ray Tracer for Lunar Imagery"
 authors = [ { name = "Michele Ceresoli", email = "michele.ceresoli@polimi.it"} ]
@@ -47,4 +47,4 @@ wheel.expand-macos-universal-tags = true
 
 sdist.cmake = true 
 sdist.exclude = ["apps"]
-wheel.packages = ["python/arcadia"]
+wheel.packages = ["python/atlas"]

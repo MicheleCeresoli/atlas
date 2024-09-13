@@ -1,6 +1,7 @@
 # All Releases 
 
 ## v0.3.0
+- Renamed project to _ATLAS_
 - Added ray resolution logging. 
 - Fixed adaptive ray tracing algorithm not returning the correct values in certain scenarios.
 - Exported ray-traced data files now have the `.brd` (Binary Raytraced Data) extension.

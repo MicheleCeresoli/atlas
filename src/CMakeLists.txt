@@ -1,11 +1,11 @@
 
 
 
-set(HEADER_DIR ../include/arcadia)
+set(HEADER_DIR ../include/atlas)
 
 set(HEADER_LIST 
     ${HEADER_DIR}/affine.h
-    ${HEADER_DIR}/arcadia.h
+    ${HEADER_DIR}/atlas.h
     ${HEADER_DIR}/camera.h
     ${HEADER_DIR}/crsutils.h
     ${HEADER_DIR}/raster.h
@@ -25,7 +25,7 @@ set(HEADER_LIST
 
 set(SOURCE_LIST
     affine.cpp
-    arcadia.cpp
+    atlas.cpp
     camera.cpp
     crsutils.cpp
     raster.cpp
@@ -44,15 +44,15 @@ set(SOURCE_LIST
 )
 
 # Make a library - static or dynamic based on user settings 
-add_library(arcadia SHARED ${SOURCE_LIST} ${HEADER_LIST})
+add_library(atlas SHARED ${SOURCE_LIST} ${HEADER_LIST})
 
 # Add these directories (users won't use GDAL)
-target_include_directories(arcadia PUBLIC ${HEADER_DIR})
-target_include_directories(arcadia PRIVATE ${GDAL_INCLUDE_DIR})
-target_include_directories(arcadia PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_include_directories(atlas PUBLIC ${HEADER_DIR})
+target_include_directories(atlas PRIVATE ${GDAL_INCLUDE_DIR})
+target_include_directories(atlas PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 # Users require at least C++17
-target_compile_features(arcadia PUBLIC cxx_std_17)
+target_compile_features(atlas PUBLIC cxx_std_17)
 
 # IDEs should put the headers in a nice place
 source_group(
@@ -61,6 +61,6 @@ source_group(
     FILES ${HEADER_LIST}
 )
 
-# This allows to install the libarcadia.so in the python wheel directory
-install(TARGETS arcadia 
-        LIBRARY DESTINATION arcadia)
+# This allows to install the libatlas.so in the python wheel directory
+install(TARGETS atlas 
+        LIBRARY DESTINATION atlas)

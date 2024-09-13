@@ -7,7 +7,7 @@ docs/
 
 apps/*.py
 
-.arcadia*
+.atlas*
 
 *.jl
 
