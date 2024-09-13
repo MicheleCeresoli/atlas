@@ -2,10 +2,11 @@
 
 from ._atlas import PinholeCamera, RealCamera         # type: ignore
 from ._atlas import LunarRayTracer                    # type: ignore
-from ._atlas import DEM, DOM                          # type: ignore
 from ._atlas import LogLevel                          # type: ignore
 
+import os
 import glob 
+
 import yaml
 
 def RayTracerOptions(filename: str): 
@@ -61,21 +62,31 @@ def RayTracerOptions(filename: str):
     # Retrieve world settings 
     if 'world' in config.keys(): 
         cfg_world = config['world']
+        
+        # Retrieve all DEM files
+        dem_path = ''
+        if 'dem-path' in cfg_world.keys(): 
+            dem_path = cfg_world['dem-path']
 
         if 'dem-files' in cfg_world.keys(): 
             
             dem_files = []
             for file in cfg_world['dem-files']: 
-                dem_files += glob.glob(file)
+                dem_files += glob.glob(os.path.join(dem_path, file))
                 
             # avoid duplicate files
             opts.optsWorld.demFiles = list(set(dem_files))
-                
+
+        # Retrieve all DOM files
+        dom_path = ''
+        if 'dom-path' in cfg_world.keys(): 
+            dom_path = cfg_world['dom-path']
+                            
         if 'dom-files' in cfg_world.keys(): 
-            
+
             dom_files = []
             for file in cfg_world['dom-files']: 
-                dom_files += glob.glob(file)
+                dom_files += glob.glob(os.path.join(dom_path, file))
                 
             # avoid duplicate files
             opts.optsWorld.domFiles = list(set(dom_files))
