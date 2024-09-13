@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v3 
         with: 
           name: conda-packages
-          path: ${{ env.CONDA_BUILD_PATH }}
+          path: ${{ env.CONDA_BUILD_PATH }}*.tar.bz2
 
 
   upload-package: 
