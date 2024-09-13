@@ -20,14 +20,14 @@ PinholeCamera::PinholeCamera(uint res, double fov) : Camera(res, res), fov(fov) 
     scale = tan(0.5*fov);
 }
 
-
+ 
 Ray PinholeCamera::getRay(double u, double v, bool center) const {
 
     // u is the pixel number along the horizontal coordinate
     // y is the pixel number along the vertical coordinate 
 
-    double x = ((1 - 2 * (v + 0.5)/(double)height())) * scale;
-    double y = (2 * (u + 0.5)/(double)width() - 1) * scale;
+    double x = (1 - 2 * (u + 0.5)/(double)width()) * scale;
+    double y = (1 - 2 * (v + 0.5)/(double)height()) * scale;
 
     // Compute the ray direction in the camera frame, with the Z-axis perpendicular 
     // to the image plane, the X-axis towards the top and the Y-axis 
@@ -66,8 +66,8 @@ Ray RealCamera::getRay(double u, double v, bool center) const {
     if (center) {
 
         // We shoot a ray as if it were a Pinhole camera
-        x = ((1 - 2 * (v + 0.5)/(double)height())) * scale;
-        y = (2 * (u + 0.5)/(double)width() - 1) * scale;
+        x = (1 - 2 * (u + 0.5)/(double)width()) * scale;
+        y = (1 - 2 * (v + 0.5)/(double)height()) * scale;
 
         origin = _pos;
         direction = vec3(x, y, 1.0);
@@ -86,8 +86,8 @@ Ray RealCamera::getRay(double u, double v, bool center) const {
         origin = _pos + 1e-3*(_dcm*lensPoint); 
         
         // For the direction, we sample the pixel in a random unit square around the center
-        x =  0.5*(sensorSize - pixSize) - (v + randomNumber() - 0.5)*pixSize;
-        y = -0.5*(sensorSize - pixSize) + (u + randomNumber() - 0.5)*pixSize;
+        x = -0.5*(sensorSize - pixSize) + (u + randomNumber() - 0.5)*pixSize;
+        y = -0.5*(sensorSize - pixSize) + (v + randomNumber() - 0.5)*pixSize;
 
         point3 pixSample(x, y, focalLength);
 
