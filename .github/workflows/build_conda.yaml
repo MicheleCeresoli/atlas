@@ -31,8 +31,8 @@ jobs:
           echo $CONDA/bin >> $GITHUB_PATH
       - name: Install dependencies 
         run: | 
-          conda install conda-build 
-          conda install conda-verify
+          conda install conda-build -y
+          conda install conda-verify -y
 
       - name: Build Conda Package 
         run: | 
@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v3 
         with: 
           name: conda-packages
-          path: ${{ env.CONDA_BUILD_PATH }}/*.tar
+          path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
 
 
   upload-package: 
