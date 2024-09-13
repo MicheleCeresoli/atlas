@@ -1,5 +1,10 @@
 # All Releases 
 
+## v0.3.1
+- Added conda recipe.
+- Added `dem-path` and `dom-path` settings to YAML configuration file.
+- Changed camera coordinate axes: the Z-axis is directed towards the nadir, the Y-axis now points upwards and the X-axis completes the right-handed triad.
+
 ## v0.3.0
 - Renamed project to _ATLAS_
 - Added ray resolution logging. 
