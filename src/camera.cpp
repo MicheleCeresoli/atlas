@@ -7,16 +7,16 @@
 
 // Constructors 
 
-Camera::Camera(uint width, uint height) : _width(width), _height(height) {}
+Camera::Camera(ui16_t width, ui16_t height) : _width(width), _height(height) {}
 
-void Camera::getPixelCoordinates(const uint& id, uint& u, uint& v) const {
+void Camera::getPixelCoordinates(const ui32_t& id, ui16_t& u, ui16_t& v) const {
     v = id / _width;
     u = id - v*_width;
 }
 
 // PINHOLE CAMERA
 
-PinholeCamera::PinholeCamera(uint res, double fov) : Camera(res, res), fov(fov) {
+PinholeCamera::PinholeCamera(ui16_t res, double fov) : Camera(res, res), fov(fov) {
     scale = tan(0.5*fov);
 }
 
@@ -41,7 +41,7 @@ Ray PinholeCamera::getRay(double u, double v, bool center) const {
 
 // REAL CAMERA (with defocus blur)
 
-RealCamera::RealCamera(uint res, double focalLen, double sensorSize, double fstop) : 
+RealCamera::RealCamera(ui16_t res, double focalLen, double sensorSize, double fstop) : 
     Camera(res, res), focalLength(focalLen), sensorSize(sensorSize), fstop(fstop) {
 
     // Compute the Field of View (rad) and scale factor

@@ -2,6 +2,7 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
+#include "types.h"
 #include "vec2.h"
 #include "vec3.h"
 
@@ -15,9 +16,9 @@ class TaskedPixel {
 
     public: 
     
-        TaskedPixel(uint id, double u, double v, size_t nSamples = 1);
+        TaskedPixel(ui32_t id, double u, double v, size_t nSamples = 1);
 
-        uint id; 
+        ui32_t id; 
         size_t nSamples;
 
         double tMin; 
@@ -41,12 +42,12 @@ class RenderedPixel {
 
     public: 
 
-        uint id;                        // Pixel id
+        ui32_t id;                        // Pixel id
         size_t nSamples;
 
         std::vector<PixelData> data;
 
-        RenderedPixel(uint id, size_t nSamples);
+        RenderedPixel(ui32_t id, size_t nSamples);
         inline RenderedPixel(TaskedPixel pix) : RenderedPixel(pix.id, pix.nSamples) {};
 
         void updateSamples(size_t newSamples); 

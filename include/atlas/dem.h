@@ -3,14 +3,15 @@
 
 #include "raster.h"
 #include "settings.h"
+#include "types.h"
 
 class DEM : public RasterContainer {
 
     public: 
 
 
-        DEM(WorldOptions opts, uint nThreads);
-        DEM(const std::vector<std::string>& files, uint nThreads, bool displayLogs); 
+        DEM(WorldOptions opts, ui16_t nThreads);
+        DEM(const std::vector<std::string>& files, ui16_t nThreads, bool displayLogs); 
         
         inline double minAltitude() const { return _minAltitude; }; 
         inline double maxAltitude() const { return _maxAltitude; };

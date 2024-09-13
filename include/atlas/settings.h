@@ -1,6 +1,8 @@
 #ifndef RENDSETTINGS_H
 #define RENDSETTINGS_H
 
+#include "types.h"
+
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -19,7 +21,7 @@ class SSAAOptions {
         bool active = true;
         double threshold = 3.0;
 
-        uint boundarySize = 1;
+        ui16_t boundarySize = 1;
         double resMultiplier = 5;
 
 };
@@ -55,7 +57,7 @@ class WorldOptions {
 
         LogLevel logLevel;
 
-        uint rasterUsageThreshold = 2;
+        ui16_t rasterUsageThreshold = 2;
 
 };
 

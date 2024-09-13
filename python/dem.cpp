@@ -10,12 +10,12 @@ void init_dem(py::module_ &m) {
 
     py::class_<DEM, RasterContainer>(m, "DEM")
 
-        .def(py::init<WorldOptions, uint>(), 
+        .def(py::init<WorldOptions, ui16_t>(), 
                py::arg("opts") = WorldOptions(), 
                py::arg("nThreads") = 1
           )
 
-        .def(py::init<std::vector<std::string>, uint, bool>(), 
+        .def(py::init<std::vector<std::string>, ui16_t, bool>(), 
                py::arg("files"), 
                py::arg("nThreads") = 1, 
                py::arg("displayInfo") = false

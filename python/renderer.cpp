@@ -10,7 +10,7 @@ void init_renderer(py::module_ &m) {
 
     py::class_<Renderer>(m, "Renderer")
 
-        .def(py::init<RenderingOptions, uint>(), 
+        .def(py::init<RenderingOptions, ui16_t>(), 
             py::arg("opts")=RenderingOptions(), 
             py::arg("nThreads") = 1
         )

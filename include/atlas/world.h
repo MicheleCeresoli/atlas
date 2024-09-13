@@ -7,6 +7,7 @@
 #include "pixel.h"
 #include "ray.h"
 #include "settings.h"
+#include "types.h"
 
 #include <vector>
 #include <string>
@@ -16,7 +17,7 @@ class World {
 
     public: 
 
-        World(const WorldOptions& opts, uint nThreads);
+        World(const WorldOptions& opts, ui16_t nThreads);
 
         PixelData traceRay(const Ray& r, double tMin, double tMax, int threadid); 
         

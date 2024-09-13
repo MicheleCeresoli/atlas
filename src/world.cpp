@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-World::World(const WorldOptions& opts, uint nThreads) : 
+World::World(const WorldOptions& opts, ui16_t nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
     // This will be updated on the `computeRayResolution` call. 

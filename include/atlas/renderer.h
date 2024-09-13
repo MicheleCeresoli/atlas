@@ -5,6 +5,7 @@
 #include "pixel.h"
 #include "pool.h"
 #include "settings.h"
+#include "types.h"
 #include "world.h"
 
 #include <mutex>
@@ -23,7 +24,7 @@ class Renderer {
     
     public: 
 
-        Renderer(const RenderingOptions& opts, uint nThreads); 
+        Renderer(const RenderingOptions& opts, ui16_t nThreads); 
 
         void render(const Camera* cam, World& w);
 
@@ -60,7 +61,7 @@ class Renderer {
         std::vector<double> pixMinT; 
 
         // Keep track of the total number of pixels to render
-        uint nPixels;
+        ui32_t nPixels;
 
         // This function stores the output of each render task in the original class
         void saveRenderTaskOutput(const std::vector<RenderedPixel> &pixels); 
@@ -92,8 +93,8 @@ class Renderer {
         void generateColAdaptiveRenderTasks(const Camera* cam, World& w); 
 
         // Run anti-aliasing on the pixels with a large difference in the distance
-        uint generateAntiAliasingTasks(const Camera* cam, World& w);
-        uint generateDefocusBlurTasks(const Camera* cam, World& w); 
+        ui32_t generateAntiAliasingTasks(const Camera* cam, World& w);
+        ui32_t generateDefocusBlurTasks(const Camera* cam, World& w); 
 
         void runAntiAliasing(const Camera* cam, World& w);  
         void runDefocusBlur(const Camera* cam, World& w);
@@ -107,10 +108,10 @@ class Renderer {
         void sortRenderOutput(); 
 
         // Retrieve the min\max t-values of each pixel depending on its boundaries
-        void computePixelBoundaries(const Camera* cam, uint s);
+        void computePixelBoundaries(const Camera* cam, ui16_t s);
 
         // Display the real-time rendering status on the terminal.
-        void displayRenderStatus(uint n); 
+        void displayRenderStatus(ui32_t n); 
 
 
 };

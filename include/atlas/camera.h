@@ -5,20 +5,21 @@
 #include "dcm.h"
 #include "pixel.h"
 #include "ray.h"
+#include "types.h"
 
 
 class Camera {
 
     public: 
         
-        Camera(uint width, uint height);
+        Camera(ui16_t width, ui16_t height);
 
         virtual ~Camera() = default;
 
         // Default settings
-        inline uint width() const { return _width; }
-        inline uint height() const { return _height; }
-        inline uint nPixels() const { return _width*_height; }
+        inline ui16_t width() const { return _width; }
+        inline ui16_t height() const { return _height; }
+        inline ui32_t nPixels() const { return _width*_height; }
 
         // Camera world placement 
         inline void setDCM(const dcm& orientation) { _dcm = orientation; }
@@ -28,10 +29,10 @@ class Camera {
         inline const point3& getPos() const { return _pos; }
 
         // Pixel utilities 
-        inline uint getPixelId(const uint& u, const uint& v) const { return u + _width*v; }
-        inline uint getPixelId(const Pixel& p) const { return getPixelId(p[0], p[1]);}
+        inline ui32_t getPixelId(const ui16_t& u, const ui16_t& v) const { return u + _width*v; }
+        inline ui32_t getPixelId(const Pixel& p) const { return getPixelId(p[0], p[1]);}
 
-        void getPixelCoordinates(const uint& id, uint& u, uint& v) const; 
+        void getPixelCoordinates(const ui32_t& id, ui16_t& u, ui16_t& v) const; 
 
         // Ray shooter 
         virtual Ray getRay(double u, double v, bool center = false) const = 0;
@@ -46,9 +47,9 @@ class Camera {
         dcm _dcm;
 
     private: 
-
-        uint _width = 0; 
-        uint _height = 0; 
+         
+        ui16_t _width = 0; 
+        ui16_t _height = 0; 
 
 };
 
@@ -58,7 +59,7 @@ class PinholeCamera : public Camera {
 
     public: 
 
-        PinholeCamera(uint res, double fov); 
+        PinholeCamera(ui16_t res, double fov); 
 
         Ray getRay(double u, double v, bool center = false) const override; 
 
@@ -79,7 +80,7 @@ class RealCamera : public Camera {
 
     public: 
 
-        RealCamera(uint res, double focalLen, double sensorSize, double fstop);
+        RealCamera(ui16_t res, double focalLen, double sensorSize, double fstop);
 
         Ray getRay(double u, double v, bool center = false) const override; 
 

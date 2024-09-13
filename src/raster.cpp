@@ -24,13 +24,13 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
     // Retrieve the block size 
     int xb, yb; 
     pBand->GetBlockSize(&xb, &yb);
-    _xBlock = (uint)xb; 
-    _yBlock = (uint)yb; 
+    _xBlock = (ui32_t)xb; 
+    _yBlock = (ui32_t)yb; 
 
     // Retrieve the band width and height (although it is already available in the dataset 
     // container. )
-    _width  = (uint)pBand->GetXSize(); 
-    _height = (uint)pBand->GetYSize(); 
+    _width  = (ui32_t)pBand->GetXSize(); 
+    _height = (ui32_t)pBand->GetYSize(); 
 
     // Retrieve band scale and offset parameters
     _offset = pBand->GetOffset(); 
@@ -99,7 +99,7 @@ void RasterBand::unloadData() {
     data.reset();
 }
 
-double RasterBand::getData(uint i) const {
+double RasterBand::getData(ui32_t i) const {
 
     if (i < nLoadedElements) {
         return _scale*(double)data.get()[i] + _offset;
@@ -108,7 +108,7 @@ double RasterBand::getData(uint i) const {
     }
 }
 
-double RasterBand::getData(uint u, uint v) const {
+double RasterBand::getData(ui32_t u, ui32_t v) const {
     return getData(v*_width + u);
 }
 
@@ -135,8 +135,8 @@ RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nTh
     }
 
     // Retrieve dataset parameters. 
-    _width  = (uint)pDataset->GetRasterXSize(); 
-    _height = (uint)pDataset->GetRasterYSize(); 
+    _width  = (ui32_t)pDataset->GetRasterXSize(); 
+    _height = (ui32_t)pDataset->GetRasterYSize(); 
     _rasterCount  = (size_t)pDataset->GetRasterCount(); 
 
     // Retrieve the Affine transformation of the projection
@@ -216,7 +216,7 @@ void RasterFile::unloadBands() {
 
 
 // Transformation Functions
-point2 RasterFile::sph2map(const point2& s, uint threadid) const {
+point2 RasterFile::sph2map(const point2& s, ui16_t threadid) const {
 
     int flags[1]; 
     point2 m(s); 
@@ -227,7 +227,7 @@ point2 RasterFile::sph2map(const point2& s, uint threadid) const {
     return m;
 }
 
-point2 RasterFile::map2sph(const point2& m, uint threadid) const {
+point2 RasterFile::map2sph(const point2& m, ui16_t threadid) const {
 
     int flags[1]; 
     point2 s(m);
@@ -239,11 +239,11 @@ point2 RasterFile::map2sph(const point2& m, uint threadid) const {
 
 }
 
-point2 RasterFile::sph2pix(const point2& s, uint threadid) const {
+point2 RasterFile::sph2pix(const point2& s, ui16_t threadid) const {
     return map2pix(sph2map(s, threadid)); 
 }
 
-point2 RasterFile::pix2sph(const point2& p, uint threadid) const {
+point2 RasterFile::pix2sph(const point2& p, ui16_t threadid) const {
     return map2sph(pix2map(p), threadid);
 }
 
@@ -408,8 +408,8 @@ RasterContainer::RasterContainer(
     }    
 
     // Initialise the raster use and flags vectors 
-    rastersUsed = std::vector<uint>(nFiles, 0);
-    rastersFlag = std::vector<uint>(nFiles, 0); 
+    rastersUsed = std::vector<ui8_t>(nFiles, 0);
+    rastersFlag = std::vector<ui8_t>(nFiles, 0); 
 
     // Retrieve time to compute rendering duration
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -437,7 +437,7 @@ void RasterContainer::unloadRasters() {
     }
 }
 
-double RasterContainer::getData(const point2& s, bool interp, uint tid) {
+double RasterContainer::getData(const point2& s, bool interp, ui16_t tid) {
 
     point2 pix;  
     for (size_t k = 0; k < rasters.size(); k++) {
@@ -461,7 +461,7 @@ double RasterContainer::getData(const point2& s, bool interp, uint tid) {
 
             // Retrieve the pixel data value
             pix = rasters[k].sph2pix(s, tid); 
-            return interp ? interpolateRaster(pix, k, tid) : 
+            return interp ? interpolateRaster(pix, k) : 
                             rasters[k].getBandData(pix[0], pix[1], 0);         
         }
 
@@ -470,7 +470,7 @@ double RasterContainer::getData(const point2& s, bool interp, uint tid) {
     return -inf; 
 }
 
-void RasterContainer::cleanupRasters(uint threshold) {
+void RasterContainer::cleanupRasters(ui16_t threshold) {
 
     for (size_t k; k < rasters.size(); k++) 
     {
@@ -486,7 +486,7 @@ void RasterContainer::cleanupRasters(uint threshold) {
     }
 }
 
-double RasterContainer::interpolateRaster(const point2& pix, size_t rid, int tid) const {
+double RasterContainer::interpolateRaster(const point2& pix, size_t rid) const {
 
     int u = pix[0], v = pix[1]; 
 

@@ -9,7 +9,7 @@
 #include <mutex>
 
 // Constructor
-Renderer::Renderer(const RenderingOptions& opts, uint nThreads) : 
+Renderer::Renderer(const RenderingOptions& opts, ui16_t nThreads) : 
     pool(ThreadPool(nThreads)), opts(opts)
 {
     // Reserve enough space for the this task.
@@ -49,7 +49,7 @@ void Renderer::renderTask(
     output.reserve(pixels.size()); 
 
     // Pixel center coordinates
-    uint u, v; 
+    ui16_t u, v; 
     // Minimum/maximum t-values for the ray-tracing
     double tMin, tMax = inf;
     // Variable to keep track of the minimum distance reached. 
@@ -149,8 +149,8 @@ void Renderer::generateBasicRenderTasks(const Camera* cam, World& w) {
     
     // Assign all the pixels to a specific rendering task.
 
-    uint id, u, v;
-    for (id = 0; id < nPixels; id++) {
+    ui16_t u, v;
+    for (ui32_t id = 0; id < nPixels; id++) {
         // Compute pixel coordinates and update rendering queue
         cam->getPixelCoordinates(id, u, v);
         updateTaskQueue(TaskedPixel(id, u, v), cam, w); 
@@ -171,10 +171,10 @@ void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
 
     const std::vector<double>* pRayDistances = w.getRayDistances();
 
-    uint id;
+    ui32_t id;
     for (size_t u = 0; u < cam->width(); u++) {
         
-        uint min_index = 0; 
+        ui16_t min_index = 0; 
         for (size_t v = 1; v < cam->height(); v++) {
 
             size_t vp = v - 1 + u*cam->height();
@@ -242,10 +242,10 @@ void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
 
     const std::vector<double>* pRayDistances = w.getRayDistances();
 
-    uint id;
+    ui32_t id;
     for (size_t v = 0; v < cam->height(); v++) {
         
-        uint min_index = 0; 
+        ui16_t min_index = 0; 
         for (size_t u = 1; u < cam->width(); u++) {
 
             size_t up = v + (u-1)*cam->height();
@@ -393,7 +393,7 @@ void Renderer::runAntiAliasing(const Camera* cam, World& w) {
         computePixelBoundaries(cam, opts.ssaa.boundarySize); 
 
         // Run Super-Sampling Antialiasing 
-        uint nAliased = generateAntiAliasingTasks(cam, w); 
+        ui32_t nAliased = generateAntiAliasingTasks(cam, w); 
 
         // Display status if required.
         displayRenderStatus(nAliased); 
@@ -414,7 +414,7 @@ void Renderer::runDefocusBlur(const Camera* cam, World& w) {
     computePixelBoundaries(cam, 3); 
 
     // Generate all the tasks for the defocus blur
-    uint nTasked = generateDefocusBlurTasks(cam, w); 
+    ui32_t nTasked = generateDefocusBlurTasks(cam, w); 
 
     // Display status if required.
     displayRenderStatus(nTasked); 
@@ -468,7 +468,7 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
 
 }
 
-void Renderer::displayRenderStatus(uint n) {
+void Renderer::displayRenderStatus(ui32_t n) {
 
     if (opts.logLevel < LogLevel::DETAILED)
         return; 
@@ -552,7 +552,7 @@ void Renderer::render(const Camera* cam, World& w) {
 
 }
 
-void Renderer::computePixelBoundaries(const Camera* cam, uint s) {
+void Renderer::computePixelBoundaries(const Camera* cam, ui16_t s) {
     
     // Clear the pixel boundaries
     pixMinT.clear();
@@ -561,8 +561,7 @@ void Renderer::computePixelBoundaries(const Camera* cam, uint s) {
     int uMin, uMax; 
     int vMin, vMax; 
 
-    uint u, v; 
-    uint nBorders;
+    ui16_t u, v; 
     size_t idx; 
 
     double t1, t2;
@@ -612,13 +611,13 @@ void Renderer::computePixelBoundaries(const Camera* cam, uint s) {
 }
 
 
-uint Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
+ui32_t Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
 
     // Retrieve current ray resolution.
     double rayRes = w.getRayResolution(); 
 
-    uint u, v; 
-    uint nAliased = 0;
+    ui16_t u, v; 
+    ui32_t nAliased = 0;
 
     for (size_t id = 0; id < nPixels; id++) {
 
@@ -648,9 +647,9 @@ uint Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
 
 }
 
-uint Renderer::generateDefocusBlurTasks(const Camera* cam, World& w) {
+ui32_t Renderer::generateDefocusBlurTasks(const Camera* cam, World& w) {
 
-    uint u, v; 
+    ui16_t u, v; 
     for (size_t id = 0; id < nPixels; id++) {
         
         // Retrieve pixel coordinates

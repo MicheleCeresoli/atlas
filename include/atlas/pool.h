@@ -1,6 +1,8 @@
 #ifndef POOL_H 
 #define POOL_H
 
+#include "types.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -12,13 +14,13 @@
 class ThreadWorker {
 
     public: 
-        ThreadWorker(uint id); 
+        ThreadWorker(ui16_t id); 
 
         // Return the thread id
-        uint id() const; 
+        ui16_t id() const; 
 
     private: 
-        uint _id; 
+        ui16_t _id; 
 
 };
 

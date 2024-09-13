@@ -3,6 +3,7 @@
 
 #include "affine.h"
 #include "gdal_priv.h"
+#include "types.h"
 #include "vec2.h"
 
 #include <filesystem>
@@ -37,8 +38,8 @@ class RasterBand {
         void unloadData();
         
         // Get a given pixel 
-        double getData(uint i) const;
-        double getData(uint u, uint v) const;  
+        double getData(ui32_t i) const;
+        double getData(ui32_t u, ui32_t v) const;  
 
 
     private: 
@@ -48,15 +49,15 @@ class RasterBand {
         GDALRasterBand* pBand;
         std::shared_ptr<float> data;
 
-        uint _xBlock, _yBlock;      
-        uint _width, _height; 
+        ui32_t _xBlock, _yBlock;      
+        ui32_t _width, _height; 
 
         double _vMin, _vMax; 
         double _offset, _scale; 
 
         double _noDataVal;
 
-        uint nLoadedElements = 0; 
+        ui32_t nLoadedElements = 0; 
 };
 
 
@@ -75,8 +76,8 @@ class RasterFile {
         inline std::string getFileName() const { return filename; }
         inline std::filesystem::path getFilePath() const { return filepath; }
 
-        inline uint width() const { return _width; }
-        inline uint height() const { return _height; }
+        inline ui32_t width() const { return _width; }
+        inline ui32_t height() const { return _height; }
         inline size_t rasterCount() const { return _rasterCount; }; 
 
         /* Return the raster lowest resolution. In this case lowest means the one which 
@@ -110,24 +111,24 @@ class RasterFile {
         void loadBands(); 
         void unloadBands(); 
 
-        inline double getBandNoDataValue(uint i) const { return bands[i].noDataVal(); }
+        inline double getBandNoDataValue(ui32_t i) const { return bands[i].noDataVal(); }
 
-        inline double getBandData(uint u, uint v, uint i = 0) const { 
+        inline double getBandData(ui32_t u, ui32_t v, ui32_t i = 0) const { 
             return bands[i].getData(u, v);
         }
 
-        inline const RasterBand* getRasterBand(uint i) const { return &bands[i]; }
+        inline const RasterBand* getRasterBand(ui32_t i) const { return &bands[i]; }
 
         // Transformation Functions
 
         inline point2 pix2map(const point2& p) const { return transform*p; }
         inline point2 map2pix(const point2& m) const { return iTransform*m; }
 
-        point2 sph2map(const point2& s, uint threadid = 0) const;
-        point2 map2sph(const point2& m, uint threadid = 0) const; 
+        point2 sph2map(const point2& s, ui16_t threadid = 0) const;
+        point2 map2sph(const point2& m, ui16_t threadid = 0) const; 
 
-        point2 sph2pix(const point2& s, uint threadid = 0) const;
-        point2 pix2sph(const point2& p, uint threadid = 0) const; 
+        point2 sph2pix(const point2& s, ui16_t threadid = 0) const;
+        point2 pix2sph(const point2& p, ui16_t threadid = 0) const; 
 
         inline const OGRSpatialReference* crs() const { return pDataset->GetSpatialRef(); }
 
@@ -140,8 +141,8 @@ class RasterFile {
 
         size_t _nThreads; // Number of assigned threads
 
-        uint _width;  // Raster width
-        uint _height; // Raster height
+        ui32_t _width;  // Raster width
+        ui32_t _height; // Raster height
         size_t _rasterCount;  // Raster bands
 
         double _top, _bottom; 
@@ -205,7 +206,7 @@ class RasterContainer {
         inline size_t nRasters() const { return rasters.size(); }; 
 
         inline double getResolution() const { return _resolution; }; 
-        double getData(const point2& s, bool interp, uint threadid = 0);
+        double getData(const point2& s, bool interp, ui16_t threadid = 0);
 
         inline const RasterFile* getRasterFile(size_t i) const { return &rasters[i]; }
 
@@ -215,7 +216,7 @@ class RasterContainer {
         void loadRasters(); 
         void unloadRasters();
 
-        void cleanupRasters(uint threshold); 
+        void cleanupRasters(ui16_t threshold); 
 
     protected:
 
@@ -224,10 +225,10 @@ class RasterContainer {
 
         // // Mutex to handle raster loading\unloading. 
         std::mutex rasterUpdateMutex;
-        std::vector<uint> rastersUsed; 
-        std::vector<uint> rastersFlag;
+        std::vector<ui8_t> rastersUsed; 
+        std::vector<ui8_t> rastersFlag;
 
-        double interpolateRaster(const point2& pix, size_t rid, int tid) const;
+        double interpolateRaster(const point2& pix, size_t rid) const;
 
     private: 
 

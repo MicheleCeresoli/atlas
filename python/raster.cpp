@@ -21,11 +21,11 @@ void init_raster(py::module_ &m) {
         .def("loadData", &RasterBand::loadData)
         .def("unloadData", &RasterBand::unloadData)
 
-        .def("getData", [](RasterBand& b, uint i) {
+        .def("getData", [](RasterBand& b, ui16_t i) {
             return b.getData(i);
         })
 
-        .def("getData", [](RasterBand& b, uint u, uint v) {
+        .def("getData", [](RasterBand& b, ui16_t u, ui16_t v) {
             return b.getData(u, v); 
         });
 
