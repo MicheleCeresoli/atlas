@@ -27,7 +27,6 @@ jobs:
 
       - name: Add conda to system path 
         run: | 
-          # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
       - name: Install dependencies 
         run: | 
@@ -35,13 +34,14 @@ jobs:
 
       - name: Build Conda Package 
         run: |         
-          echo "CONDA_BUILD_OUTPUT=$(conda build recipe --output)" >> $GITHUB_ENV
+          CONDA_BUILD_FILE=$(conda build recipe --output)
+          echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
       - name: Archive the Package 
         uses: actions/upload-artifact@v3 
         with: 
           name: conda-packages
-          path: ${{ env.CONDA_BUILD_OUTPUT }}
+          path: ${{ env.CONDA_BUILD_PATH }}
 
 
   upload-package: 
