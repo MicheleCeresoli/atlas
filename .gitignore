@@ -1,9 +1,9 @@
-.vscode/
-build/
-resources/
-images/
-dist/
-docs/
+.vscode
+build
+resources
+images
+dist
+docs
 
 apps/*.py
 
