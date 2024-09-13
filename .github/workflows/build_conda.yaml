@@ -32,16 +32,13 @@ jobs:
       - name: Install dependencies 
         run: | 
           conda install conda-build 
+          conda install conda-verify
 
       - name: Build Conda Package 
         run: | 
-          conda-build recipe
+          conda build recipe
           CONDA_BUILD_FILE=$(conda build recipe --output)
           echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
-
-      - name: list stuff 
-        run: | 
-          ls -la ${{env.CONDA_BUILD_PATH}}
 
       - name: Archive the Package 
         uses: actions/upload-artifact@v3 
@@ -71,7 +68,7 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
-          for file in conda-packages/*tar; do
+          for file in conda-packages/*.tar.bz2; do
             echo "Uploading $file"
             gh release upload ${{ github.ref_name }} "$file"
           done
