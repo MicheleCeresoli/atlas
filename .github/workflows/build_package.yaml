@@ -64,7 +64,7 @@ jobs:
           source ~/.profile
           conda info
           conda list
-          conda build recipe
+          conda build recipe --python=$CONDA_PY
           CONDA_BUILD_FILE=$(conda build recipe --output)
           echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
