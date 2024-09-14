@@ -42,37 +42,34 @@ jobs:
       #     path: dist/*.whl
 
       # Install Miniconda and set up the Conda environment with a specific Python version
+
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           auto-activate-base: false
+          activate-environment: test
+          python-version: ${{matrix.python-version}}  
           channels: conda-forge
 
       - name: Install conda dependencies
         run: | 
           source ~/.profile
-          conda create --name build-env python=${{matrix.python-version}}
-          conda activate build-env 
           conda info
-          conda install conda-build
-          conda info
-          
-      # conda list
-      # conda activate test
-      # conda install conda-build 
+          conda list 
+          conda install conda-build 
 
-      # - name: Build conda-package 
-      #   run: | 
-      #     conda build recipe
-      #     CONDA_BUILD_FILE=$(conda build recipe --output)
-      #     echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
+      - name: Build conda-package 
+        run: | 
+          conda build recipe
+          CONDA_BUILD_FILE=$(conda build recipe --output)
+          echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
-      # - name: Archive the conda-package 
-      #   uses: actions/upload-artifact@v3 
-      #   with: 
-      #     name: conda-packages
-      #     path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
+      - name: Archive the conda-package 
+        uses: actions/upload-artifact@v3 
+        with: 
+          name: conda-packages
+          path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
 
 
   # upload-package: 
