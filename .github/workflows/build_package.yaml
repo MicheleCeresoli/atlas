@@ -42,16 +42,11 @@ jobs:
       #     path: dist/*.whl
 
       # Install Miniconda and set up the Conda environment with a specific Python version
-      - name: Remove existing Conda environments
-        run: conda env remove -n test
-
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           auto-activate-base: false
-          activate-environment: test
-          python-version: ${{matrix.python-version}}  
           channels: conda-forge
 
       - name: Install conda dependencies
@@ -59,7 +54,9 @@ jobs:
           source ~/.profile
           conda create --name build-env python=${{matrix.python-version}}
           conda activate build-env 
-          conda list
+          conda info
+          conda install conda-build
+          conda info
           
       # conda list
       # conda activate test
