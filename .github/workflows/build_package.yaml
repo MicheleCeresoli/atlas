@@ -46,12 +46,12 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          auto-activate-base: true
           python-version: ${{matrix.python-version}}  
           channels: conda-forge
 
       - name: Install conda dependencies
         run: | 
+          conda activate test
           conda install conda-build 
 
       - name: Build conda-package 
