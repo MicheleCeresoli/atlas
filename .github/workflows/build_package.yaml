@@ -41,8 +41,6 @@ jobs:
           name: wheel 
           path: dist/*.whl
 
-      # Install Miniconda and set up the Conda environment with a specific Python version
-
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -61,6 +59,7 @@ jobs:
       - name: Build conda-package 
         run: | 
           source ~/.profile
+          export CONDA_FORMAT=conda
           conda build recipe --python=${{matrix.python-version}}
           echo "CONDA_BUILD_PATH=$(conda build recipe --output)" >> $GITHUB_ENV
 
@@ -112,7 +111,7 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
         run: | 
-          for file in conda-packages/*.tar.bz2; do
+          for file in conda-packages/*.conda; do
             echo "Uploading $file"
             gh release upload ${{ github.ref_name }} "$file"
           done
