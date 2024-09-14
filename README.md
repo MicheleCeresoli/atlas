@@ -18,11 +18,11 @@ sudo apt install libopencv-dev
 ```
 
 ### From Conda Package 
-From the latest release, download the appropriate `.conda` package according to your python version and system build. Then, once the conda environment has been activated, run:
+From the latest release, download the appropriate `.tar.bz2` package according to your python version and system build. Then, once the conda environment has been activated, run:
 
 ```
 conda install gdal opencv pyyaml
-conda install ./{NAME}.conda
+conda install ./{NAME}.tar.bz2
 ```
 
 where NAME is the filename of the target conda package. Note that the first command manually installs the required dependencies since Conda environments are isolated and don't see the system-level libraries.
