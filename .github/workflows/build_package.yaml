@@ -23,23 +23,23 @@ jobs:
         with: 
           python-version: ${{matrix.python-version}}
 
-      - name: Install build dependencies
-        run: | 
-          sudo apt-get update 
-          sudo apt-get install -y libgdal-dev
-          sudo apt-get install -y libopencv-dev
+      # - name: Install build dependencies
+      #   run: | 
+      #     sudo apt-get update 
+      #     sudo apt-get install -y libgdal-dev
+      #     sudo apt-get install -y libopencv-dev
           
-          python -m pip install --upgrade pip 
-          python -m pip install build 
+      #     python -m pip install --upgrade pip 
+      #     python -m pip install build 
 
-      - name: Build the wheel 
-        run: python -m build --wheel
+      # - name: Build the wheel 
+      #   run: python -m build --wheel
 
-      - name: Archive the wheel 
-        uses: actions/upload-artifact@v3 
-        with: 
-          name: wheel 
-          path: dist/*.whl
+      # - name: Archive the wheel 
+      #   uses: actions/upload-artifact@v3 
+      #   with: 
+      #     name: wheel 
+      #     path: dist/*.whl
 
       # Install Miniconda and set up the Conda environment with a specific Python version
       - name: Set up Miniconda
@@ -53,8 +53,6 @@ jobs:
 
       - name: Install conda dependencies
         run: | 
-          conda init 
-          conda activate test
           conda install conda-build 
 
       - name: Build conda-package 
@@ -87,20 +85,20 @@ jobs:
           draft: false 
           prerelease: false 
           
-      - name: Download wheels 
-        uses: actions/download-artifact@v3 
-        with: 
-          name: wheel 
-          path: wheels 
+      # - name: Download wheels 
+      #   uses: actions/download-artifact@v3 
+      #   with: 
+      #     name: wheel 
+      #     path: wheels 
 
-      - name: Upload wheel to GitHub Release 
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-        run: | 
-          for file in wheels/*whl; do
-            echo "Uploading $file"
-            gh release upload ${{ github.ref_name }} "$file"
-          done
+      # - name: Upload wheel to GitHub Release 
+      #   env: 
+      #     GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+      #   run: | 
+      #     for file in wheels/*whl; do
+      #       echo "Uploading $file"
+      #       gh release upload ${{ github.ref_name }} "$file"
+      #     done
 
       - name: Download conda-packages 
         uses: actions/download-artifact@v3 
