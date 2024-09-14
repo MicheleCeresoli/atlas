@@ -61,7 +61,7 @@ jobs:
 
       - name: Build conda-package 
         run: | 
-          conda activate test
+          source ~/.profile
           conda info
           conda list
           conda build recipe
