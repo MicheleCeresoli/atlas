@@ -13,7 +13,7 @@ requirements:
     - ninja
 
   host: 
-    - python>=3.9
+    - python {{ python }}
     - pip 
     - pybind11
     - scikit-build-core>=0.3.3
