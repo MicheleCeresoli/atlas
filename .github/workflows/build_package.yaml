@@ -2,8 +2,8 @@ name: Build Package
 
 on:  
   push: 
-    # tags:   
-    #   - 'v[0-9]+.[0-9]+.[0-9]+'
+    tags:   
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs: 
   build-package: 
@@ -23,23 +23,23 @@ jobs:
         with: 
           python-version: ${{matrix.python-version}}
 
-      # - name: Install build dependencies
-      #   run: | 
-      #     sudo apt-get update 
-      #     sudo apt-get install -y libgdal-dev
-      #     sudo apt-get install -y libopencv-dev
+      - name: Install build dependencies
+        run: | 
+          sudo apt-get update 
+          sudo apt-get install -y libgdal-dev
+          sudo apt-get install -y libopencv-dev
           
-      #     python -m pip install --upgrade pip 
-      #     python -m pip install build 
+          python -m pip install --upgrade pip 
+          python -m pip install build 
 
-      # - name: Build the wheel 
-      #   run: python -m build --wheel
+      - name: Build the wheel 
+        run: python -m build --wheel
 
-      # - name: Archive the wheel 
-      #   uses: actions/upload-artifact@v3 
-      #   with: 
-      #     name: wheel 
-      #     path: dist/*.whl
+      - name: Archive the wheel 
+        uses: actions/upload-artifact@v3 
+        with: 
+          name: wheel 
+          path: dist/*.whl
 
       # Install Miniconda and set up the Conda environment with a specific Python version
 
@@ -56,6 +56,7 @@ jobs:
         run: | 
           source ~/.profile
           conda install conda-build 
+          conda install conda-verify
 
       - name: Build conda-package 
         run: | 
@@ -69,50 +70,49 @@ jobs:
           name: conda-packages
           path: ${{ env.CONDA_BUILD_PATH }}
 
+  upload-package: 
+    needs: build-package 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3
 
-  # upload-package: 
-  #   needs: build-package 
-  #   runs-on: ubuntu-latest 
-  #   steps: 
-  #     - name: Checkout code 
-  #       uses: actions/checkout@v3
-
-  #     - name: Create release 
-  #       uses: actions/create-release@v1
-  #       env: 
-  #         GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-  #       with: 
-  #         tag_name: ${{ github.ref_name }}
-  #         release_name: ${{ github.ref_name }}
-  #         draft: false 
-  #         prerelease: false 
+      - name: Create release 
+        uses: actions/create-release@v1
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+        with: 
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          draft: false 
+          prerelease: false 
           
-      # - name: Download wheels 
-      #   uses: actions/download-artifact@v3 
-      #   with: 
-      #     name: wheel 
-      #     path: wheels 
+      - name: Download wheels 
+        uses: actions/download-artifact@v3 
+        with: 
+          name: wheel 
+          path: wheels 
 
-      # - name: Upload wheel to GitHub Release 
-      #   env: 
-      #     GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-      #   run: | 
-      #     for file in wheels/*whl; do
-      #       echo "Uploading $file"
-      #       gh release upload ${{ github.ref_name }} "$file"
-      #     done
+      - name: Upload wheel to GitHub Release 
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+        run: | 
+          for file in wheels/*whl; do
+            echo "Uploading $file"
+            gh release upload ${{ github.ref_name }} "$file"
+          done
 
-      # - name: Download conda-packages 
-      #   uses: actions/download-artifact@v3 
-      #   with: 
-      #     name: conda-packages 
-      #     path: conda-packages 
+      - name: Download conda-packages 
+        uses: actions/download-artifact@v3 
+        with: 
+          name: conda-packages 
+          path: conda-packages 
 
-      # - name: Upload conda-package to GitHub Release 
-      #   env: 
-      #     GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-      #   run: | 
-      #     for file in conda-packages/*.tar.bz2; do
-      #       echo "Uploading $file"
-      #       gh release upload ${{ github.ref_name }} "$file"
-      #     done
+      - name: Upload conda-package to GitHub Release 
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+        run: | 
+          for file in conda-packages/*.tar.bz2; do
+            echo "Uploading $file"
+            gh release upload ${{ github.ref_name }} "$file"
+          done
