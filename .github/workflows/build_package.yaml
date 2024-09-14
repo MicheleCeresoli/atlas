@@ -49,6 +49,8 @@ jobs:
           auto-activate-base: true
           python-version: ${{matrix.python-version}}  
           channels: conda-forge
+
+      - name: Install conda dependencies
         run: | 
           conda install conda-build 
 
