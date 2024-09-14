@@ -47,6 +47,7 @@ jobs:
         with:
           auto-update-conda: true
           auto-activate-base: false
+          activate-environment: test
           python-version: ${{matrix.python-version}}  
           channels: conda-forge
 
