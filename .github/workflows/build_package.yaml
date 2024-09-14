@@ -61,7 +61,9 @@ jobs:
 
       - name: Build conda-package 
         run: | 
+          conda activate test
           conda info
+          conda list
           conda build recipe
           CONDA_BUILD_FILE=$(conda build recipe --output)
           echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
