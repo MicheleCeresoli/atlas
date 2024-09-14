@@ -55,6 +55,7 @@ jobs:
         run: | 
           conda info
           conda list
+          conda activate test
           conda install conda-build 
 
       # - name: Build conda-package 
