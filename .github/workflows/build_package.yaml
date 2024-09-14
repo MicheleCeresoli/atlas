@@ -55,16 +55,14 @@ jobs:
       - name: Install conda dependencies
         run: | 
           source ~/.profile
-          conda info
           conda list 
           conda install conda-build 
 
       - name: Build conda-package 
         run: | 
           source ~/.profile
-          conda info
           conda list
-          conda build recipe --python=$CONDA_PY
+          conda build recipe --python=${{matrix.python-version}}
           CONDA_BUILD_FILE=$(conda build recipe --output)
           echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
