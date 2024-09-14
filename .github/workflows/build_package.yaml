@@ -57,7 +57,9 @@ jobs:
       - name: Install conda dependencies
         run: | 
           source ~/.profile
-          conda info
+          conda create --name build-env python=${{matrix.python-version}}
+          conda activate build-env 
+          conda list
           
       # conda list
       # conda activate test
