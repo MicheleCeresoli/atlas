@@ -53,7 +53,7 @@ jobs:
 
       - name: Install conda dependencies
         run: | 
-          source ~/.bashrc
+          source ~/.profile
           conda info
           conda activate test 
           conda info 
