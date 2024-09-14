@@ -53,10 +53,17 @@ jobs:
 
       - name: Install conda dependencies
         run: | 
+          source $CONDA/bin/activate
+          conda init bash
+          source ~/.bashrc
+
           conda info
-          conda list
-          conda activate test
-          conda install conda-build 
+          conda activate test 
+          conda info 
+          
+      # conda list
+      # conda activate test
+      # conda install conda-build 
 
       # - name: Build conda-package 
       #   run: | 
