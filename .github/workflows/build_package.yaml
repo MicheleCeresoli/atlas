@@ -36,9 +36,6 @@ jobs:
           python -m pip install --upgrade pip 
           python -m pip install build 
 
-          conda install conda-build -y
-          conda install conda-verify -y
-
       - name: Build the wheel 
         run: python -m build --wheel
 
