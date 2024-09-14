@@ -46,5 +46,5 @@ classifiers = [
 wheel.expand-macos-universal-tags = true
 
 sdist.cmake = true 
-sdist.exclude = ["apps"]
+sdist.exclude = ["apps", "recipe"]
 wheel.packages = ["python/atlas"]

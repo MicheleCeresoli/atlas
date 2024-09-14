@@ -8,7 +8,7 @@ ATLAS is a C++ library with Python bindings that allows to generate highly reali
 
 ## Installation 
 
-This package can either be installed by manually building the library on your system or by downloading the appropriate python wheel from the latest published package release. In both cases, the package requires the GDAL and OpenCV libraries to be installed. If they are not available, they can be installed with:
+This package can either be installed by manually building the library on your system or by downloading the appropriate python wheel from the latest published package release. In both cases, except when using a Conda package, ATLAS requires the GDAL and OpenCV libraries to be installed. If they are not available, they can be installed with:
 
 ```
 sudo apt install libgdal-dev
@@ -17,15 +17,18 @@ sudo apt install libgdal-dev
 sudo apt install libopencv-dev
 ```
 
-### From Python Wheel (pip)
-Once a Python wheel has been downloaded, to install the ATLAS module in the current active environment simply run: `pip install {NAME}.whl`, where NAME is the filename of the target python wheel,.
-
 ### From Conda Package 
-From the latest release, download the appropriate `.tar` package according to your python version and system build. Then, once the conda environment has been activated, run:
+From the latest release, download the appropriate `.tar.bz2` package according to your python version and system build. Then, once the conda environment has been activated, run:
 
-```conda install --use-local atlas```
+```
+conda install gdal opencv pyyaml
+conda install ./{NAME}.conda
+```
 
-which will also automatically install all package dependencies.
+where NAME is the filename of the target conda package. Note that the first command manually installs the required dependencies since Conda environments are isolated and don't see the system-level libraries.
+
+### From Python Wheel (pip)
+Once a Python wheel has been downloaded, to install the ATLAS module in the current active environment simply run: `pip install {NAME}.whl`, where NAME is the filename of the target python wheel.
 
 ### From Sources
 Manually building the library requires a C++ compiler and a CMake version greater or equal to 3.15. The GDAL and OpenCV libraries must already be installed, as well as the _pybind11_ package. To properly work, CMake requires a `pybind11Config.cmake` file which is automatically installed only if the package is installed via conda, i.e., with:
