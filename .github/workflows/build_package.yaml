@@ -2,8 +2,8 @@ name: Build Package
 
 on:  
   push: 
-    tags:   
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+    # tags:   
+    #   - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs: 
   build-package: 
@@ -47,43 +47,44 @@ jobs:
         with:
           auto-update-conda: true
           auto-activate-base: false
-          activate-environment: test
           python-version: ${{matrix.python-version}}  
           channels: conda-forge
 
       - name: Install conda dependencies
         run: | 
+          conda info
+          conda list
           conda install conda-build 
 
-      - name: Build conda-package 
-        run: | 
-          conda build recipe
-          CONDA_BUILD_FILE=$(conda build recipe --output)
-          echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
+      # - name: Build conda-package 
+      #   run: | 
+      #     conda build recipe
+      #     CONDA_BUILD_FILE=$(conda build recipe --output)
+      #     echo "CONDA_BUILD_PATH=$(dirname "$CONDA_BUILD_FILE")" >> $GITHUB_ENV
 
-      - name: Archive the conda-package 
-        uses: actions/upload-artifact@v3 
-        with: 
-          name: conda-packages
-          path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
+      # - name: Archive the conda-package 
+      #   uses: actions/upload-artifact@v3 
+      #   with: 
+      #     name: conda-packages
+      #     path: ${{ env.CONDA_BUILD_PATH }}/*.tar.bz2
 
 
-  upload-package: 
-    needs: build-package 
-    runs-on: ubuntu-latest 
-    steps: 
-      - name: Checkout code 
-        uses: actions/checkout@v3
+  # upload-package: 
+  #   needs: build-package 
+  #   runs-on: ubuntu-latest 
+  #   steps: 
+  #     - name: Checkout code 
+  #       uses: actions/checkout@v3
 
-      - name: Create release 
-        uses: actions/create-release@v1
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-        with: 
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          draft: false 
-          prerelease: false 
+  #     - name: Create release 
+  #       uses: actions/create-release@v1
+  #       env: 
+  #         GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+  #       with: 
+  #         tag_name: ${{ github.ref_name }}
+  #         release_name: ${{ github.ref_name }}
+  #         draft: false 
+  #         prerelease: false 
           
       # - name: Download wheels 
       #   uses: actions/download-artifact@v3 
@@ -100,17 +101,17 @@ jobs:
       #       gh release upload ${{ github.ref_name }} "$file"
       #     done
 
-      - name: Download conda-packages 
-        uses: actions/download-artifact@v3 
-        with: 
-          name: conda-packages 
-          path: conda-packages 
+      # - name: Download conda-packages 
+      #   uses: actions/download-artifact@v3 
+      #   with: 
+      #     name: conda-packages 
+      #     path: conda-packages 
 
-      - name: Upload conda-package to GitHub Release 
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-        run: | 
-          for file in conda-packages/*.tar.bz2; do
-            echo "Uploading $file"
-            gh release upload ${{ github.ref_name }} "$file"
-          done
+      # - name: Upload conda-package to GitHub Release 
+      #   env: 
+      #     GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+      #   run: | 
+      #     for file in conda-packages/*.tar.bz2; do
+      #       echo "Uploading $file"
+      #       gh release upload ${{ github.ref_name }} "$file"
+      #     done
