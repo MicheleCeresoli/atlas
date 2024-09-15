@@ -15,7 +15,8 @@ project(
     ${SKBUILD_PROJECT_NAME}
     VERSION ${SKBUILD_PROJECT_VERSION}
     DESCRIPTION "Ray Tracing Lunar DEM Images"
-    LANGUAGES CXX)
+    LANGUAGES CXX
+)
 
 # This command tells CMake to put the shared library in the build/lib folder
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -31,6 +32,7 @@ find_package(GDAL REQUIRED)
 
 find_package(OpenCV CONFIG REQUIRED)
 
+find_package(Doxygen)
 
 # Include the compiled library code 
 add_subdirectory(src)
@@ -40,6 +42,23 @@ add_subdirectory(python)
 
 # Include the executable code 
 add_subdirectory(apps)
+
+if (DOXYGEN_FOUND)
+
+    # Path to the Doxygen input template 
+    configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+
+    add_custom_target(doc ALL, 
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION     share/doc)
+
+endif()
+
 
 # ----- Compiler Flags 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
