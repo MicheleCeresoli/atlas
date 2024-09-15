@@ -1,5 +1,9 @@
 # All Releases 
 
+## v0.4.1
+- Replaced all `ui16_t` instances to `ui32_t` to avoid overflow errors.
+- Added error information when tracing without any loaded DEM rasters.
+
 ## v0.4.0
 - Added conda recipe.
 - Added `dem-path` and `dom-path` settings to YAML configuration file.
