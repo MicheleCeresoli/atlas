@@ -8,7 +8,7 @@ void init_world(py::module_ &m) {
 
     py::class_<World>(m, "World")
 
-        .def(py::init<WorldOptions, ui16_t>(), 
+        .def(py::init<WorldOptions, ui32_t>(), 
             py::arg("opts") = WorldOptions(), py::arg("nThreads") = 1
         )
 

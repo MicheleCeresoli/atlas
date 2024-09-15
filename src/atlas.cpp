@@ -1,6 +1,5 @@
 
 #include "atlas.h"
-#include "types.h"
 #include "utils.h"
 
 #include <filesystem>
@@ -14,7 +13,7 @@ void checkImageBits(int type) {
     }
 }
 
-void updateImageContent(cv::Mat& image, ui16_t u, ui16_t v, double c) {
+void updateImageContent(cv::Mat& image, ui32_t u, ui32_t v, double c) {
     
     // Retrieve a pointer to the current pixel row and update the pixel value 
     if (image.type() == CV_8UC1) {
@@ -88,7 +87,7 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
     double c; 
     point2 s; 
 
-    ui16_t u, v;
+    ui32_t u, v;
     uchar* pRow;
      
     for (auto& p : *pixels) {
@@ -151,7 +150,7 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
 
     double c; 
 
-    ui16_t u, v;
+    ui32_t u, v;
     uchar* pRow;
 
     // Retrieve the DEM maximum and minimum radii 
@@ -237,7 +236,7 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
     double dt = dMax - dMin; 
     
     double c; 
-    ui16_t u, v;
+    ui32_t u, v;
 
     for (auto& p : *pixels) {
 
@@ -277,7 +276,7 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
 }
 
 
-void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
+void LunarRayTracer::generateGCPs(const std::string& filename, uint16_t stride) {
 
     // Check camera pointer
     checkCamPointer();
@@ -310,7 +309,7 @@ void LunarRayTracer::generateGCPs(const std::string& filename, int stride) {
     // Retrieve the pixel data
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
-    ui16_t id; 
+    ui32_t id; 
 
     double lon, lat; 
     PixelData data;
@@ -362,8 +361,8 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
         throw std::runtime_error("unable to create the file in this path.");
     }
 
-    ui16_t camWidth = cam->width(); 
-    ui16_t camHeight = cam->height();
+    ui32_t camWidth = cam->width(); 
+    ui32_t camHeight = cam->height();
 
     // Write the camera resolution 
     file.write(reinterpret_cast<const char*>(&camWidth), sizeof(camWidth));
@@ -421,7 +420,7 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
     }
 
     // Retrieve camera width and height 
-    ui16_t camWidth, camHeight; 
+    ui32_t camWidth, camHeight; 
     file.read(reinterpret_cast<char*>(&camWidth), sizeof(camWidth));
     file.read(reinterpret_cast<char*>(&camHeight), sizeof(camHeight));
 

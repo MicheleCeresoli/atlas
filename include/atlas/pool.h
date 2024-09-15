@@ -14,13 +14,13 @@
 class ThreadWorker {
 
     public: 
-        ThreadWorker(ui16_t id); 
+        ThreadWorker(ui32_t id); 
 
         // Return the thread id
-        ui16_t id() const; 
+        ui32_t id() const; 
 
     private: 
-        ui16_t _id; 
+        ui32_t _id; 
 
 };
 

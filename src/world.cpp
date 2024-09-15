@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-World::World(const WorldOptions& opts, ui16_t nThreads) : 
+World::World(const WorldOptions& opts, ui32_t nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
     // This will be updated on the `computeRayResolution` call. 
@@ -156,6 +156,11 @@ void World::findImpactLocation(PixelData& data, const Ray& ray, double tk, int t
 }
 
 void World::computeRayResolution(const Camera* cam) {
+
+    // Check whether at least one DEM raster is available, otherwise everything is pointless
+    if (dem.nRasters() == 0) {
+        throw std::runtime_error("No DEM rasters are available.");
+    }
 
     // Compute the minimum GSD of the camera 
     double gsd = computeGSD(cam); 

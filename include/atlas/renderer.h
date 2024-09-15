@@ -24,7 +24,7 @@ class Renderer {
     
     public: 
 
-        Renderer(const RenderingOptions& opts, ui16_t nThreads); 
+        Renderer(const RenderingOptions& opts, ui32_t nThreads); 
 
         void render(const Camera* cam, World& w);
 
@@ -108,7 +108,7 @@ class Renderer {
         void sortRenderOutput(); 
 
         // Retrieve the min\max t-values of each pixel depending on its boundaries
-        void computePixelBoundaries(const Camera* cam, ui16_t s);
+        void computePixelBoundaries(const Camera* cam, ui32_t s);
 
         // Display the real-time rendering status on the terminal.
         void displayRenderStatus(ui32_t n); 

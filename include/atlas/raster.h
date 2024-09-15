@@ -124,11 +124,11 @@ class RasterFile {
         inline point2 pix2map(const point2& p) const { return transform*p; }
         inline point2 map2pix(const point2& m) const { return iTransform*m; }
 
-        point2 sph2map(const point2& s, ui16_t threadid = 0) const;
-        point2 map2sph(const point2& m, ui16_t threadid = 0) const; 
+        point2 sph2map(const point2& s, ui32_t threadid = 0) const;
+        point2 map2sph(const point2& m, ui32_t threadid = 0) const; 
 
-        point2 sph2pix(const point2& s, ui16_t threadid = 0) const;
-        point2 pix2sph(const point2& p, ui16_t threadid = 0) const; 
+        point2 sph2pix(const point2& s, ui32_t threadid = 0) const;
+        point2 pix2sph(const point2& p, ui32_t threadid = 0) const; 
 
         inline const OGRSpatialReference* crs() const { return pDataset->GetSpatialRef(); }
 
@@ -206,7 +206,7 @@ class RasterContainer {
         inline size_t nRasters() const { return rasters.size(); }; 
 
         inline double getResolution() const { return _resolution; }; 
-        double getData(const point2& s, bool interp, ui16_t threadid = 0);
+        double getData(const point2& s, bool interp, ui32_t threadid = 0);
 
         inline const RasterFile* getRasterFile(size_t i) const { return &rasters[i]; }
 
@@ -216,7 +216,7 @@ class RasterContainer {
         void loadRasters(); 
         void unloadRasters();
 
-        void cleanupRasters(ui16_t threshold); 
+        void cleanupRasters(ui32_t threshold); 
 
     protected:
 

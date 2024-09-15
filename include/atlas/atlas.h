@@ -5,6 +5,7 @@
 #include "world.h"
 #include "renderer.h"
 #include "settings.h"
+#include "types.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -38,7 +39,7 @@ class LunarRayTracer {
         void importRayTracedInfo(const std::string& filename);
         
         // Ground Control Point Generation
-        void generateGCPs(const std::string& filename, int stride); 
+        void generateGCPs(const std::string& filename, uint16_t stride); 
 
         // Settings Retrieval
         double getAltitude(); 

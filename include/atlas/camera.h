@@ -12,13 +12,13 @@ class Camera {
 
     public: 
         
-        Camera(ui16_t width, ui16_t height);
+        Camera(ui32_t width, ui32_t height);
 
         virtual ~Camera() = default;
 
         // Default settings
-        inline ui16_t width() const { return _width; }
-        inline ui16_t height() const { return _height; }
+        inline ui32_t width() const { return _width; }
+        inline ui32_t height() const { return _height; }
         inline ui32_t nPixels() const { return _width*_height; }
 
         // Camera world placement 
@@ -29,10 +29,10 @@ class Camera {
         inline const point3& getPos() const { return _pos; }
 
         // Pixel utilities 
-        inline ui32_t getPixelId(const ui16_t& u, const ui16_t& v) const { return u + _width*v; }
+        inline ui32_t getPixelId(const ui32_t& u, const ui32_t& v) const { return u + _width*v; }
         inline ui32_t getPixelId(const Pixel& p) const { return getPixelId(p[0], p[1]);}
 
-        void getPixelCoordinates(const ui32_t& id, ui16_t& u, ui16_t& v) const; 
+        void getPixelCoordinates(const ui32_t& id, ui32_t& u, ui32_t& v) const; 
 
         // Ray shooter 
         virtual Ray getRay(double u, double v, bool center = false) const = 0;
@@ -48,8 +48,8 @@ class Camera {
 
     private: 
          
-        ui16_t _width = 0; 
-        ui16_t _height = 0; 
+        ui32_t _width = 0; 
+        ui32_t _height = 0; 
 
 };
 
@@ -59,7 +59,7 @@ class PinholeCamera : public Camera {
 
     public: 
 
-        PinholeCamera(ui16_t res, double fov); 
+        PinholeCamera(ui32_t res, double fov); 
 
         Ray getRay(double u, double v, bool center = false) const override; 
 
@@ -80,7 +80,7 @@ class RealCamera : public Camera {
 
     public: 
 
-        RealCamera(ui16_t res, double focalLen, double sensorSize, double fstop);
+        RealCamera(ui32_t res, double focalLen, double sensorSize, double fstop);
 
         Ray getRay(double u, double v, bool center = false) const override; 
 

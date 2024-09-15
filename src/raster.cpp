@@ -216,7 +216,7 @@ void RasterFile::unloadBands() {
 
 
 // Transformation Functions
-point2 RasterFile::sph2map(const point2& s, ui16_t threadid) const {
+point2 RasterFile::sph2map(const point2& s, ui32_t threadid) const {
 
     int flags[1]; 
     point2 m(s); 
@@ -227,7 +227,7 @@ point2 RasterFile::sph2map(const point2& s, ui16_t threadid) const {
     return m;
 }
 
-point2 RasterFile::map2sph(const point2& m, ui16_t threadid) const {
+point2 RasterFile::map2sph(const point2& m, ui32_t threadid) const {
 
     int flags[1]; 
     point2 s(m);
@@ -239,11 +239,11 @@ point2 RasterFile::map2sph(const point2& m, ui16_t threadid) const {
 
 }
 
-point2 RasterFile::sph2pix(const point2& s, ui16_t threadid) const {
+point2 RasterFile::sph2pix(const point2& s, ui32_t threadid) const {
     return map2pix(sph2map(s, threadid)); 
 }
 
-point2 RasterFile::pix2sph(const point2& p, ui16_t threadid) const {
+point2 RasterFile::pix2sph(const point2& p, ui32_t threadid) const {
     return map2sph(pix2map(p), threadid);
 }
 
@@ -437,7 +437,7 @@ void RasterContainer::unloadRasters() {
     }
 }
 
-double RasterContainer::getData(const point2& s, bool interp, ui16_t tid) {
+double RasterContainer::getData(const point2& s, bool interp, ui32_t tid) {
 
     point2 pix;  
     for (size_t k = 0; k < rasters.size(); k++) {
@@ -470,7 +470,7 @@ double RasterContainer::getData(const point2& s, bool interp, ui16_t tid) {
     return -inf; 
 }
 
-void RasterContainer::cleanupRasters(ui16_t threshold) {
+void RasterContainer::cleanupRasters(ui32_t threshold) {
 
     for (size_t k; k < rasters.size(); k++) 
     {

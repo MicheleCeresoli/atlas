@@ -1,8 +1,8 @@
 
 #include "pool.h" 
 
-ThreadWorker::ThreadWorker(ui16_t id) : _id(id) {}
-ui16_t ThreadWorker::id() const { return _id; }
+ThreadWorker::ThreadWorker(ui32_t id) : _id(id) {}
+ui32_t ThreadWorker::id() const { return _id; }
 
 
 // Constructor. This does not start the pool, but only creates an instance of this 

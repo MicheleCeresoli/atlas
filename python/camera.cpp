@@ -72,7 +72,7 @@ void init_camera(py::module_ &m) {
 
     py::class_<Camera, PyCamera>(m, "Camera")
 
-        .def(py::init<ui16_t, ui16_t>())
+        .def(py::init<ui32_t, ui32_t>())
         
         .def("width", &Camera::width)
         .def("height", &Camera::height)
@@ -90,11 +90,11 @@ void init_camera(py::module_ &m) {
 
 
     py::class_<PinholeCamera, Camera, PyPinholeCamera>(m, "PinholeCamera")
-        .def(py::init<ui16_t, double>(), py::arg("res"), py::arg("fov"));
+        .def(py::init<ui32_t, double>(), py::arg("res"), py::arg("fov"));
 
 
     py::class_<RealCamera, Camera, PyRealCamera>(m, "RealCamera")
-        .def(py::init<ui16_t, double, double, double>(), 
+        .def(py::init<ui32_t, double, double, double>(), 
             py::arg("res"), py::arg("focalLen"), 
             py::arg("sensorSize"), py::arg("fstop"));
 

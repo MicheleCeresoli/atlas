@@ -17,7 +17,7 @@ class World {
 
     public: 
 
-        World(const WorldOptions& opts, ui16_t nThreads);
+        World(const WorldOptions& opts, ui32_t nThreads);
 
         PixelData traceRay(const Ray& r, double tMin, double tMax, int threadid); 
         
