@@ -1,5 +1,9 @@
 # All Releases 
 
+## v0.4.2 
+- Added documentation. 
+- Added `unload` to `LunarRayTracer` to unload all raster bands from memory.
+
 ## v0.4.1
 - Replaced all `ui16_t` instances to `ui32_t` to avoid overflow errors.
 - Added error information when tracing without any loaded DEM rasters.

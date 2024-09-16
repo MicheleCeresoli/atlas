@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "atlas"
-version = "0.4.1"
+version = "0.4.2"
 description = "A Ray Tracer for Lunar Imagery"
 authors = [ { name = "Michele Ceresoli", email = "michele.ceresoli@polimi.it"} ]
 readme = "README.md"
@@ -46,5 +46,5 @@ classifiers = [
 wheel.expand-macos-universal-tags = true
 
 sdist.cmake = true 
-sdist.exclude = ["apps", "recipe"]
+sdist.exclude = ["apps", "recipe", "docs"]
 wheel.packages = ["python/atlas"]
