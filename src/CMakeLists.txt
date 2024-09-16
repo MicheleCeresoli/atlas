@@ -54,6 +54,12 @@ target_include_directories(atlas PRIVATE ${OpenCV_INCLUDE_DIRS})
 # Users require at least C++17
 target_compile_features(atlas PUBLIC cxx_std_17)
 
+# Set library version
+set_target_properties(atlas PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
 # IDEs should put the headers in a nice place
 source_group(
     TREE "${PROJECT_SOURCE_DIR}/include"

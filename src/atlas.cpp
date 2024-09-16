@@ -68,6 +68,12 @@ double LunarRayTracer::getAltitude() {
 }
 
 
+void LunarRayTracer::unload() {
+    world.cleanupDEM(); 
+    world.cleanupDOM();
+}
+
+
 // Image Generation Routines 
 
 bool LunarRayTracer::generateImageOptical(const std::string& filename, int type) {

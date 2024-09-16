@@ -41,6 +41,9 @@ class LunarRayTracer {
         // Ground Control Point Generation
         void generateGCPs(const std::string& filename, uint16_t stride); 
 
+        // Unload all loaded DEM and DOM raster bands
+        void unload();
+
         // Settings Retrieval
         double getAltitude(); 
 
