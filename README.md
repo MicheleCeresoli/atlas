@@ -3,7 +3,7 @@
 
 _Ray Tracing Lunar DEM Images_
 
-[![Build Status](https://github.com/MicheleCeresoli/atlas/actions/workflows/build_package.yaml/badge.svg?branch=main)](https://github.com/MicheleCeresoli/atlas/actions/workflows/build_package.yaml)
+[![Build Status](https://github.com/MicheleCeresoli/atlas/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/MicheleCeresoli/atlas/actions/workflows/build.yml)
 
 ATLAS is a C++ library with Python bindings that allows to generate highly realistic optical images, DEM measurements and depth maps via ray-tracing techniques. It is designed around [Chang'E-2](https://moon.bao.ac.cn/ce5web/searchOrder-ce2En.do) Digital Elevation Model (DEM) and Digital Orthophoto Model (DOM) products.
 
