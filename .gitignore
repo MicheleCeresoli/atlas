@@ -3,9 +3,10 @@ build
 resources
 images
 dist
-docs
 
 apps/*.py
+
+docs/source/api/cpp/
 
 .atlas*
 
