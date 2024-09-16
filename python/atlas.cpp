@@ -37,6 +37,8 @@ void init_atlas(py::module_ &m) {
         .def("generateDepthMap", &LunarRayTracer::generateDepthMap, 
             py::arg("filename"), py::arg("type")=CV_8UC1
         ) 
+
+        .def("unload", &LunarRayTracer::unload)
         
         .def("generateGCPs", &LunarRayTracer::generateGCPs)
         .def("getAltitude", &LunarRayTracer::getAltitude);
