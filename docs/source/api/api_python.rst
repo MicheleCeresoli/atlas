@@ -1,4 +1,4 @@
 
-Python API Reference
+Python API
 =======================
 

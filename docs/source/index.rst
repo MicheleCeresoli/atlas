@@ -13,10 +13,26 @@ around `Chang'E-2 <https://moon.bao.ac.cn/ce5web/searchOrder-ce2En.do>`_ Digital
 
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting Started:
    
    installation
    quickstart 
+   troubleshoot
 
-   api/apindex.rst
+
+.. toctree:: 
+   :hidden:
+   :maxdepth: 1 
+   :caption: API Reference 
+
+   api/api_cpp
+   api/api_python
+
+.. toctree::
+   :hidden: 
+   :maxdepth: 1
+   :caption: About 
+
+   changelog

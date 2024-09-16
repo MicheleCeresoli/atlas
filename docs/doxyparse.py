@@ -15,7 +15,7 @@ toc_file = os.path.join('source', 'api', 'api_cpp.rst')
 
 # Start writing the ToC
 toc_header = [
-    "C++ API Reference", "====================", "", "", 
+    "C++ API", "====================", "", "", 
 ]
 
 # toc_hidden = [".. toctree::", "   :hidden:", ""]
