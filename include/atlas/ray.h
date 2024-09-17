@@ -3,6 +3,10 @@
 
 #include "vec3.h"
 
+/** 
+ * @class Ray 
+ * @brief Class representing a ray object. 
+ */
 class Ray {
     public: 
     
