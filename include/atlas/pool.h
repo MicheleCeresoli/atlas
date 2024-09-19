@@ -11,12 +11,25 @@
 #include <thread>
 #include <vector>
 
+/**
+ * @class ThreadWorker
+ * @brief Cache class storing information on a specific thread.
+ */
 class ThreadWorker {
 
     public: 
+    
+        /**
+         * @brief Construct a new Thread Worker object given its ID.
+         * 
+         * @param id Thread ID.
+         */
         ThreadWorker(ui32_t id); 
 
-        // Return the thread id
+        /**
+         * @brief Return the thread's ID.
+         * @return ui32_t Thread ID.
+         */
         ui32_t id() const; 
 
     private: 
@@ -25,39 +38,76 @@ class ThreadWorker {
 };
 
 
+/**
+ * @class ThreadPool 
+ * @brief Class representing a pool of threads.
+ * 
+ * @details This class provides a pool of threads that can be used to execute tasks, post 
+ * work items, process asynchronous tasks and wait on behalf of other threads. 
+ */
 class ThreadPool {
     public: 
 
-        // Constructor. This does not start the pool, but only creates an instance of this 
-        // class with an assigned number of workers. The `start` function is added to 
-        // allow defining a set of jobs before actually starting them.
+        /**
+         * @brief Construct a new Thread Pool object with a given amount of threads.
+         * 
+         * @param nThreads Number of desired threads.
+         * @note Creating a ThreadPool object does not automatically start the pool, but 
+         * only creates an instance of this class with an assigned number of workers. This 
+         * allows defining a set of jobs before actually starting them.
+         */
         ThreadPool(size_t nThreads);
 
         // Destructor to stop the thread pool
         ~ThreadPool();
 
-        // Retrieve the number of threads in the pool.
+        /**
+         * @brief Return the number of threads in the pool.
+         * @return size_t Number of threads.
+         */
         size_t nThreads() const; 
 
-        // Return the number of remaining tasks
+        /**
+         * @brief Return the number of remaining tasks, i.e., those that are yet to be 
+         * completed.
+         * @return size_t Number of pending tasks.
+         */
         size_t nPendingTasks() const; 
 
-        // Start the Pool by creating all the working threads
+        /**
+         * @brief Start the pool. 
+         * @details This creates all the working threads and makes them ready to pick-up 
+         * any assigned tasks.
+         */
         void startPool();
     
-        // Stop the Pool. This will wait completion of all active tasks and then stop.
+        /**
+         * @brief Stop the pool. 
+         * @details Before stopping, this function will wait for the completion of all active 
+         * tasks. All the tasks that are still waiting in the queue will not be executed.
+         */
         void stopPool(); 
 
-        // Check whether the pool was started (i.e., workers were assigned )    
+        /**
+         * @brief Check whether the thread pool has been started.
+         */
         bool isRunning(); 
-    
-        // Check whether all the jobs have been completed
+
+        /**
+         * @brief Check whether all the tasks have been executed.
+         */
         bool isBusy(); 
 
-        // Wait until all the tasks are completed
+        /**
+         * @brief Puts the calling thread on hold until all the tasks in the queue have 
+         * been completed.
+         */
         void waitCompletion();
 
-        // Enqueue a task to be executed by the thread pool
+        /**
+         * @brief Queue a task for execution.
+         * @param task Task function.
+         */
         void addTask(std::function<void(const ThreadWorker&)> task);
 
     private: 
