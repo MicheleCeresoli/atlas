@@ -12,19 +12,52 @@ using Pixel = point2;
 
 #define MAX_PIX_SAMPLES     (8)
 
+/**
+ * @class TaskedPixel
+ * @brief Class representing a pixel that is queued for a rendering task.
+ */
 class TaskedPixel {
 
     public: 
-    
+
+        /**
+         * @brief Construct a new TaskedPixel object.
+         * 
+         * @param id Pixel ID.
+         * @param u Pixel horizontal coordinate on the image plane.
+         * @param v Pixel vertical coordinate on the image plane.
+         * @param nSamples Number of samples for this pixel.
+         */
         TaskedPixel(ui32_t id, double u, double v, size_t nSamples = 1);
 
+        /**
+         * @brief Pixel ID.
+         */
         ui32_t id; 
+
+        /**
+         * @brief Number of samples taken for this pixel.
+         */
         size_t nSamples;
 
+        /**
+         * @brief Minimum ray distance for the rendering task.
+         */
         double tMin; 
+
+        /**
+         * @brief Maximum ray distance for the rendering task.
+         */
         double tMax;
 
+        /**
+         * @brief Horizontal coordinates, on the image plane, of all the pixel samples.
+         */
         std::vector<double> u; 
+
+        /**
+         * @brief Vertical coordinates, on the image plane, of all the pixel samples.
+         */
         std::vector<double> v;
         
 };
