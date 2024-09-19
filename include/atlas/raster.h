@@ -16,29 +16,115 @@
                         RASTER BAND
 ---------------------------------------------------------- */
 
+/**
+ * @class RasterBand
+ * @brief Class representing a single data band of a raster file.
+ */
 class RasterBand {
 
     public: 
 
+        /**
+         * @brief Construct a new RasterBand object from a target raster file.
+         * 
+         * @param pd Pointer to the raster file dataset.
+         * @param i Target raster band. The indexing follows a one-based notation.
+         * 
+         * @note Creating a raster band object does NOT automatically load its underlying 
+         * data into memory. 
+         */
         RasterBand(std::shared_ptr<GDALDataset> pd, int i);
 
         // Retrieve the minimum raster value; 
+
+        /**
+         * @brief Return the minimum value for this band.
+         * @details For file formats that don't know this value instrinsically, the minimum 
+         * value is computed by analysing all the underlying data.
+         * 
+         * @return double Minimum raster value (exluding no data pixels).
+         */
         inline double min() const { return _vMin; }
-        // Retrieve the maximum raster value;
+        
+        /**
+         * @brief Return the maximum value for this band.
+         * @details For file formats that don't know this value instrinsically, the minimum 
+         * value is computed by analysing all the underlying data.
+         * 
+         * @return double Maximum raster value (excluding no data pixels).
+         */
         inline double max() const { return _vMax; }
 
+        /**
+         * @brief Return the raster offset value. 
+         * @details This value (in combination with the scale() value) can be used to 
+         * transform raw pixel values into the target units, according to: 
+         * 
+         * Units value = (raw value * scale) + offset
+         * 
+         * @return double Raster offset.
+         */
         inline double offset() const { return _offset; }; 
+
+        /**
+         * @brief Return the raster scale value.
+         * @details This value (in combination with the offset() value) can be used to 
+         * transform raw pixel values into the target units, according to: 
+         * 
+         * Units value = (raw value * scale) + offset
+         * 
+         * @return double Raster scale.
+         */
         inline double scale() const { return _scale; }
+
+        /**
+         * @brief Return the no data value for this raster band.
+         * @details The no data value for a band is a special marker value that is used to 
+         * identify pixels that are not valid data. 
+         * 
+         * @return double no data value.
+         * 
+         * @note Currently, this function is designed for the Chang-E'2 raster files, which 
+         * use a NoData value of -99999. However, this value is manually assigned because 
+         * the rasters do not contain such information. If one wishes to support other 
+         * kinds of raster data products, this function shall be modified accordingly. 
+         */
         inline double noDataVal() const { return _noDataVal; } 
 
+        /**
+         * @brief Return true if the underlying data has been loaded into memory.
+         */
         inline bool isLoaded() const { return nLoadedElements > 0; }
 
-        // Load/unload all the data inside the raster band
+        /**
+         * @brief Load the raster band data into memory.
+         */
         void loadData(); 
+
+        /**
+         * @brief Unload the raster band data from memory.
+         */
         void unloadData();
-        
-        // Get a given pixel 
+
+        /**
+         * @brief Get the raster data associated to a given index.
+         * @details Return the data, in physical units (i.e., after applying the offset 
+         * and scale values) corresponding to a given element. 
+         * 
+         * @param i Element index, in zero-based notation.
+         * @return double Target element data value.
+         */
         double getData(ui32_t i) const;
+
+        /**
+         * @brief Get the raster data associated to given map coordinates.
+         * @details Return the data, in physical units (i.e., after applying the offset 
+         * and scale values) corresponding to the given pixel coordinates.
+         * 
+         * @param u Horizontal pixel coordinates.
+         * @param v Vertical pixel coordinates.
+         * @return double Target pixel data value.
+         */
         double getData(ui32_t u, ui32_t v) const;  
 
 
