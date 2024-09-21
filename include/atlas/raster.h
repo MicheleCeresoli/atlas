@@ -152,40 +152,137 @@ class RasterBand {
                     RASTER FILE 
 ---------------------------------------------------------- */
 
-
+/**
+ * @class RasterFile
+ * @brief A wrapper container around a GDAL raster dataset.
+ */
 class RasterFile {
 
     public: 
-
+        
+        /**
+         * @brief Construct a new Raster File object from a raster file.
+         * 
+         * @param file Path to the raster file.
+         * @param nThreads Number of parallel threads that may access its data.
+         */
         RasterFile(const std::string& file, size_t nThreads = 1);
 
+        /**
+         * @brief Get the name of the underlying raster file. 
+         * @return std::string Raster file name.
+         */
         inline std::string getFileName() const { return filename; }
+
+        /**
+         * @brief Get the path (including name), to the underlying raster file.
+         * @return std::filesystem::path Raster filepath.
+         */
         inline std::filesystem::path getFilePath() const { return filepath; }
 
+        /**
+         * @brief Return the horizontal size of the raster.
+         * @return ui32_t Raster width, in pixels.
+         */
         inline ui32_t width() const { return _width; }
+
+        /**
+         * @brief Return the vertical size of the raster.
+         * @return ui32_t Raster height, in pixels.
+         */
         inline ui32_t height() const { return _height; }
+
+        /**
+         * @brief Return the number of raster bands in this file.
+         * @return size_t Number of raster bands.
+         */
         inline size_t rasterCount() const { return _rasterCount; }; 
 
-        /* Return the raster lowest resolution. In this case lowest means the one which 
-         * expresses the lowest accuracy. For example, if it had 20m on the x-axis and 50m 
-         * on the y-axis, the 50m resolution would be returned. */
+        /**
+         * @brief Return the raster lowest resolution.
+         * @details In this case lowest means the one which expresses the lowest accuracy. 
+         * For example, if it had 20m on the x-axis and 50m on the y-axis, the 50m 
+         * resolution would be returned
+         * 
+         * @return double Raster resolution, in pixels.
+         */
         inline double resolution() const { return _resolution; }
 
+        /**
+         * @brief Return the number of supported threads.
+         * @details The number of threads is used to create a different transformation 
+         * object for each thread, so that parallel map coordinates transformations are 
+         * possible.
+         * 
+         * @return size_t Number of threads.
+         */
         inline size_t nThreads() const { return _nThreads; }
 
+        /**
+         * @brief Get the uppermost raster map coordinate.
+         * @return double Top map coordinate.
+         */
         inline double top() const { return _top; }; 
+
+        /**
+         * @brief Get the lowermost raster map coordinate.
+         * @return double Bottom map coordinate.
+         */
         inline double bottom() const { return _bottom; }
+
+        /**
+         * @brief Get the leftmost raster map coordinate.
+         * @return double Left map coordinate.
+         */
         inline double left() const { return _left; }
+
+        /**
+         * @brief Get the rightmost raster map coordiante.
+         * @return double Right map coordinate.
+         */
         inline double right() const { return _right; }
 
+        /**
+         * @brief Return the raster dataset geospatial transform.
+         * @details The dataset transform is an Affine transformation matrix that map pixels 
+         * locations in (row, col) coordinates to (x,y) spatial positions. The product of 
+         * this matrix and `(0, 0)`, the row and column coordiantes of the upper left corner 
+         * of the raster, is the spatial position of the upper left corner. 
+         * 
+         * @return Affine Affine transformation matrix
+         */
         inline Affine getAffine() const { return transform; }
+
+        /**
+         * @brief Return the inverse of the dataset geospatial transform. 
+         * @details The inverse transformation maps spatial (x,y) positions (in map coordinates)
+         * to pixel locations in (row, col) coordinates.
+         * 
+         * @return double Inverse affine transformation matrix.
+         */
         inline Affine getInvAffine() const { return iTransform; }
 
-        // Raster limits 
 
+        /**
+         * @brief Return the longitude limits of this raster file.
+         * @details 
+         * 
+         * @param bounds Pointer to a 2-element vector.
+         * 
+         * @warning This function does not check the underlyng size of the vector.
+         */
         void getLongitudeBounds(double* bounds) const; 
+        
         void getLatitudeBounds(double* bounds) const;
 
+        /**
+         * @brief Check whether a geographical position is within the raster limits.
+         * @details 
+         * 
+         * @param p Point storing the longitude and latitude, in degrees.
+         * @return true 
+         * @return false 
+         */
         bool isWithinGeographicBounds(const point2& p) const; 
 
         // Raster Bands Interfaces 
