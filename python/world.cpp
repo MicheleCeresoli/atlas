@@ -14,6 +14,7 @@ void init_world(py::module_ &m) {
 
         .def("minRadius", &World::minRadius)
         .def("maxRadius", &World::maxRadius)
+        .def("meanRadius", &World::meanRadius)
         .def("minAltitude", &World::minAltitude)
         .def("maxAltitude", &World::maxAltitude)
 

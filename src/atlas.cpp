@@ -63,7 +63,7 @@ double LunarRayTracer::getAltitude() {
     point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
     // Retrieve the exact altitude from the DEM
-    return sph[0] - world.sampleDEM(s2);
+    return sph[0] - (world.meanRadius() + world.sampleDEM(s2));
     
 }
 
@@ -140,7 +140,7 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
 }
 
 
-bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
+bool LunarRayTracer::generateImageDEM(const std::string& filename, int type, bool normalize) {
 
     // Check bits
     checkImageBits(type);
@@ -159,9 +159,34 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type) {
     ui32_t u, v;
     uchar* pRow;
 
-    // Retrieve the DEM maximum and minimum radii 
-    double minR = world.minRadius();
-    double maxR = world.maxRadius(); 
+    double minR = inf; 
+    double maxR = -inf; 
+    
+    // Check if we have to normalize the image relative to the pixel values or with 
+    // respect to the entire DEM 
+    if (normalize) 
+    {
+        // Parse all pixels to find the min and maximum distances
+        for (auto& p : *pixels) {
+            if (p.pixMinDistance() != inf) {
+                for (size_t k = 0; k < p.nSamples; k++)
+                {
+                    // If we found an intersection
+                    minR = fmin(p.data[k].s[0], minR);
+                    maxR = fmax(p.data[k].s[0], maxR);
+                }
+            }
+        }
+    
+    }
+    else 
+    {
+        // Retrieve the DEM maximum and minimum radii 
+        minR = world.minRadius();
+        maxR = world.maxRadius();
+    }
+        
+
     double dR = maxR - minR; 
 
     for (auto& p : *pixels) {

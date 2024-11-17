@@ -1,5 +1,10 @@
 # All Releases 
 
+## v0.4.3 
+- Fixed `getAltitude` not returning the proper altitude. 
+- Added `meanRadius` to `World`.
+- Added option to `generateImageDEM` to normalize the values relative to the image content.
+
 ## v0.4.2 
 - Added documentation. 
 - Added `unload` to `LunarRayTracer` to unload all raster bands from memory.

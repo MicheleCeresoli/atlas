@@ -27,6 +27,8 @@ class World {
         // DEM interface functions
         inline double maxRadius() const { return dem.maxRadius(); }
         inline double minRadius() const { return dem.minRadius(); }
+        inline double meanRadius() const { return dem.meanRadius(); }
+        
         inline double minAltitude() const { return dem.minAltitude(); }
         inline double maxAltitude() const { return dem.maxAltitude(); }
 

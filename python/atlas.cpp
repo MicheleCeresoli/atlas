@@ -31,7 +31,7 @@ void init_atlas(py::module_ &m) {
         )
 
         .def("generateImageDEM", &LunarRayTracer::generateImageDEM, 
-            py::arg("filename"), py::arg("type")=CV_8UC1
+            py::arg("filename"), py::arg("type")=CV_8UC1, py::arg("normalize")=true
         )
 
         .def("generateDepthMap", &LunarRayTracer::generateDepthMap, 

@@ -19,7 +19,7 @@ def generate_doxygen_api(app):
 project = 'atlas'
 copyright = '2024, Michele Ceresoli'
 author = 'Michele Ceresoli'
-release = '0.4.1'
+release = '0.4.3'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
