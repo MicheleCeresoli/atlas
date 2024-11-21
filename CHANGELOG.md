@@ -2,6 +2,7 @@
 
 ## v0.4.4 
 - Updated camera coordinate axes: the Z-axes is directed towards the nadir, the Y-axis points downwards and X-axis completes the right-handed triad.
+- Fixed DEM normalization issue with non-impacting pixels.
 
 ## v0.4.3 
 - Fixed `getAltitude` not returning the proper altitude. 
