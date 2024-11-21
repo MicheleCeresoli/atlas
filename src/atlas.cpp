@@ -168,8 +168,9 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type, boo
     {
         // Parse all pixels to find the min and maximum distances
         for (auto& p : *pixels) {
-            if (p.pixMinDistance() != inf) {
-                for (size_t k = 0; k < p.nSamples; k++)
+            for (size_t k = 0; k < p.nSamples; k++)
+            {
+                if (p.data[k].t != inf)
                 {
                     // If we found an intersection
                     minR = fmin(p.data[k].s[0], minR);
