@@ -90,12 +90,25 @@ void init_camera(py::module_ &m) {
 
 
     py::class_<PinholeCamera, Camera, PyPinholeCamera>(m, "PinholeCamera")
-        .def(py::init<ui32_t, double>(), py::arg("res"), py::arg("fov"));
+
+        .def(py::init<ui32_t, double>(), py::arg("res"), py::arg("fov"))
+        
+        .def(py::init<ui32_t, ui32_t, double, double>(), 
+            py::arg("width"), py::arg("height"), 
+            py::arg("fov_x"), py::arg("fov_y")
+        );
 
 
     py::class_<RealCamera, Camera, PyRealCamera>(m, "RealCamera")
+
         .def(py::init<ui32_t, double, double, double>(), 
             py::arg("res"), py::arg("focalLen"), 
-            py::arg("sensorSize"), py::arg("fstop"));
+            py::arg("sensorSize"), py::arg("fstop")
+        )
 
+        .def(py::init<ui32_t, ui32_t, double, double, double, double>(), 
+            py::arg("width"), py::arg("height"), 
+            py::arg("focalLen"), py::arg("sensorWidth"), 
+            py::arg("sensorHeight"), py::arg("fstop")
+        );
 }

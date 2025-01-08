@@ -153,6 +153,7 @@ class PinholeCamera : public Camera {
          * of pixels in the horizontal and vertical axes.
          */
         PinholeCamera(ui32_t res, double fov); 
+        PinholeCamera(ui32_t width, ui32_t height, double fov_x, double fov_y); 
 
         Ray getRay(double u, double v, bool center = false) const override; 
 
@@ -161,8 +162,8 @@ class PinholeCamera : public Camera {
 
     private: 
 
-        double fov;
-        double scale; 
+        double fov[2];
+        double scale[2]; 
 
 
 
@@ -186,6 +187,11 @@ class RealCamera : public Camera {
          * @param fstop f-stop number, used to determine the camera aperture size.
          */
         RealCamera(ui32_t res, double focalLen, double sensorSize, double fstop);
+        
+        RealCamera(
+            ui32_t width, ui32_t height, double focalLen, double sensor_width, 
+            double sensor_height, double fstop
+        ); 
 
         /**
          * @brief Return the ray associated to a given pixel in the image plane.
@@ -207,15 +213,15 @@ class RealCamera : public Camera {
 
     private: 
 
-        double focalLength;     // (mm)
-        double sensorSize;      // Camera film width  (mm)
+        double focalLength;        // (mm)
+        double sensorSize[2];      // Camera film width and height (mm)
 
-        double fov; 
-        double scale;
+        double fov[2]; 
+        double scale[2];
 
-        double pixSize;         // Physical pixel size (mm)
+        double pixSize[2];         // Physical pixel width and height (mm)
 
-        double fstop;           // Defined as Aperture = focal_length / fstop
+        double fstop;              // Defined as Aperture = focal_length / fstop
         double aperture;        
 
 };

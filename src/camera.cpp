@@ -16,8 +16,18 @@ void Camera::getPixelCoordinates(const ui32_t& id, ui32_t& u, ui32_t& v) const {
 
 // PINHOLE CAMERA
 
-PinholeCamera::PinholeCamera(ui32_t res, double fov) : Camera(res, res), fov(fov) {
-    scale = tan(0.5*fov);
+PinholeCamera::PinholeCamera(ui32_t res, double fov) : 
+    PinholeCamera(res, res, fov, fov) {}; 
+
+PinholeCamera::PinholeCamera(ui32_t width, ui32_t height, double fov_x, double fov_y) : 
+    Camera(width, height) 
+{
+    fov[0] = fov_x; 
+    fov[1] = fov_y; 
+
+    scale[0] = tan(0.5*fov[0]);
+    scale[1] = tan(0.5*fov[1]);
+
 }
 
  
@@ -25,8 +35,8 @@ Ray PinholeCamera::getRay(double u, double v, bool center) const {
 
     // u is the pixel number along the horizontal coordinate
     // y is the pixel number along the vertical coordinate 
-    double x = (2 * (u + 0.5)/(double)width() - 1) * scale;
-    double y = (2 * (v + 0.5)/(double)height() - 1) * scale;
+    double x = (2 * (u + 0.5)/(double)width() - 1) * scale[0];
+    double y = (2 * (v + 0.5)/(double)height() - 1) * scale[1];
 
     // Compute the ray direction in the camera frame, with the Z-axis perpendicular 
     // to the image plane, the X-axis towards the top and the Y-axis 
@@ -40,17 +50,30 @@ Ray PinholeCamera::getRay(double u, double v, bool center) const {
 
 // REAL CAMERA (with defocus blur)
 
-RealCamera::RealCamera(ui32_t res, double focalLen, double sensorSize, double fstop) : 
-    Camera(res, res), focalLength(focalLen), sensorSize(sensorSize), fstop(fstop) {
+RealCamera::RealCamera(ui32_t res, double focalLen, double sensSize, double fstop) : 
+    RealCamera(res, res, focalLen, sensSize, sensSize, fstop) {};
 
-    // Compute the Field of View (rad) and scale factor
-    fov = 2*atan(sensorSize/(2*focalLength)); 
-    scale = tan(0.5*fov); 
+RealCamera::RealCamera(ui32_t width, ui32_t height, double focalLen, double sens_width,
+    double sens_height, double fstop) : Camera(width, height), focalLength(focalLen), 
+    fstop(fstop) {
 
-    // Compute pixel physical size (mm/px)
-    pixSize = sensorSize/res; 
+    // Store the sensor dimensions
+    sensorSize[0] = sens_width; 
+    sensorSize[1] = sens_height;   
 
-    // Compute aperture size 
+    for (int k = 0; k < 2; k++) {
+
+        // Compute the Field of View (rad) and scale factor
+        fov[k] = 2*atan(sensorSize[k]/(2*focalLength)); 
+        scale[k] = tan(0.5*fov[k]); 
+
+        // Compute the pixel physical size (mm/px)
+        ui32_t res = k == 0 ? width : height;
+        pixSize[k] = sensorSize[k]/res; 
+
+    }
+
+    // Compute aperture size (mm)
     aperture = focalLength/fstop;
 
 }
@@ -65,8 +88,8 @@ Ray RealCamera::getRay(double u, double v, bool center) const {
     if (center) {
 
         // We shoot a ray as if it were a Pinhole camera
-        x = (2 * (u + 0.5)/(double)width() - 1) * scale;
-        y = (2 * (v + 0.5)/(double)height() - 1) * scale;
+        x = (2 * (u + 0.5)/(double)width() - 1) * scale[0];
+        y = (2 * (v + 0.5)/(double)height() - 1) * scale[1];
         
         origin = _pos;
         direction = vec3(x, y, 1.0);
@@ -86,8 +109,8 @@ Ray RealCamera::getRay(double u, double v, bool center) const {
         
         // TODO: Im not entirely certain this is correct...
         // For the direction, we sample the pixel in a random unit square around the center
-        x = -0.5*(sensorSize - pixSize) + (u + randomNumber() - 0.5)*pixSize;
-        y = -0.5*(sensorSize - pixSize) + (v + randomNumber() - 0.5)*pixSize;
+        x = -0.5*(sensorSize[0] - pixSize[0]) + (u + randomNumber() - 0.5)*pixSize[0];
+        y = -0.5*(sensorSize[1] - pixSize[1]) + (v + randomNumber() - 0.5)*pixSize[1];
 
         point3 pixSample(x, y, focalLength);
 
