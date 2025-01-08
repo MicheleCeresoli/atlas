@@ -1,5 +1,5 @@
-#ifndef LUNARRAYTRACER_H
-#define LUNARRAYTRACER_H 
+#ifndef RAYTRACER_H
+#define RAYTRACER_H 
 
 #include "camera.h"
 #include "world.h"
@@ -12,11 +12,11 @@
 #include <vector>
 #include <string> 
 
-class LunarRayTracer {
+class RayTracer {
 
     public: 
 
-        LunarRayTracer(RayTracerOptions opts);
+        RayTracer(RayTracerOptions opts);
 
         void run(); 
 

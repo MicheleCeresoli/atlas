@@ -28,12 +28,12 @@ void updateImageContent(cv::Mat& image, ui32_t u, ui32_t v, double c) {
 }
 
 
-LunarRayTracer::LunarRayTracer(RayTracerOptions opts) : 
+RayTracer::RayTracer(RayTracerOptions opts) : 
     world(opts.optsWorld, opts.nThreads), 
     renderer(opts.optsRenderer, opts.nThreads) {}
 
 
-void LunarRayTracer::run() {
+void RayTracer::run() {
 
     // Check a CAM has been assigned 
     checkCamPointer(); 
@@ -51,7 +51,7 @@ void LunarRayTracer::run() {
 
 
 // Settings Retrieval
-double LunarRayTracer::getAltitude() {
+double RayTracer::getAltitude() {
 
     // Check a CAM has been assigned 
     checkCamPointer(); 
@@ -68,7 +68,7 @@ double LunarRayTracer::getAltitude() {
 }
 
 
-void LunarRayTracer::unload() {
+void RayTracer::unload() {
     world.cleanupDEM(); 
     world.cleanupDOM();
 }
@@ -76,7 +76,7 @@ void LunarRayTracer::unload() {
 
 // Image Generation Routines 
 
-bool LunarRayTracer::generateImageOptical(const std::string& filename, int type) {
+bool RayTracer::generateImageOptical(const std::string& filename, int type) {
 
     // Check bits
     checkImageBits(type); 
@@ -140,7 +140,7 @@ bool LunarRayTracer::generateImageOptical(const std::string& filename, int type)
 }
 
 
-bool LunarRayTracer::generateImageDEM(const std::string& filename, int type, bool normalize) {
+bool RayTracer::generateImageDEM(const std::string& filename, int type, bool normalize) {
 
     // Check bits
     checkImageBits(type);
@@ -229,7 +229,7 @@ bool LunarRayTracer::generateImageDEM(const std::string& filename, int type, boo
 }
 
 
-bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
+bool RayTracer::generateDepthMap(const std::string& filename, int type) {
 
     // Check bits
     checkImageBits(type);
@@ -308,7 +308,7 @@ bool LunarRayTracer::generateDepthMap(const std::string& filename, int type) {
 }
 
 
-void LunarRayTracer::generateGCPs(const std::string& filename, uint16_t stride) {
+void RayTracer::generateGCPs(const std::string& filename, uint16_t stride) {
 
     // Check camera pointer
     checkCamPointer();
@@ -380,7 +380,7 @@ void LunarRayTracer::generateGCPs(const std::string& filename, uint16_t stride) 
 }
 
 
-void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
+void RayTracer::exportRayTracedInfo(const std::string& filename) {
 
     // Check camera pointer
     checkCamPointer();
@@ -441,7 +441,7 @@ void LunarRayTracer::exportRayTracedInfo(const std::string& filename) {
 
 }
 
-void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
+void RayTracer::importRayTracedInfo(const std::string& filename) {
 
     // Check camera pointer
     checkCamPointer();
@@ -515,13 +515,13 @@ void LunarRayTracer::importRayTracedInfo(const std::string& filename) {
 
 }
 
-void LunarRayTracer::checkCamPointer() {
+void RayTracer::checkCamPointer() {
     if (cam == NULL) {
         throw std::runtime_error("missing camera information.");
     }
 }
 
-void LunarRayTracer::checkRenderStatus() {
+void RayTracer::checkRenderStatus() {
     if (renderer.getStatus() != RenderingStatus::COMPLETED) {
         throw std::runtime_error("missing ray-tracing information.");
     }

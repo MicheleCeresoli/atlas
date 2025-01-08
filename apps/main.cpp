@@ -39,7 +39,7 @@ int main(int argc, const char* argv[]) {
     // opts.optsWorld.demFiles = dem_files; 
     // opts.optsWorld.domFiles = dom_files; 
 
-    // LunarRayTracer tracer(opts); 
+    // RayTracer tracer(opts); 
 
     // double lon = deg2rad(-161); 
     // double lat = deg2rad(77); 
