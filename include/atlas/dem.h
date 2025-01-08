@@ -11,7 +11,7 @@ class DEM : public RasterContainer {
 
 
         DEM(WorldOptions opts, ui32_t nThreads);
-        DEM(const std::vector<std::string>& files, ui32_t nThreads, bool displayLogs); 
+        DEM(const std::vector<RasterDescriptor>& files, ui32_t nThreads, bool displayLogs); 
         
         inline double minAltitude() const { return _minAltitude; }; 
         inline double maxAltitude() const { return _maxAltitude; };

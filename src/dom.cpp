@@ -1,7 +1,7 @@
 
 #include "dom.h"
 
-DOM::DOM(const std::vector<std::string>& files, ui32_t nThreads, bool displayLogs) : 
+DOM::DOM(const std::vector<RasterDescriptor>& files, ui32_t nThreads, bool displayLogs) : 
     RasterContainer(files, nThreads, displayLogs) {}
 
 DOM::DOM(WorldOptions opts, ui32_t nThreads) : 

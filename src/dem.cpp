@@ -2,8 +2,8 @@
 #include "dem.h"
 #include "utils.h"
 
-DEM::DEM(const std::vector<std::string>& files, ui32_t nThreads, bool displayLogs) : 
-    RasterContainer(files, nThreads, displayLogs) {
+DEM::DEM(const std::vector<RasterDescriptor>& descriptors, ui32_t nThreads, bool displayLogs) : 
+    RasterContainer(descriptors, nThreads, displayLogs) {
 
     // Initialise min\max altitude values
     _minAltitude = inf; 

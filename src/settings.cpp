@@ -7,19 +7,19 @@
                         WORLD OPTIONS
 ---------------------------------------------------------- */
 
-WorldOptions::WorldOptions() : WorldOptions("", "") {}
+WorldOptions::WorldOptions() : WorldOptions(RasterDescriptor(), RasterDescriptor()) {}
 
-WorldOptions::WorldOptions(const std::string& dem, const std::string& dom) : 
-    WorldOptions(std::vector<std::string>{dem}, std::vector<std::string>{dom}) {}
+WorldOptions::WorldOptions(const RasterDescriptor& dem, const RasterDescriptor& dom) : 
+    WorldOptions(std::vector<RasterDescriptor>{dem}, std::vector<RasterDescriptor>{dom}) {}
 
-WorldOptions::WorldOptions(const std::vector<std::string>& dem, const std::string& dom) : 
-    WorldOptions(dem, std::vector<std::string>{dom}) {}
+WorldOptions::WorldOptions(const std::vector<RasterDescriptor>& dem, const RasterDescriptor& dom) : 
+    WorldOptions(dem, std::vector<RasterDescriptor>{dom}) {}
 
-WorldOptions::WorldOptions(const std::string& dem, const std::vector<std::string>& dom) : 
-    WorldOptions(std::vector<std::string>{dem}, dom) {}
+WorldOptions::WorldOptions(const RasterDescriptor& dem, const std::vector<RasterDescriptor>& dom) : 
+    WorldOptions(std::vector<RasterDescriptor>{dem}, dom) {}
 
 WorldOptions::WorldOptions(
-    const std::vector<std::string>& dem, const std::vector<std::string>& dom
+    const std::vector<RasterDescriptor>& dem, const std::vector<RasterDescriptor>& dom
 ) : demFiles(dem), domFiles(dom) {}
 
 

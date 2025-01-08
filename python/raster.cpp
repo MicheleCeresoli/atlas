@@ -9,6 +9,35 @@ namespace py = pybind11;
 
 void init_raster(py::module_ &m) {
 
+
+    py::class_<RasterDescriptor>(m, "RasterDescriptor")
+
+        .def(py::init([](
+            const std::string& filename, const std::array<double, 2>& lon_bounds, 
+            const std::array<double, 2>& lat_bounds, double res){
+
+                RasterDescriptor d{ .filename = filename, .res = res};
+                d.lon_bounds[0] = lon_bounds[0];
+                d.lon_bounds[1] = lon_bounds[1]; 
+
+                d.lat_bounds[0] = lat_bounds[0];
+                d.lat_bounds[1] = lat_bounds[1];
+
+                return d;
+
+            }), 
+
+            py::arg("filename"), py::arg("lon_bounds"), 
+            py::arg("lat_bounds"), py::arg("res")
+        )
+
+        .def_readwrite("filename", &RasterDescriptor::filename)
+        .def_readwrite("res", &RasterDescriptor::res);
+
+        // .def_readwrite("lon_bounds", &RasterDescriptor::lon_bounds)
+        // .def_readwrite("lat_bounds", &RasterDescriptor::lat_bounds);
+
+
     py::class_<RasterBand>(m, "RasterBand")
 
         .def(py::init<std::shared_ptr<GDALDataset>, int>())
@@ -30,7 +59,8 @@ void init_raster(py::module_ &m) {
         });
 
     py::class_<RasterFile>(m, "RasterFile")
-        .def(py::init<std::string, size_t>(), py::arg("file"), py::arg("nThreads") = 1)
+
+        .def(py::init<RasterDescriptor, size_t>(), py::arg("file"), py::arg("nThreads") = 1)
 
         .def("getFileName", &RasterFile::getFileName)
 
@@ -87,10 +117,10 @@ void init_raster(py::module_ &m) {
 
     py::class_<RasterContainer>(m, "RasterContainer")
 
-        .def(py::init<std::string, size_t, bool>(), 
-             py::arg("filename"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+        .def(py::init<RasterDescriptor, size_t, bool>(), 
+             py::arg("file"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
 
-        .def(py::init<std::vector<std::string>, size_t, bool>(), 
+        .def(py::init<std::vector<RasterDescriptor>, size_t, bool>(), 
              py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
 
         .def("nRasters", &RasterContainer::nRasters)

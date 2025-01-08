@@ -39,15 +39,19 @@ void init_settings(py::module_ &m) {
 
         .def(py::init<>())
 
-        .def(py::init<std::string, std::string>(), 
-            py::arg("dem") = "", py::arg("dom") = ""
+        .def(py::init<RasterDescriptor, RasterDescriptor>(), 
+            py::arg("dem") = RasterDescriptor(), py::arg("dom") = RasterDescriptor()
         )
 
-        .def(py::init<std::vector<std::string>, std::string>(), 
-            py::arg("dem"), py::arg("dom") = ""
+        .def(py::init<std::vector<RasterDescriptor>, RasterDescriptor>(), 
+            py::arg("dem"), py::arg("dom") = RasterDescriptor()
         )
 
-        .def(py::init<std::vector<std::string>, std::vector<std::string>>(), 
+        .def(py::init<RasterDescriptor, std::vector<RasterDescriptor>>(), 
+            py::arg("dem") = RasterDescriptor(), py::arg("dom")
+        )
+
+        .def(py::init<std::vector<RasterDescriptor>, std::vector<RasterDescriptor>>(), 
             py::arg("dem"), py::arg("dom")
         )
 

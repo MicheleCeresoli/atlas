@@ -2,6 +2,7 @@
 #define RENDSETTINGS_H
 
 #include "types.h"
+#include "raster.h"
 
 #include <cstddef>
 #include <string>
@@ -47,13 +48,13 @@ class WorldOptions {
     public: 
 
         WorldOptions();
-        WorldOptions(const std::string& dem, const std::string& dom); 
-        WorldOptions(const std::vector<std::string>& dem, const std::string& dom);
-        WorldOptions(const std::string& dem, const std::vector<std::string>& dom); 
-        WorldOptions(const std::vector<std::string>& dem, const std::vector<std::string>& dom);
+        WorldOptions(const RasterDescriptor& dem, const RasterDescriptor& dom); 
+        WorldOptions(const std::vector<RasterDescriptor>& dem, const RasterDescriptor& dom);
+        WorldOptions(const RasterDescriptor& dem, const std::vector<RasterDescriptor>& dom); 
+        WorldOptions(const std::vector<RasterDescriptor>& dem, const std::vector<RasterDescriptor>& dom);
 
-        std::vector<std::string> demFiles; 
-        std::vector<std::string> domFiles;
+        std::vector<RasterDescriptor> demFiles;
+        std::vector<RasterDescriptor> domFiles;
 
         LogLevel logLevel;
 

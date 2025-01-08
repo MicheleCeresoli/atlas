@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <limits>
+#include <filesystem>
 #include <fstream>
 #include <string>
 
@@ -27,6 +28,7 @@ inline vec2 deg2rad(const vec2& v) { return vec2(v[0]*D2R, v[1]*D2R); };
 point3 car2sph(const point3& pos); 
 point3 sph2car(const point3& sph); 
 
+bool fileExists(const std::string& filename);
 std::string readFileContent(const std::string& filename); 
 
 void displayTime();

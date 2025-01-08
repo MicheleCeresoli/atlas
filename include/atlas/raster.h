@@ -13,6 +13,21 @@
 #include <vector>
 
 /* -------------------------------------------------------
+                    RASTER INPUT DESCRIPTOR
+---------------------------------------------------------- */
+
+struct RasterDescriptor {
+    std::string filename; 
+
+    double lon_bounds[2]; 
+    double lat_bounds[2]; 
+    
+    double res = -1; 
+};
+
+
+
+/* -------------------------------------------------------
                         RASTER BAND
 ---------------------------------------------------------- */
 
@@ -163,10 +178,10 @@ class RasterFile {
         /**
          * @brief Construct a new Raster File object from a raster file.
          * 
-         * @param file Path to the raster file.
+         * @param desc Raster descriptor object.
          * @param nThreads Number of parallel threads that may access its data.
          */
-        RasterFile(const std::string& file, size_t nThreads = 1);
+        RasterFile(const RasterDescriptor& desc, size_t nThreads = 1);
 
         /**
          * @brief Get the name of the underlying raster file. 
@@ -355,8 +370,6 @@ class RasterFile {
 
         void setupTransformations(); 
 
-        void computeRasterBounds(); 
-
 };
 
 
@@ -375,11 +388,11 @@ class RasterContainer {
     public: 
 
         RasterContainer(
-            std::string filename, size_t nThreads = 1, bool displayLogs = false
+            RasterDescriptor desc, size_t nThreads = 1, bool displayLogs = false
         ); 
 
         RasterContainer(
-            std::vector<std::string> files, 
+            std::vector<RasterDescriptor> descs,
             size_t nThreads = 1, 
             bool displayLogs = false
         );

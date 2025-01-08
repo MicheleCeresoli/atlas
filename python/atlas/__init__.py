@@ -3,6 +3,7 @@
 from ._atlas import PinholeCamera, RealCamera         # type: ignore
 from ._atlas import LunarRayTracer                    # type: ignore
 from ._atlas import LogLevel                          # type: ignore
+from ._atlas import RasterDescriptor                  # type: ignore
 
 import os
 import glob 

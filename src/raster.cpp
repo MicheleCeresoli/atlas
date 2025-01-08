@@ -117,8 +117,11 @@ double RasterBand::getData(ui32_t u, ui32_t v) const {
                     DATASET CONTAINER 
 ---------------------------------------------------------- */
 
-RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nThreads)
+RasterFile::RasterFile(const RasterDescriptor& desc, size_t nThreads) : _nThreads(nThreads)
 {
+    // Retrieve the raster name
+    std::string file = desc.filename;
+
     // Generate filepath object
     filepath = std::filesystem::path(file); 
 
@@ -160,17 +163,20 @@ RasterFile::RasterFile(const std::string& file, size_t nThreads) : _nThreads(nTh
     _right  = p[0];
     _bottom = p[1];
 
-    // Retrieve the raster highest resolution from the Affine transform 
-    _resolution = MAX(fabs(transform[0]), fabs(transform[4]));
+    // Retrieve the raster highest resolution from the Affine transform if not specified
+    _resolution = desc.res > 0 ? desc.res : MAX(fabs(transform[0]), fabs(transform[4]));
+
+    // Update the raster geographical bounds 
+    for (uint8_t k = 0; k < 2; k++) {
+        lon_bounds[k] = desc.lon_bounds[k]; 
+        lat_bounds[k] = desc.lat_bounds[k]; 
+    }
 
     // Update the raster's reference system projection
     updateReferenceSystem();
 
     // Setup the map projection to geographic transformations.
     setupTransformations(); 
-
-    // Compute the raster longitude and latitude bounds
-    computeRasterBounds(); 
 
     // Retrieve all raster bands
     bands.reserve((size_t)_rasterCount); 
@@ -254,11 +260,17 @@ void RasterFile::updateReferenceSystem() {
 
     // Read the map projection information from the associated .PRJ file
     std::string projFile = filepath.string().substr(0, filepath.string().size() - 3) + "prj";
-    std::string wkt = readFileContent(projFile);  
-    
-    // Update the dataset reference system
-    OGRSpatialReference mCRS(wkt.c_str());
-    pDataset->SetSpatialRef(&mCRS);
+
+    // Update the reference system only if an associated .PRJ file exists in the folder
+    if (fileExists(projFile)) {
+
+        // Read the .PRJ file content 
+        std::string wkt = readFileContent(projFile);
+        
+        // Update the dataset reference system
+        OGRSpatialReference mCRS(wkt.c_str());
+        pDataset->SetSpatialRef(&mCRS);
+    }
 
 }
 
@@ -293,69 +305,6 @@ void RasterFile::setupTransformations() {
 }
 
 
-void RasterFile::computeRasterBounds() {
-
-    // This routine is super specific for Chang'e DEM files! 
-    std::size_t len = filename.size(); 
-
-    int lat_id = filename[len - 18UL];
-    double dlon = 360.0; 
-
-    if (lat_id == 65) {
-        lat_bounds[0] = 84.0; 
-        lat_bounds[1] = 90.0;
-    } 
-    else if (lat_id == 78) {
-        lat_bounds[0] = -90; 
-        lat_bounds[1] = -84;
-    } 
-    else {
-        
-        double dlat = (lat_id - 66)*14; 
-        lat_bounds[0] = 70 - dlat;
-        lat_bounds[1] = 84.0 - dlat;
-
-        // Compute the longitude span of that tile 
-        switch (lat_id) {
-
-            case 66:
-            case 77: 
-                dlon = 45.0;
-                break; 
-
-            case 67: 
-            case 76: 
-                dlon = 30.0;
-                break; 
-
-            case 68: 
-            case 75:
-                dlon = 24;
-                break; 
-
-            case 69: 
-            case 74: 
-                dlon = 20.0;
-                break;
-            
-            default: 
-                dlon  = 18.0;
-                break;
-
-        }
-        
-    }
-
-    int lon_id = (int)atof(filename.substr(len - 17UL, 3).c_str()); 
- 
-    lon_bounds[1] = lon_id*dlon - 180.0;
-    lon_bounds[0] = lon_bounds[1] - dlon;
-
-
-}
-
-
-
 /* -------------------------------------------------------
                     RASTER CONTAINER
 ---------------------------------------------------------- */
@@ -363,11 +312,11 @@ void RasterFile::computeRasterBounds() {
 // Constructors 
 
 RasterContainer::RasterContainer(
-    std::vector<std::string> files, size_t nThreads, bool displayLogs
+    std::vector<RasterDescriptor> descriptors, size_t nThreads, bool displayLogs
 ) {
 
     // If there are no files, throw an error
-    size_t nFiles = files.size(); 
+    size_t nFiles = descriptors.size(); 
 
     /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
      * this function should be called just once at the start of the program, however 
@@ -384,16 +333,17 @@ RasterContainer::RasterContainer(
     
     // Load up all the rasters
     rasters.reserve(nFiles); 
-    for (auto f : files)
+    for (auto d : descriptors)
     {
+
         // Prevent opening an empty string.
-        if (f.empty()) {
+        if (d.filename.empty()) {
             nFiles--;
             continue;
         }
 
         // Add the raster and retrieve its name.
-        rasters.push_back(RasterFile(f, nThreads));
+        rasters.push_back(RasterFile(d, nThreads));
 
         if (displayLogs) {
             displayLoadingStatus(RasterLoadingStatus::LOADING, nFiles);
@@ -421,8 +371,8 @@ RasterContainer::RasterContainer(
 
 }
 
-RasterContainer::RasterContainer(std::string filename, size_t nThreads, bool displayLogs) : 
-    RasterContainer(std::vector<std::string>{filename}, nThreads, displayLogs) {}
+RasterContainer::RasterContainer(RasterDescriptor desc, size_t nThreads, bool displayLogs) : 
+    RasterContainer(std::vector<RasterDescriptor>{desc}, nThreads, displayLogs) {}
 
 
 void RasterContainer::loadRasters() {

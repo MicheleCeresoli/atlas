@@ -16,8 +16,8 @@ void init_dom(py::module_ &m) {
                py::arg("nThreads") = 1
           )
 
-        .def(py::init<std::vector<std::string>, ui32_t, bool>(), 
-               py::arg("files"), 
+        .def(py::init<std::vector<RasterDescriptor>, ui32_t, bool>(), 
+               py::arg("descriptors"), 
                py::arg("nThreads") = 1, 
                py::arg("displayInfo") = false
           )
