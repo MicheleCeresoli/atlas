@@ -32,7 +32,9 @@ void init_raster(py::module_ &m) {
         )
 
         .def_readwrite("filename", &RasterDescriptor::filename)
-        .def_readwrite("res", &RasterDescriptor::res);
+        .def_readwrite("res", &RasterDescriptor::res)
+        .def_readwrite("scale", &RasterDescriptor::scale)
+        .def_readwrite("offset", &RasterDescriptor::offset);
 
         // .def_readwrite("lon_bounds", &RasterDescriptor::lon_bounds)
         // .def_readwrite("lat_bounds", &RasterDescriptor::lat_bounds);
@@ -40,7 +42,7 @@ void init_raster(py::module_ &m) {
 
     py::class_<RasterBand>(m, "RasterBand")
 
-        .def(py::init<std::shared_ptr<GDALDataset>, int>())
+        .def(py::init<RasterDescriptor, std::shared_ptr<GDALDataset>, int>())
 
         .def("min", &RasterBand::min)
         .def("max", &RasterBand::max)

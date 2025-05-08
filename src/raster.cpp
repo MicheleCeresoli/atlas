@@ -12,7 +12,7 @@
                         RASTER BAND
 ---------------------------------------------------------- */
 
-RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
+RasterBand::RasterBand(const RasterDescriptor& d, std::shared_ptr<GDALDataset> pd, int i) {
 
     if (i > pd->GetRasterCount()) {
         throw std::range_error("the dataset does not contain the desired raster band.");
@@ -33,8 +33,8 @@ RasterBand::RasterBand(std::shared_ptr<GDALDataset> pd, int i) {
     _height = (ui32_t)pBand->GetYSize(); 
 
     // Retrieve band scale and offset parameters
-    _offset = pBand->GetOffset(); 
-    _scale  = pBand->GetScale();
+    _offset = d.offset; 
+    _scale  = d.scale;
 
     // Compute the band minimum and maximum parameters 
     // Currently uses an APPROXIMATE computation
@@ -181,7 +181,7 @@ RasterFile::RasterFile(const RasterDescriptor& desc, size_t nThreads) : _nThread
     // Retrieve all raster bands
     bands.reserve((size_t)_rasterCount); 
     for (size_t k = 0; k < _rasterCount; k++) {
-        bands.push_back(RasterBand(pDataset, (int)k+1));
+        bands.push_back(RasterBand(desc, pDataset, (int)k+1));
     }
 
 }

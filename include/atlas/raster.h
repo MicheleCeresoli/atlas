@@ -22,7 +22,11 @@ struct RasterDescriptor {
     double lon_bounds[2]; 
     double lat_bounds[2]; 
     
-    double res = -1; 
+    double res = -1.0; 
+
+    double scale = 1.0; 
+    double offset = 0.0; 
+
 };
 
 
@@ -48,7 +52,7 @@ class RasterBand {
          * @note Creating a raster band object does NOT automatically load its underlying 
          * data into memory. 
          */
-        RasterBand(std::shared_ptr<GDALDataset> pd, int i);
+        RasterBand(const RasterDescriptor& d, std::shared_ptr<GDALDataset> pd, int i);
 
         // Retrieve the minimum raster value; 
 
