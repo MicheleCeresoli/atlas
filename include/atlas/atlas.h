@@ -47,7 +47,7 @@ class RayTracer {
         void unload();
 
         // Settings Retrieval
-        double getAltitude(); 
+        double getAltitude(const point3& pos, const dcm& dcm, double maxErr = -1.0); 
 
     private: 
 

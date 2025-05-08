@@ -19,7 +19,9 @@ class World {
 
         World(const WorldOptions& opts, ui32_t nThreads);
 
-        PixelData traceRay(const Ray& r, double tMin, double tMax, int threadid); 
+        PixelData traceRay(
+            const Ray& r, double tMin, double tMax, int threadid, double maxErr = -1.0
+    ); 
         
         inline double sampleDEM(const point2& p) { return dem.getData(p, interp, 0); }; 
         inline double sampleDOM(const point2& p) { return dom.getColor(p, interp, 0); };
@@ -64,7 +66,9 @@ class World {
         bool interp = false;
 
         double computeGSD(const Camera* cam); 
-        void findImpactLocation(PixelData& data, const Ray& ray, double tk, int threadid);
+        void findImpactLocation(
+            PixelData& data, const Ray& ray, double tk, int threadid, double maxErr = -1.0
+        );
 
 };
 

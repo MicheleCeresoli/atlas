@@ -13,7 +13,9 @@ World::World(const WorldOptions& opts, ui32_t nThreads) :
 
 }
 
-PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid) 
+PixelData World::traceRay(
+    const Ray& ray, double tMin, double tMax, int threadid, double maxErr
+) 
 {
 
     PixelData data; 
@@ -78,7 +80,7 @@ PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid
             hit = true;
 
             // Find the ray impact position minimising the localisation error.
-            findImpactLocation(data, ray, tk, threadid);
+            findImpactLocation(data, ray, tk, threadid, maxErr);
 
         } 
         else if (sph[0] < dem.minRadius()) {
@@ -95,23 +97,30 @@ PixelData World::traceRay(const Ray& ray, double tMin, double tMax, int threadid
 
 }
 
-void World::findImpactLocation(PixelData& data, const Ray& ray, double tk, int threadid) {
+void World::findImpactLocation(
+    PixelData& data, const Ray& ray, double tk, int threadid, double maxErr
+) {
 
     // We had an intersection at tk, thus we move backwards along the ray.
     double dtn = dt/2; 
     data.t = tk - dtn; 
+
+    // The default error is equal to half the dem resolution
+    if (maxErr <= 0.0) {
+        maxErr = dem.getResolution();
+    }
     
     point3 pos1 = ray.at(tk); 
     point3 pos2 = ray.at(data.t); 
     data.s = car2sph(pos2);
     
-    /* If the position error is below the DEM resolution, we return straight away 
+    /* If the position error is below the desired DEM resolution, we return straight away 
      * after halving the actual resolution, so that the maximum error we commit is 
      * still bounded to half the actual ray resolution. */
 
     point3 dp = pos2 - pos1;
     double errPos = dp.norm();
-    if (errPos < dem.getResolution()) {
+    if (errPos < maxErr) {
         return;
     }
 
@@ -119,8 +128,8 @@ void World::findImpactLocation(PixelData& data, const Ray& ray, double tk, int t
     point2 s2; 
 
     /* If we are here, we keep halving the ray resolution until the difference between 
-     * the impact locations is below the dem resolution. */
-    while (errPos > dem.getResolution()) {
+     * the impact locations is below the desired dem resolution. */
+    while (errPos > maxErr) {
         
         // Update ray resolution
         dtn /= 2;

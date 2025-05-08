@@ -41,5 +41,7 @@ void init_atlas(py::module_ &m) {
         .def("unload", &RayTracer::unload)
         
         .def("generateGCPs", &RayTracer::generateGCPs)
-        .def("getAltitude", &RayTracer::getAltitude);
+        .def("getAltitude", &RayTracer::getAltitude, 
+            py::arg("pos"), py::arg("dcm"), py::arg("maxErr")=-1.0
+        );
 }

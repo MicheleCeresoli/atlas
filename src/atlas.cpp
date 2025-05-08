@@ -51,19 +51,38 @@ void RayTracer::run() {
 
 
 // Settings Retrieval
-double RayTracer::getAltitude() {
+double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double maxErr) {
 
-    // Check a CAM has been assigned 
-    checkCamPointer(); 
-    
-    // Convert camera position to spherical coordinates
-    point3 sph = car2sph(cam->getPos()); 
+    /* First we check the altitude at the current position. If that is smaller 
+     * than the planet altitude, it means we are inside it and so we return inf to 
+     * avoid results that make no sense whatsoever, otherwise we proceed with 
+     * the actual ray-trace. */
 
-    // Convert geographic coordinates to degrees
+    // Convert the position to spherical coordinates 
+    point3 sph = car2sph(pos); 
+
+    // Convert geographical coordinates to degrees
     point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
-    // Retrieve the exact altitude from the DEM
-    return sph[0] - (world.meanRadius() + world.sampleDEM(s2));
+    // Retrieve the exact altitude at the current position 
+    double h = sph[0] - (world.meanRadius() + world.sampleDEM(s2));
+
+    // Check we aren't inside the planet
+    if (h < 0.0) {
+        return inf;
+    }
+
+    // Define the +Z direction of the altimeter
+    vec3 uz(0.0, 0.0, 1.0);
+    // Compute the ray direction in the DTM frame
+    vec3 u = dcm.transpose()*uz;
+
+    // Create the ray object and trace its intersection agains the DTM
+    Ray ray(pos, u);
+    PixelData p = world.traceRay(ray, 0.0, inf, 0, maxErr);
+
+    // Return the distance of the ray from the surface
+    return p.t;
     
 }
 
