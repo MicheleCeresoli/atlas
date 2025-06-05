@@ -14,9 +14,17 @@ void init_raster(py::module_ &m) {
 
         .def(py::init([](
             const std::string& filename, const std::array<double, 2>& lon_bounds, 
-            const std::array<double, 2>& lat_bounds, double res){
+            const std::array<double, 2>& lat_bounds, double res, double scale, 
+            double offset
+        ){
 
-                RasterDescriptor d{ .filename = filename, .res = res};
+            RasterDescriptor d{
+                    .filename = filename, 
+                    .res = res, 
+                    .scale=scale, 
+                    .offset=offset
+                };
+
                 d.lon_bounds[0] = lon_bounds[0];
                 d.lon_bounds[1] = lon_bounds[1]; 
 
@@ -28,7 +36,8 @@ void init_raster(py::module_ &m) {
             }), 
 
             py::arg("filename"), py::arg("lon_bounds"), 
-            py::arg("lat_bounds"), py::arg("res")
+            py::arg("lat_bounds"), py::arg("res"), 
+            py::arg("scale") = 1.0, py::arg("offset") = 0.0
         )
 
         .def_readwrite("filename", &RasterDescriptor::filename)
