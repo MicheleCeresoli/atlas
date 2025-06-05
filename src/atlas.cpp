@@ -88,7 +88,7 @@ double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double maxErr) 
 
 
 void RayTracer::unload() {
-    world.cleanup()
+    world.cleanup();
 }
 
 
