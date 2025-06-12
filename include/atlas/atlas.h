@@ -31,11 +31,13 @@ class RayTracer {
         inline void updateCameraOrientation(const dcm& dcm) { cam->setDCM(dcm); } 
 
         // Image Generation Routines
-        bool generateImageOptical(const std::string& filename, int type = CV_8UC1); 
-        bool generateImageDEM(
-            const std::string& filename, int type = CV_8UC1, bool normalize = true
-        ); 
-        bool generateDepthMap(const std::string& filename, int type = CV_8UC1);
+        cv::Mat createImageOptical(int type = CV_8UC1); 
+        cv::Mat createImageDEM(int type = CV_8UC1, bool normalize = true); 
+        cv::Mat createDepthMap(int type = CV_8UC1); 
+
+        bool saveImageOptical(const std::string& filename, int type = CV_8UC1);
+        bool saveImageDEM(const std::string& filename, int type = CV_8UC1, bool normalize = true);
+        bool saveDepthMap(const std::string& filename, int type = CV_8UC1); 
 
         void exportRayTracedInfo(const std::string& filename); 
         void importRayTracedInfo(const std::string& filename);

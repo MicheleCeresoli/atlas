@@ -7,6 +7,7 @@
 - Raster reference system is updated only if a _.prj_ file in the same directory is detected.
 - Changed `getAltitude` interface to receive altimeter position and DCM rather than camera.
 - Updated `traceRay` with additional parameter to define maximum localization error.
+- Divided `generateImage` functions in `createImage` and `saveImage`.
 - Minor code polishing.
 
 ## v0.4.4 

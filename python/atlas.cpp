@@ -26,16 +26,22 @@ void init_atlas(py::module_ &m) {
         .def("updateCameraPosition", &RayTracer::updateCameraPosition)
         .def("updateCameraOrientation", &RayTracer::updateCameraOrientation)
 
-        .def("generateImageOptical", &RayTracer::generateImageOptical, 
-            py::arg("filename"), py::arg("type")=CV_8UC1
+        .def("createImageOptical", &RayTracer::createImageOptical, py::arg("type") = CV_8UC1)
+        .def("createDepthMap", &RayTracer::createDepthMap, py::arg("type") = CV_8UC1)
+        .def("createImageDEM", &RayTracer::createImageDEM, 
+            py::arg("type") = CV_8UC1, py::arg("normalize") = true
+        )
+        
+        .def("saveImageOptical", &RayTracer::saveImageOptical, 
+            py::arg("filename"), py::arg("type") = CV_8UC1
         )
 
-        .def("generateImageDEM", &RayTracer::generateImageDEM, 
-            py::arg("filename"), py::arg("type")=CV_8UC1, py::arg("normalize")=true
+        .def("saveImageDEM", &RayTracer::saveImageDEM, 
+            py::arg("filename"), py::arg("type") = CV_8UC1, py::arg("normalize") = true
         )
 
-        .def("generateDepthMap", &RayTracer::generateDepthMap, 
-            py::arg("filename"), py::arg("type")=CV_8UC1
+        .def("saveDepthMap", &RayTracer::saveDepthMap, 
+            py::arg("filename"), py::arg("type") = CV_8UC1
         ) 
 
         .def("unload", &RayTracer::unload)

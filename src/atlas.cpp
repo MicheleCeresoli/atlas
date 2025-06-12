@@ -94,7 +94,7 @@ void RayTracer::unload() {
 
 // Image Generation Routines 
 
-bool RayTracer::generateImageOptical(const std::string& filename, int type) {
+cv::Mat RayTracer::createImageOptical(int type) {
 
     // Check bits
     checkImageBits(type); 
@@ -141,24 +141,11 @@ bool RayTracer::generateImageOptical(const std::string& filename, int type) {
 
     }
 
-    // Write the image
-    bool flag = cv::imwrite(filename, image); 
-
-    if (!flag) {
-        throw std::runtime_error("failed to generate optical image.");
-    }
-
-    if (logLevel >= LogLevel::MINIMAL) {
-        displayTime();
-        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
-    }
-
-    return flag;
+    return image;
 
 }
 
-
-bool RayTracer::generateImageDEM(const std::string& filename, int type, bool normalize) {
+cv::Mat RayTracer::createImageDEM(int type, bool normalize) {
 
     // Check bits
     checkImageBits(type);
@@ -230,24 +217,10 @@ bool RayTracer::generateImageDEM(const std::string& filename, int type, bool nor
 
     }
 
-    // Write the image
-    bool flag = cv::imwrite(filename, image); 
-
-    if (!flag) {
-        throw std::runtime_error("failed to generate DEM image.");
-    }
-
-    if (logLevel >= LogLevel::MINIMAL) {
-        displayTime();
-        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
-    }
-
-    return flag;
-
+    return image; 
 }
 
-
-bool RayTracer::generateDepthMap(const std::string& filename, int type) {
+cv::Mat RayTracer::createDepthMap(int type) {
 
     // Check bits
     checkImageBits(type);
@@ -277,9 +250,8 @@ bool RayTracer::generateDepthMap(const std::string& filename, int type) {
     
     /* Since pixels have a minimum distance of 0, if dMin is still infinite it means 
      * that all pixels never crossed the Moon, i.e., the image is completely blank. */
-
     if (dMin == inf) {
-        return cv::imwrite(filename, image); 
+        return image;
     }
 
     // Now we generate the normalised image with those values
@@ -309,16 +281,67 @@ bool RayTracer::generateDepthMap(const std::string& filename, int type) {
 
     }
 
+    return image; 
+
+}
+
+bool RayTracer::saveImageOptical(const std::string& filename, int type) {
+
+    // Generate the optical image
+    cv::Mat image = createImageOptical(type);
+
     // Write the image
     bool flag = cv::imwrite(filename, image); 
 
     if (!flag) {
-        throw std::runtime_error("failed to generate depth map.");
+        throw std::runtime_error("failed to save optical image.");
     }
 
     if (logLevel >= LogLevel::MINIMAL) {
         displayTime();
-        std::clog << "Generated: " << "\033[32m" << filename << "\033[0m" << std::endl;
+        std::clog << "Saved: " << "\033[32m" << filename << "\033[0m" << std::endl;
+    }
+
+    return flag;
+
+}
+
+bool RayTracer::saveImageDEM(const std::string& filename, int type, bool normalize) {
+
+    // Generate the DEM image 
+    cv::Mat image = createImageDEM(type, normalize);
+
+    // Write the image
+    bool flag = cv::imwrite(filename, image); 
+
+    if (!flag) {
+        throw std::runtime_error("failed to save DEM image.");
+    }
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        displayTime();
+        std::clog << "Saved: " << "\033[32m" << filename << "\033[0m" << std::endl;
+    }
+
+    return flag;
+
+}
+
+bool RayTracer::saveDepthMap(const std::string& filename, int type) {
+
+    // Generate the Optical image 
+    cv::Mat image = createDepthMap(type);
+
+    // Write the image
+    bool flag = cv::imwrite(filename, image); 
+
+    if (!flag) {
+        throw std::runtime_error("failed to save depth map.");
+    }
+
+    if (logLevel >= LogLevel::MINIMAL) {
+        displayTime();
+        std::clog << "Saved: " << "\033[32m" << filename << "\033[0m" << std::endl;
     }
 
     return flag;
