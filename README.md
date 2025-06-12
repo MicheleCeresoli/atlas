@@ -68,3 +68,11 @@ the system library via:
 ```
 ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${CONDA_PREFIX}/lib/libstdc++.so.6
 ```
+
+### PROJ 
+
+When importing TIFF data, the proj library may raise the following error `PROJ: proj_create_from_name: Cannot find proj.db PROJ_LIB`. This happens when the proj version with which the library was compiled is different from the one available in the local Python environment. This can be solved by installing/updating the proj library in the Python environment:
+```
+conda install -c conda-forge proj==9.5
+```
+
