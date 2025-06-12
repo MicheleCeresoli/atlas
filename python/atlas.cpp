@@ -22,7 +22,7 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
         {mat.rows, mat.cols}, 
         {mat.step[0], mat.step[1]}, 
         mat.data
-    )
+    );
 
 }
 
