@@ -17,19 +17,12 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
             throw std::runtime_error("Unsupported image type.");
     }
 
-    // Use a shared pointer to ensure memory remains valid 
-    auto mat_ptr = std::make_shared<cv::Mat>(mat);
-
-    // py::capsule nesure cv::Mat is alive until Python is done with the data
     return py::array(
         dtype, 
         {mat.rows, mat.cols}, 
         {mat.step[0], mat.step[1]}, 
-        mat_ptr->data,
-        py::capsule(mat_ptr.get(), [](void* p) {
-            delete static_cast<cv::Mat*>(p);
-        })
-    );
+        mat.data
+    )
 
 }
 
