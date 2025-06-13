@@ -246,7 +246,25 @@ point2 RasterFile::map2sph(const point2& m, ui32_t threadid) const {
 }
 
 point2 RasterFile::sph2pix(const point2& s, ui32_t threadid) const {
-    return map2pix(sph2map(s, threadid)); 
+    
+    // Retriev the pixel coordinates
+    point2 pix = map2pix(sph2map(s, threadid)); 
+
+    // Ensure the pixel is within the bounds of the image 
+    if (pix[0] < 0) {
+        pix[0] = 0; 
+    } else if (pix[0] >= _width) {
+        pix[0] = _width - 1;
+    }
+
+    if (pix[1] < 0) {
+        pix[1] = 0; 
+    } else if (pix[1] >= _height) {
+        pix[1] = _height - 1;
+    }
+
+    return pix;
+
 }
 
 point2 RasterFile::pix2sph(const point2& p, ui32_t threadid) const {
@@ -389,7 +407,8 @@ void RasterContainer::unloadRasters() {
 
 double RasterContainer::getData(const point2& s, bool interp, ui32_t tid) {
 
-    point2 pix;  
+    point2 pix; 
+
     for (size_t k = 0; k < rasters.size(); k++) {
             
         if (rasters[k].isWithinGeographicBounds(s)) {
