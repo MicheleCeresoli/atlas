@@ -8,6 +8,7 @@
 - Changed `getAltitude` interface to receive altimeter position and DCM rather than camera.
 - Updated `traceRay` with additional parameter to define maximum localization error.
 - Divided `generateImage` functions in `createImage` and `saveImage`.
+- Added `renderBlack` no skip ray tracing when no intersections are found during GDS estimation.
 - Minor code polishing.
 
 ## v0.4.4 

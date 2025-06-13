@@ -524,11 +524,37 @@ void Renderer::displayRenderStatus(ui32_t n) {
 
 }
 
+void Renderer::renderBlack(const Camera* cam) {
+
+    // Ray impact location is at an infinite distance.
+    PixelData data; 
+    data.t = inf;
+
+    for (ui32_t id = 0; id < nPixels; id++) {
+
+        // Update all pixels with the same value.
+        RenderedPixel pix(id, 1); 
+        pix.addPixelData(data); 
+        renderedPixels.push_back(pix); 
+
+    }
+
+    // Update the rendering status
+    status = RenderingStatus::COMPLETED;
+
+}
+
 // This is the high-level function called by the user
 void Renderer::render(const Camera* cam, World& w) {
 
     // Setup the render output variable.
     setupRenderer(cam, w); 
+
+    // Check whether something has to be rendered on screen. 
+    if (std::isinf(w.getRayResolution())) {
+        renderBlack(cam);
+        return;
+    }
 
     // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
     generateRenderTasks(cam, w); 

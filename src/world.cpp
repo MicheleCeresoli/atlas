@@ -190,16 +190,23 @@ void World::computeRayResolution(const Camera* cam) {
         dt = MIN(dt, 100.0);
 
     } else {
-        /* Here we the DEM altitude is computed using a weighted-average on the 4 
-         * neighbouring pixels to artificially improve the resolution of the DEM. */
+
+        /* Halve the resolution to avoid aliasing errors. */
         dt = gsd/2; 
     }
 
     // Display the new ray resolution
     if (opts.logLevel >= LogLevel::DETAILED) {
         displayTime(); 
-        std::clog << "Ray resolution set to: " 
-                  << "\033[35m" << int(floor(dt)) << "m" << "\033[0m" << std::endl;
+
+        if (std::isinf(dt)) {
+            std::clog << "No valid ray intersection detected." << std::endl;
+        } 
+        else {
+            std::clog << "Ray resolution set to: " 
+                    << "\033[35m" << int(floor(dt)) << "m" << "\033[0m" << std::endl;
+        }
+
     }
 
 }

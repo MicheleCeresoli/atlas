@@ -99,6 +99,9 @@ class Renderer {
         void runAntiAliasing(const Camera* cam, World& w);  
         void runDefocusBlur(const Camera* cam, World& w);
 
+        // Dummy pixel rendering when no intersections are detected
+        void renderBlack(const Camera* cam); 
+
         // Update the storing of the rendered pixels
         void setupRenderer(const Camera* cam, World& w); 
         void postProcessRender(const Camera* cam, World& w);  
