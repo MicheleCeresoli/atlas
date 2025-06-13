@@ -292,6 +292,14 @@ class RasterFile {
          */
         void getLongitudeBounds(double* bounds) const; 
         
+        /**
+         * @brief Return the latitude limits of this raster file. 
+         * @details 
+         * 
+         * @param bounds Pointer to a 2-element vector.
+         * 
+         * @warning This function does not check the underlying size of the vector.
+         */
         void getLatitudeBounds(double* bounds) const;
 
         /**
