@@ -5,7 +5,7 @@
 #include "settings.h"
 #include "types.h"
 
-class DEM : public RasterContainer {
+class DEM : public RasterManager {
 
     public: 
 

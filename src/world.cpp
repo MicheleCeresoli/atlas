@@ -8,13 +8,13 @@
 World::World(const WorldOptions& opts, ui32_t nThreads) : 
     dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
 
-    // This will be updated on the `computeRayResolution` call. 
-    dt = dem.getResolution(); 
+    // This will be updated on the `computeRayResolution` call.
+    dt = dem.getMaxResolution();
 
 }
 
 PixelData World::traceRay(
-    const Ray& ray, double tMin, double tMax, int threadid, double maxErr
+    const Ray& ray, double tMin, double tMax, ui32_t threadid, double maxErr
 ) 
 {
 
@@ -71,8 +71,8 @@ PixelData World::traceRay(
         // Convert geographic coordinates to degrees
         s2 = rad2deg(point2(sph[1], sph[2])); 
 
-        // Retrieve altitude from DEM 
-        hk = dem.getData(s2, interp, threadid); 
+        // Retrieve altitude from the DEM model.
+        hk = dem.getData(s2, dt, threadid); 
 
         if (sph[0] <= (hk + dem.meanRadius())) {
             
@@ -98,7 +98,7 @@ PixelData World::traceRay(
 }
 
 void World::findImpactLocation(
-    PixelData& data, const Ray& ray, double tk, int threadid, double maxErr
+    PixelData& data, const Ray& ray, double tk, ui32_t threadid, double maxErr
 ) {
 
     // We had an intersection at tk, thus we move backwards along the ray.
@@ -107,7 +107,7 @@ void World::findImpactLocation(
 
     // The default error is equal to half the dem resolution
     if (maxErr <= 0.0) {
-        maxErr = dem.getResolution();
+        maxErr = dem.getLastResolution(threadid);
     }
     
     point3 pos1 = ray.at(tk); 
@@ -171,29 +171,9 @@ void World::computeRayResolution(const Camera* cam) {
         throw std::runtime_error("No DEM rasters are available.");
     }
 
-    // Compute the minimum GSD of the camera 
-    double gsd = computeGSD(cam); 
-
-    // Retrieve the DEM's resolution 
-    double resDem = dem.getResolution(); 
-
-    interp = gsd < resDem; 
-    
-    // No point in using the maximum DEM's resolution
-    if (interp) {
-
-        /* Here we are reducing the resolution to avoid 'aliasing' issues. However, 
-         * since we already satisfy the requirement, we don't want to slow down the 
-         * computations too much, and thus we limit it at the maximum DEM's resolution. */
-
-        dt = MAX(gsd/4, resDem); 
-        dt = MIN(dt, 100.0);
-
-    } else {
-
-        /* Halve the resolution to avoid aliasing errors. */
-        dt = gsd/2; 
-    }
+    /* Compute the minimum GSD of the camera and halve the resolution to avoid aliasing 
+     * errors. */
+    dt = 0.5*computeGSD(cam); 
 
     // Display the new ray resolution
     if (opts.logLevel >= LogLevel::DETAILED) {

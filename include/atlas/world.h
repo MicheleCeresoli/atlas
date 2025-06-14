@@ -20,11 +20,11 @@ class World {
         World(const WorldOptions& opts, ui32_t nThreads);
 
         PixelData traceRay(
-            const Ray& r, double tMin, double tMax, int threadid, double maxErr = -1.0
+            const Ray& r, double tMin, double tMax, ui32_t threadid, double maxErr = -1.0
     ); 
         
-        inline double sampleDEM(const point2& p) { return dem.getData(p, interp, 0); }; 
-        inline double sampleDOM(const point2& p) { return dom.getColor(p, interp, 0); };
+        inline double sampleDEM(const point2& p) { return dem.getData(p, dt, 0); }; 
+        inline double sampleDOM(const point2& p) { return dom.getColor(p, dt, 0); };
 
         // DEM interface functions
         inline double maxRadius() const { return dem.maxRadius(); }
@@ -67,7 +67,7 @@ class World {
 
         double computeGSD(const Camera* cam); 
         void findImpactLocation(
-            PixelData& data, const Ray& ray, double tk, int threadid, double maxErr = -1.0
+            PixelData& data, const Ray& ray, double tk, ui32_t threadid, double maxErr = -1.0
         );
 
 };

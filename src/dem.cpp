@@ -3,36 +3,47 @@
 #include "utils.h"
 
 DEM::DEM(const std::vector<RasterDescriptor>& descriptors, ui32_t nThreads, bool displayLogs) : 
-    RasterContainer(descriptors, nThreads, displayLogs) {
+    RasterManager(descriptors, nThreads, displayLogs) {
 
     // Initialise min\max altitude values
     _minAltitude = inf; 
     _maxAltitude = -inf;
-    _meanRadius = 0.0;
+    _meanRadius = inf;
 
-    double hMin, hMax;
-    RasterFile* pRaster;
+    double hMin, hMax, meanRadius;
+    const RasterFile* pRaster;
 
-    for (size_t k = 0; k < rasters.size(); k++)
+    // Iterate among the raster containers
+    for (size_t k = 0; k < containers.size(); k++)
     {
-        pRaster = &rasters[k];
+        // Iterate among the rasters in the container 
+        for (size_t j = 0; j < containers[k]->nRasters(); j++) {
 
-        // Retrieve raster band min\max altitude values
-        hMin = pRaster->getRasterBand(0)->min(); 
-        if (hMin < _minAltitude) {
-            _minAltitude = hMin; 
-        }
+            pRaster = containers[k]->getRasterFile(j);
 
-        hMax = pRaster->getRasterBand(0)->max(); 
-        if (hMax > _maxAltitude) {
-            _maxAltitude = hMax; 
+            // Retrieve raster band min\max altitude values
+            hMin = pRaster->getRasterBand(0)->min(); 
+            if (hMin < _minAltitude) {
+                _minAltitude = hMin; 
+            }
+
+            hMax = pRaster->getRasterBand(0)->max(); 
+            if (hMax > _maxAltitude) {
+                _maxAltitude = hMax; 
+            }
+
+            // Retrieve the DEM mean radius and ensure its the same across all rasters.
+            meanRadius = pRaster->crs()->GetSemiMajor(); 
+            if (std::isinf(_meanRadius)) {
+                _meanRadius = meanRadius;
+            } else if (std::fabs(_meanRadius - meanRadius) > 1e-9) {
+                throw std::runtime_error(
+                    "All raster files must have the same reference body radius."
+                );
+            }
+
         }
     }
-
-    // Retrieve the DEM mean radius. This assumes that the mean value is equal in 
-    // all rasters, which is true for the DEMs at hand. 
-    if (nRasters() > 0)
-        _meanRadius = rasters[0].crs()->GetSemiMajor(); 
 
     _minRadius = _meanRadius + _minAltitude; 
     _maxRadius = _meanRadius + _maxAltitude;

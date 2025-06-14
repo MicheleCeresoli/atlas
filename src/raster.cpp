@@ -3,6 +3,7 @@
 #include "crsutils.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <iostream>
 #include <stdexcept>
@@ -329,69 +330,18 @@ void RasterFile::setupTransformations() {
 
 // Constructors 
 
-RasterContainer::RasterContainer(
-    std::vector<RasterDescriptor> descriptors, size_t nThreads, bool displayLogs
-) {
+RasterContainer::RasterContainer(double res, size_t nThreads) : 
+    _resolution(res), nThreads(nThreads) {}
 
-    // If there are no files, throw an error
-    size_t nFiles = descriptors.size(); 
+void RasterContainer::appendRaster(RasterDescriptor desc) {
 
-    /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
-     * this function should be called just once at the start of the program, however 
-     * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
-     * it does any harm calling it more than once. */ 
-    GDALAllRegister();
+    // Append the raster to the set of rasters
+    rasters.push_back(RasterFile(desc, nThreads)); 
 
-    // Initialise the resolution.
-    _resolution  = inf; 
-    double res;
-    
-    // Store current time
-    auto t1 = std::chrono::high_resolution_clock::now();
-    
-    // Load up all the rasters
-    rasters.reserve(nFiles); 
-    for (auto d : descriptors)
-    {
-
-        // Prevent opening an empty string.
-        if (d.filename.empty()) {
-            nFiles--;
-            continue;
-        }
-
-        // Add the raster and retrieve its name.
-        rasters.push_back(RasterFile(d, nThreads));
-
-        if (displayLogs) {
-            displayLoadingStatus(RasterLoadingStatus::LOADING, nFiles);
-        }
-            
-        // Update the minimum DEM resolution
-        res = rasters.back().resolution();
-        if (res < _resolution) {
-            _resolution = res;
-        }
-
-    }    
-
-    // Initialise the raster use and flags vectors 
-    rastersUsed = std::vector<ui8_t>(nFiles, 0);
-    rastersFlag = std::vector<ui8_t>(nFiles, 0); 
-
-    // Retrieve time to compute rendering duration
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
-
-    if (displayLogs) {
-        displayLoadingStatus(RasterLoadingStatus::COMPLETED, nFiles); 
-    }
+    rastersUsed.push_back(0); 
+    rastersFlag.push_back(0); 
 
 }
-
-RasterContainer::RasterContainer(RasterDescriptor desc, size_t nThreads, bool displayLogs) : 
-    RasterContainer(std::vector<RasterDescriptor>{desc}, nThreads, displayLogs) {}
-
 
 void RasterContainer::loadRasters() {
     for (size_t k = 0; k < rasters.size(); k++) {
@@ -441,7 +391,7 @@ double RasterContainer::getData(const point2& s, bool interp, ui32_t tid) {
 
 void RasterContainer::cleanupRasters(ui32_t threshold) {
 
-    for (size_t k; k < rasters.size(); k++) 
+    for (size_t k = 0; k < rasters.size(); k++) 
     {
         if (rastersUsed[k] == 0) {
             if (++rastersFlag[k] >= threshold && rasters[k].isBandLoaded(0)) {
@@ -511,18 +461,169 @@ double RasterContainer::interpolateRaster(const point2& pix, size_t rid) const {
     return n/d; 
 }
 
-void RasterContainer::displayLoadingStatus(RasterLoadingStatus s, size_t nFiles) {
+/* -------------------------------------------------------
+                    RASTER MANAGER
+---------------------------------------------------------- */
+
+// Constructors 
+
+RasterManager::RasterManager(
+    std::vector<RasterDescriptor> descriptors, size_t nThreads, bool displayLogs
+) {
+
+    // Initialize the number of rasters 
+    _nRasters = 0;
+
+    size_t nFiles = descriptors.size(); 
+
+    /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
+     * this function should be called just once at the start of the program, however 
+     * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
+     * think it does any harm calling it more than once. */ 
+    GDALAllRegister(); /* TODO: update with std::call_once*/
+
+    /* Sort the raster descriptors by increasing order of resolution to ensure the 
+     * containers are also built appropriately. */
+    std::sort(descriptors.begin(), descriptors.end(), 
+    [](const RasterDescriptor& a, const RasterDescriptor & b) {
+        return a.res < b.res;
+    });
+
+    // Store current time
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    std::string filename; 
+    size_t cIdx;
+
+    for (auto d : descriptors) 
+    {
+        // Prevent opening an empty string 
+        if (d.filename.empty()) {
+            nFiles--; 
+            continue;
+        }
+
+        // Retrieve the index of the element with the same resolution, if present
+        cIdx = findDouble(_resolutions, d.res, 1e-9); 
+
+        if (cIdx == _resolutions.size()) {
+            /* A raster with a new resolution value is being added. Create a dedicated 
+             * container to store it. */
+            containers.push_back(std::make_unique<RasterContainer>(d.res, nThreads));
+
+            // Update the resolution vectors.
+            _resolutions.push_back(d.res);
+
+        }
+
+        // Append the descriptor to the set of rasters of the last container.
+        containers.back()->appendRaster(d);
+
+        // Update the total number of rasters available
+        _nRasters++;
+        filename = d.filename;
+
+        if (displayLogs) {
+            displayLoadingStatus(RasterLoadingStatus::LOADING, nFiles, filename);
+        }
+
+    }
+
+    // Retrieve time to compute rendering duration
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+
+    if (displayLogs) {
+        displayLoadingStatus(RasterLoadingStatus::COMPLETED, nFiles, filename); 
+    }
+
+    // Initialize the vector storing the latest used resolution for thread 
+    lastRes.reserve(nThreads);
+    for (size_t k = 0; k < nThreads; k++) {
+        lastRes.push_back(0.0);
+    }
+
+}
+
+RasterManager::RasterManager(RasterDescriptor desc, size_t nThreads, bool displayLogs) : 
+    RasterManager(std::vector<RasterDescriptor>{desc}, nThreads, displayLogs) {}
+
+double RasterManager::getData(const point2& s, double res, ui32_t tid) {
+
+    // Set the initial impact distance to -inf (i.e., no data available)
+    double x = -inf;
+
+    // Find the last container with a resolution lower than the prescribed one.
+    size_t cIdx = findLast(_resolutions, res); 
+
+    // Check all the containers from this resolution and downwards 
+    for (int k = static_cast<int>(cIdx); k >= 0; k--) {
+        /* Retrieve the data from the container. Since the raster has a resolution higher 
+         * than the requested one, we don't need to perform any kind of interpolation. */  
+        x = containers[k]->getData(s, false, tid);
+
+        /* If the return value is not infinite, it means we successfully retrieved it and 
+         * we thus can exit the loop after updating the latest used resolution. */
+        if (!std::isinf(x)) {
+            lastRes[tid] = _resolutions[k];
+            return x;
+        }
+    }
+
+    /* If we still haven't found a raster with a resolution higher than the one desired, 
+     * we look through the ones with a lower resolution. */
+    for (size_t k = cIdx + 1; k < containers.size(); k++) {
+        /* Retrieve the data from the container. Since the resolution of the raster is 
+         * lower, we interpolate neighbouring pixel to retrieve a more accurate value. */
+        x = containers[k]->getData(s, true, tid); 
+
+        /* If the return value is not infinite, we successfully retrieved it. */
+        if (!std::isinf(x)) {
+            lastRes[tid] = _resolutions[k];
+            return x;
+        }
+    }
+
+    lastRes[tid] = inf;
+    return x; 
+
+}
+
+void RasterManager::loadRasters() {
+    // Iterate among all containers and load their rasters
+    for (size_t k = 0; k < containers.size(); k++) {
+        containers[k]->loadRasters();
+    }
+}
+
+void RasterManager::unloadRasters() {
+    // Iterate among all containers and unload their rasters
+    for (size_t k = 0; k < containers.size(); k++) {
+        containers[k]->unloadRasters();
+    }
+}
+
+void RasterManager::cleanupRasters(ui32_t threshold) {
+
+    // Iterate among all the different containers
+    for (size_t k = 0; k < containers.size(); k++) {
+        containers[k]->cleanupRasters(threshold);
+    }
+
+}
+
+void RasterManager::displayLoadingStatus(
+    RasterLoadingStatus s, size_t nFiles, std::string filename
+) {
 
     if (nFiles == 0)
         return;  
 
     int dl; 
-    std::string filename = rasters.back().getFileName(); 
-
     if (s == RasterLoadingStatus::LOADING && nFiles > 0) {
 
         // Update loading status
-        int progress = (int)(100*(double)rasters.size()/nFiles);
+        int progress = (int)(100*(double)_nRasters/nFiles);
 
         // Compute message 
         dl = displayMessage.length() - filename.length(); 

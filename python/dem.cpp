@@ -8,7 +8,7 @@ namespace py = pybind11;
 
 void init_dem(py::module_ &m) {
 
-    py::class_<DEM, RasterContainer>(m, "DEM")
+    py::class_<DEM, RasterManager>(m, "DEM")
 
         .def(py::init<WorldOptions, ui32_t>(), 
                py::arg("opts") = WorldOptions(), 

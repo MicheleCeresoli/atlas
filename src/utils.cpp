@@ -1,10 +1,13 @@
 
 #include "utils.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <ctime>
 #include <iomanip>
+#include <numeric>
+#include <vector>
 
 // Convert cartesian pos to radius, longitude and latitude
 point3 car2sph(const point3 &pos)
@@ -65,6 +68,47 @@ std::string readFileContent(const std::string &filename)
     file.read(&content[0], fileSize);
 
     return content;
+}
+
+size_t findLast(const std::vector<double>& vec, double value) {
+    
+    for (int k = (static_cast<int>(vec.size()) - 1); k >= 0; k--) {
+        if (vec[k] <= value) {
+            return k; 
+        }
+    }
+
+    return 0;
+}
+
+size_t findDouble(const std::vector<double>& vec, double value, double eps) {
+
+    auto it = std::find_if(vec.begin(), vec.end(), [=](double x) {
+        return std::fabs(x - value) <= eps;
+    }); 
+
+    return std::distance(vec.begin(), it);
+
+}
+
+bool containsDouble(const std::vector<double>& vec, double value, double eps) {
+    return findDouble(vec, value, eps) != vec.size(); 
+}
+
+std::vector<size_t> sortingIndexes(std::vector<double> &v) {
+
+    // Initialize the original index locations
+    std::vector<size_t> idx(v.size()); 
+    std::iota(idx.begin(), idx.end(), 0);
+
+    /* Sort the indexes to return a vector in ascending order using std::stable_sort 
+     * instead of std::sort because we are sure we don't have equal values in the array. */
+    std::stable_sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {
+        return v[i1] < v[i2];
+    });
+
+    return idx;
+
 }
 
 void displayTime()

@@ -399,51 +399,96 @@ class RasterContainer {
 
     public: 
 
-        RasterContainer(
-            RasterDescriptor desc, size_t nThreads = 1, bool displayLogs = false
-        ); 
-
-        RasterContainer(
-            std::vector<RasterDescriptor> descs,
-            size_t nThreads = 1, 
-            bool displayLogs = false
-        );
-
-        virtual ~RasterContainer() = default;
+        RasterContainer(double res, size_t nThreads = 1); 
 
         inline size_t nRasters() const { return rasters.size(); }; 
 
         inline double getResolution() const { return _resolution; }; 
         double getData(const point2& s, bool interp, ui32_t threadid = 0);
-
+        
         inline const RasterFile* getRasterFile(size_t i) const { return &rasters[i]; }
 
         inline void loadRaster(size_t i) { rasters[i].loadBand(0); }
         inline void unloadRaster(size_t i) { rasters[i].unloadBand(0); }
+
+        void appendRaster(RasterDescriptor desc); 
 
         void loadRasters(); 
         void unloadRasters();
 
         void cleanupRasters(ui32_t threshold); 
 
-    protected:
+    private:
 
         std::vector<RasterFile> rasters;
         double _resolution;
 
-        // // Mutex to handle raster loading\unloading. 
+        size_t nThreads; 
+
+        // Mutex to handle raster loading\unloading. 
         std::mutex rasterUpdateMutex;
         std::vector<ui8_t> rastersUsed; 
         std::vector<ui8_t> rastersFlag;
 
         double interpolateRaster(const point2& pix, size_t rid) const;
 
+};
+
+
+class RasterManager {
+
+    public: 
+
+        RasterManager(
+            RasterDescriptor desc, size_t nThreads = 1, bool displayLogs = false
+        );
+
+        RasterManager(
+            std::vector<RasterDescriptor> descs, 
+            size_t nThreads = 1, 
+            bool displayLogs = false
+        ); 
+
+        virtual ~RasterManager() = default;
+
+        inline size_t nRasters() const { return _nRasters; };
+        inline size_t nContainers() const { return containers.size(); };
+
+        inline double getMinResolution() { return _resolutions.front(); }
+        inline double getMaxResolution() { return _resolutions.back(); }
+
+        inline const std::vector<double> getResolutions() {
+            return _resolutions;
+        }
+        
+        double getData(const point2& s, double res, ui32_t threadid = 0);
+        inline double getLastResolution(ui32_t threadid = 0) { return lastRes[threadid]; };
+
+        inline const RasterContainer* getRasterContainer(size_t i) const { 
+            return containers[i].get();
+        };
+
+        void loadRasters(); 
+        void unloadRasters();
+
+        void cleanupRasters(ui32_t threshold); 
+
+    protected: 
+
+        std::vector<std::unique_ptr<RasterContainer>> containers;
+        std::vector<double> _resolutions;
+
+        std::vector<double> lastRes; 
+
+        size_t _nRasters;
+        
     private: 
 
         std::string displayMessage;
-        void displayLoadingStatus(RasterLoadingStatus s, size_t nFiles);
+        void displayLoadingStatus(
+            RasterLoadingStatus s, size_t nFiles, std::string filename
+        );
 
 };
-
 
 #endif

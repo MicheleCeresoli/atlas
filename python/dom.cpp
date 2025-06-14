@@ -9,7 +9,7 @@ namespace py = pybind11;
 void init_dom(py::module_ &m) {
 
 
-    py::class_<DOM, RasterContainer>(m, "DOM")
+    py::class_<DOM, RasterManager>(m, "DOM")
 
         .def(py::init<WorldOptions, ui32_t>(), 
                py::arg("opts") = WorldOptions(), 

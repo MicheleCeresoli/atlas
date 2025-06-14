@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "vec2.h"
 #include "vec3.h"
@@ -33,6 +34,12 @@ std::string readFileContent(const std::string& filename);
 
 void displayTime();
 
+size_t findLast(const std::vector<double>& vec, double value); 
+
+size_t findDouble(const std::vector<double>& vec, double value, double eps = 1e-9);
+bool containsDouble(const std::vector<double>& vec, double value, double eps = 1e-9);
+
+std::vector<size_t> sortingIndexes(std::vector<double> &v);
 
 // RANDOM NUMBER GENERATION
 

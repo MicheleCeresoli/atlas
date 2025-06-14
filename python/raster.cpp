@@ -128,11 +128,7 @@ void init_raster(py::module_ &m) {
 
     py::class_<RasterContainer>(m, "RasterContainer")
 
-        .def(py::init<RasterDescriptor, size_t, bool>(), 
-             py::arg("file"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
-
-        .def(py::init<std::vector<RasterDescriptor>, size_t, bool>(), 
-             py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+        .def(py::init<double, size_t>(), py::arg("res"), py::arg("nThreads") = 1)
 
         .def("nRasters", &RasterContainer::nRasters)
         .def("getResolution", &RasterContainer::getResolution)
@@ -148,5 +144,31 @@ void init_raster(py::module_ &m) {
         .def("unloadRasters", &RasterContainer::unloadRasters)
         
         .def("cleanupRasters", &RasterContainer::cleanupRasters); 
+
+    py::class_<RasterManager>(m, "RasterManager")
+
+        .def(py::init<RasterDescriptor, size_t, bool>(), 
+             py::arg("file"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+
+        .def(py::init<std::vector<RasterDescriptor>, size_t, bool>(), 
+             py::arg("files"), py::arg("nThreads") = 1, py::arg("displayInfo") = false)
+
+        .def("nRasters", &RasterManager::nRasters)
+        .def("nContainers", &RasterManager::nContainers)
+
+        .def("getMinResolution", &RasterManager::getMinResolution)
+        .def("getMaxResolution", &RasterManager::getMaxResolution)
+        .def("getResolutions", &RasterManager::getResolutions)
+
+        .def("getData", &RasterManager::getData)
+        .def("getLastResolution", &RasterManager::getLastResolution)
+
+        .def("getRasterContainer", &RasterManager::getRasterContainer, 
+            py::return_value_policy::reference)
+
+        .def("loadRasters", &RasterManager::loadRasters)
+        .def("unloadRasters", &RasterManager::unloadRasters)
+        
+        .def("cleanupRasters", &RasterManager::cleanupRasters); 
 
 }
