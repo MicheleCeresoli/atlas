@@ -3,6 +3,7 @@
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.
 - Added support for rectangular camera FOVs.
+- Added support for simultaneous usage of multi-resolution rasters.
 - Added `RasterDescriptor` object to support arbitrary raster nomenclatures.
 - Raster reference system is updated only if a _.prj_ file in the same directory is detected.
 - Changed `getAltitude` interface to receive altimeter position and DCM rather than camera.
