@@ -417,7 +417,8 @@ void RasterContainer::cleanupRasters(ui32_t threshold) {
 
 double RasterContainer::interpolateRaster(const point2& pix, size_t rid) const {
 
-    int u = pix[0], v = pix[1]; 
+    int u = static_cast<int>(pix[0]); 
+    int v = static_cast<int>(pix[1]); 
 
     // These are the upper-left (dr) and bottom-right (dl) points
     point2 dl(u, v); 
