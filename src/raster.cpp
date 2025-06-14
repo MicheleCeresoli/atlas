@@ -9,6 +9,16 @@
 #include <stdexcept>
 #include <string>
 
+// Initialize a flag that is used to register GDAL raster readers 
+std::once_flag gdalRegister; 
+
+void initializeGDAL() {
+    /* Register GDAL drivers to open raster datasets. From GDAL documentation we understand 
+     * that this function is only meant to be called once at the start of the program, thus 
+     * it leverages std::call_once to ensure that no additional calls to it are made. */
+    std::call_once(gdalRegister, [](){ GDALAllRegister(); }); 
+}
+
 /* -------------------------------------------------------
                         RASTER BAND
 ---------------------------------------------------------- */
@@ -476,11 +486,8 @@ RasterManager::RasterManager(
 
     size_t nFiles = descriptors.size(); 
 
-    /* Register GDAL drivers to open raster datasets. Technically from the GDAL docs 
-     * this function should be called just once at the start of the program, however 
-     * (1) I don't see many scenarios in which one would use multiple DEMs (2) I don't 
-     * think it does any harm calling it more than once. */ 
-    GDALAllRegister(); /* TODO: update with std::call_once*/
+    // Register GDAL drivers to open raster datasets.
+    initializeGDAL();
 
     /* Sort the raster descriptors by increasing order of resolution to ensure the 
      * containers are also built appropriately. */
