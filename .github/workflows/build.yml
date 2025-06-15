@@ -36,9 +36,9 @@ jobs:
         run: python -m build --wheel
 
       - name: Archive the wheel 
-        uses: actions/upload-artifact@v3 
+        uses: actions/upload-artifact@v4
         with: 
-          name: wheel 
+          name: wheel-${{matrix.python-version}}
           path: dist/*.whl
 
       - name: Set up Miniconda
@@ -63,9 +63,9 @@ jobs:
           echo "CONDA_BUILD_PATH=$(conda build recipe --output)" >> $GITHUB_ENV
 
       - name: Archive the conda-package 
-        uses: actions/upload-artifact@v3 
+        uses: actions/upload-artifact@v4
         with: 
-          name: conda-packages
+          name: conda-packages-${{matrix.python-version}}
           path: ${{ env.CONDA_BUILD_PATH }}
 
   upload-package: 
@@ -86,10 +86,12 @@ jobs:
           prerelease: false 
           
       - name: Download wheels 
-        uses: actions/download-artifact@v3 
+        uses: actions/download-artifact@v4
         with: 
-          name: wheel 
+          # name: wheel
           path: wheels 
+          pattern: wheel-*
+          merge-multiple: true
 
       - name: Upload wheel to GitHub Release 
         env: 
@@ -101,10 +103,12 @@ jobs:
           done
 
       - name: Download conda-packages 
-        uses: actions/download-artifact@v3 
+        uses: actions/download-artifact@v4
         with: 
-          name: conda-packages 
+          # name: conda-packages 
           path: conda-packages 
+          pattern: conda-packages-*
+          merge-multiple: true
 
       - name: Upload conda-package to GitHub Release 
         env: 
