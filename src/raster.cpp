@@ -482,13 +482,24 @@ RasterManager::RasterManager(
     std::vector<RasterDescriptor> descriptors, size_t nThreads, bool displayLogs
 ) {
 
+    // Register GDAL drivers to open raster datasets.
+    initializeGDAL();
+
     // Initialize the number of rasters 
     _nRasters = 0;
 
-    size_t nFiles = descriptors.size(); 
+    // Initialize the vector storing the latest used resolution for thread 
+    lastRes.reserve(nThreads);
+    for (size_t k = 0; k < nThreads; k++) {
+        lastRes.push_back(0.0);
+    }
 
-    // Register GDAL drivers to open raster datasets.
-    initializeGDAL();
+    size_t nFiles = descriptors.size(); 
+    if (nFiles == 0) {
+        // If there are no files loaded, we set the resolution to infinite.
+        _resolutions.push_back(inf);
+        return;
+    }
 
     /* Sort the raster descriptors by increasing order of resolution to ensure the 
      * containers are also built appropriately. */
@@ -543,12 +554,6 @@ RasterManager::RasterManager(
 
     if (displayLogs) {
         displayLoadingStatus(RasterLoadingStatus::COMPLETED, nFiles, filename); 
-    }
-
-    // Initialize the vector storing the latest used resolution for thread 
-    lastRes.reserve(nThreads);
-    for (size_t k = 0; k < nThreads; k++) {
-        lastRes.push_back(0.0);
     }
 
 }
