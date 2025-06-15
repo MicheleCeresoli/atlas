@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "atlas"
-version = "0.4.4"
+version = "0.5.0"
 description = "A Ray Tracer for Lunar Imagery"
 authors = [ { name = "Michele Ceresoli", email = "michele.ceresoli@polimi.it"} ]
 readme = "README.md"
