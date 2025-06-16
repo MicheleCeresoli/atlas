@@ -145,7 +145,7 @@ RasterFile::RasterFile(const RasterDescriptor& desc, size_t nThreads) : _nThread
 
     // Check whether it is a valid Dataset pointer
     if (pDataset == NULL) {
-        throw std::runtime_error("failed to open the dataset");
+        throw std::runtime_error("failed to open the dataset. Invalid pointer detected.");
     }
 
     // Retrieve dataset parameters. 
