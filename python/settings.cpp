@@ -58,7 +58,8 @@ void init_settings(py::module_ &m) {
         .def_readwrite("demFiles", &WorldOptions::demFiles)
         .def_readwrite("domFiles", &WorldOptions::domFiles)
         .def_readwrite("logLevel", &WorldOptions::logLevel)
-        .def_readwrite("rasterUsageThreshold", &WorldOptions::rasterUsageThreshold);
+        .def_readwrite("rasterUsageThreshold", &WorldOptions::rasterUsageThreshold)
+        .def_readwrite("minRes", &WorldOptions::minRes);
 
     /* RAYTRACER OPTIONS */
     py::class_<RayTracerOptions>(m, "RayTracerOptions")

@@ -16,17 +16,12 @@ def RayTracerOptions(filename: str):
         config = yaml.safe_load(file)
     
     # Retrieve number of threads 
-    if 'n-threads' in config.keys(): 
-        nthreads = config['n-threads']
-    else: 
-        nthreads = 1 
-        
+    nthreads = config.get('n-threads', 1)
+    
     # Retrieve log-level 
-    if 'log-level' in config.keys():
-        log_level = LogLevel(config['log-level'])
-    else: 
-        log_level = LogLevel.MINIMAL   
+    log_level = LogLevel(config.get('log-level', 1))
 
+    # Initialise the options
     opts = _atlas.RayTracerOptions(nthreads, log_level)
     
     # Retrieve rendering options
@@ -64,10 +59,7 @@ def RayTracerOptions(filename: str):
         cfg_world = config['world']
         
         # Retrieve all DEM files
-        dem_path = ''
-        if 'dem-path' in cfg_world.keys(): 
-            dem_path = cfg_world['dem-path']
-
+        dem_path = cfg_world.get('dem-path', '')
         if 'dem-files' in cfg_world.keys(): 
             
             dem_files = []
@@ -78,10 +70,7 @@ def RayTracerOptions(filename: str):
             opts.optsWorld.demFiles = list(set(dem_files))
 
         # Retrieve all DOM files
-        dom_path = ''
-        if 'dom-path' in cfg_world.keys(): 
-            dom_path = cfg_world['dom-path']
-                            
+        dom_path = cfg_world.get('dom-path', '')
         if 'dom-files' in cfg_world.keys(): 
 
             dom_files = []
@@ -94,6 +83,8 @@ def RayTracerOptions(filename: str):
         if 'raster-usage-threshold' in cfg_world.keys(): 
             opts.optsWorld.rasterUsageThreshold = cfg_world['raster-usage-threshold']
         
+        if 'min-resolution' in cfg_world.keys(): 
+            opts.optsWorld.minRes = float(cfg_world['min-resolution'])
     
     return opts 
     

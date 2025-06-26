@@ -175,6 +175,9 @@ void World::computeRayResolution(const Camera* cam) {
      * errors. */
     dt = 0.5*computeGSD(cam); 
 
+    /* Ensure the resolution does not go below the allowed minimum. */
+    dt = MAX(dt, opts.minRes);
+    
     // Display the new ray resolution
     if (opts.logLevel >= LogLevel::DETAILED) {
         displayTime(); 

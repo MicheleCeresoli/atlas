@@ -1,5 +1,8 @@
 # All Releases 
 
+## v0.5.1 
+- Added `minRes` parameter to `WorldOptions` to control the minimum ray resolution.
+
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.
 - Added support for rectangular camera FOVs.
