@@ -2,6 +2,7 @@
 
 ## v0.5.1 
 - Added `minRes` parameter to `WorldOptions` to control the minimum ray resolution.
+- Fixed GSD computation when below the average planet radius.
 
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.

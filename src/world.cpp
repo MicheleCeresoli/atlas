@@ -207,6 +207,19 @@ double World::computeGSD(const Camera* cam) {
     double tMin, tMax;
     double gsd = inf, gsd_jk; 
 
+    /* The GSD is usually computed using the average Moon radius for the reference sphere. 
+     * This can cause issues when the camera position is below such distance. Thus, in 
+     * this cases, the minimum sphere radius is used. */
+    double sphereRadius = dem.meanRadius();
+
+    // Check whether the camera is below the Moon average radius or not
+    double posNorm = cam->getPos().norm();
+    if (posNorm < dem.minRadius()) {
+        return gsd;
+    } else if (posNorm < dem.meanRadius()) {
+        sphereRadius = dem.minRadius();
+    }
+
     for (size_t j = 0; j < cam->width(); j++) {
         for (size_t k = 0; k < cam->height(); k++) {
             
@@ -214,12 +227,12 @@ double World::computeGSD(const Camera* cam) {
             Ray ray_k(cam->getRay(j, k, true)); 
 
             // Compute position at moon intersection 
-            ray_k.getParameters(dem.meanRadius(), tMin, tMax); 
+            ray_k.getParameters(sphereRadius, tMin, tMax); 
 
             /* If tMin is negative, the ray is "encountering" the Moon behind our back, 
              * so this case is treated as if we are missing it entirely. */
 
-            if (ray_k.minDistance() > dem.meanRadius() || tMin < 0) {
+            if (ray_k.minDistance() > sphereRadius || tMin < 0) {
                 tagPoints[k] = false;
                 rayDistances.push_back(inf); 
                 continue;
@@ -230,7 +243,7 @@ double World::computeGSD(const Camera* cam) {
             // Check with pixel above
             if (k > 0) {
                 if (tagPoints[k-1]) {
-                    gsd_jk = dem.meanRadius()*acos(dot(uk, fovPoints[k-1]));
+                    gsd_jk = sphereRadius*acos(dot(uk, fovPoints[k-1]));
                     if (gsd_jk < gsd)
                         gsd = gsd_jk; 
                 }
@@ -239,7 +252,7 @@ double World::computeGSD(const Camera* cam) {
             // Check with pixel on the left
             if (j > 0) {
                 if (tagPoints[k]) {
-                    gsd_jk = dem.meanRadius()*acos(dot(uk, fovPoints[k])); 
+                    gsd_jk = sphereRadius*acos(dot(uk, fovPoints[k])); 
                     if (gsd_jk < gsd) 
                         gsd = gsd_jk;
                 }
