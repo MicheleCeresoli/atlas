@@ -19,7 +19,10 @@ void init_pixel(py::module_ &m) {
 
     py::class_<RenderedPixel>(m, "RenderedPixel") 
 
-        .def(py::init<ui32_t, size_t>(), py::arg("id"), py::arg("nSamples"))
+        .def(
+            py::init<ui32_t, size_t, double>(), 
+            py::arg("id"), py::arg("nSamples"), py::arg("dt")
+        )
 
         .def_readwrite("id", &RenderedPixel::id)
         .def_readwrite("nSamples", &RenderedPixel::nSamples)
@@ -27,6 +30,8 @@ void init_pixel(py::module_ &m) {
 
         .def("updateSamples", &RenderedPixel::updateSamples)
         .def("addPixelData", &RenderedPixel::addPixelData)
+
+        .def("pixResolution", &RenderedPixel::pixResolution)
 
         .def("pixDistance", &RenderedPixel::pixDistance)
         .def("pixMeanDistance", &RenderedPixel::pixMinDistance)
