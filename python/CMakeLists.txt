@@ -7,6 +7,7 @@ set(PYTHON_FILES
     dcm.cpp
     dem.cpp
     dom.cpp
+    grid.cpp
     pixel.cpp
     raster.cpp
     ray.cpp
