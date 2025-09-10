@@ -1,6 +1,6 @@
 package: 
   name: atlas
-  version: "0.5.0"
+  version: "0.6.0"
 
 source: 
   # This is the path to the source code (i.e., where the pyproject.toml is located)

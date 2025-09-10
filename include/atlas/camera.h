@@ -85,7 +85,7 @@ class Camera {
          * @param p Pixel coordinates.
          * @return ui32_t Desired pixel ID.
          */
-        inline ui32_t getPixelId(const Pixel& p) const { return getPixelId(p[0], p[1]);}
+        inline ui32_t getPixelId(const Pixel& p) const { return getPixelId(p[0], p[1]); }
 
         /**
          * @brief Convert a pixel ID into horizontal and vertical coordinates.

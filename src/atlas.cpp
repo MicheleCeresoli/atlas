@@ -41,9 +41,6 @@ void RayTracer::run() {
     // Unloads unused DEM and DOM files data from memory.
     world.cleanup();
 
-    // Compute the ray rendering resolution.
-    world.computeRayResolution(cam); 
-
     // Ray trace all the pixels in the camera
     renderer.render(cam, world);    
     
@@ -51,7 +48,7 @@ void RayTracer::run() {
 
 
 // Settings Retrieval
-double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double maxErr) {
+double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double dt, double maxErr) {
 
     /* First we check the altitude at the current position. If that is smaller 
      * than the planet altitude, it means we are inside it and so we return inf to 
@@ -65,7 +62,7 @@ double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double maxErr) 
     point2 s2 = rad2deg(point2(sph[1], sph[2]));
 
     // Retrieve the exact altitude at the current position 
-    double h = sph[0] - (world.meanRadius() + world.sampleDEM(s2));
+    double h = sph[0] - (world.meanRadius() + world.sampleDEM(s2, dt));
 
     // Check we aren't inside the planet
     if (h < 0.0) {
@@ -79,7 +76,7 @@ double RayTracer::getAltitude(const point3& pos, const dcm& dcm, double maxErr) 
 
     // Create the ray object and trace its intersection agains the DTM
     Ray ray(pos, u);
-    PixelData p = world.traceRay(ray, 0.0, inf, 0, maxErr);
+    PixelData p = world.traceRay(ray, dt, 0.0, inf, 0, maxErr);
 
     // Return the distance of the ray from the surface
     return p.t;
@@ -129,7 +126,7 @@ cv::Mat RayTracer::createImageOptical(int type) {
                 s[1] = rad2deg(p.data[k].s[2]); 
                 
                 // Sample the DOM at that location
-                c += world.sampleDOM(s);
+                c += world.sampleDOM(s, p.pixResolution());
             }
         }
 
@@ -451,6 +448,7 @@ void RayTracer::exportRayTracedInfo(const std::string& filename) {
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
     size_t nPix = pixels->size();
+    double pixRes;
     
     // Write the number of rendered pixels that are going to be written 
     file.write(reinterpret_cast<const char*>(&nPix), sizeof(nPix));
@@ -459,9 +457,12 @@ void RayTracer::exportRayTracedInfo(const std::string& filename) {
     for (size_t k = 0; k < nPix; k++) {
         
         RenderedPixel p = (*pixels)[k];
+        pixRes = p.pixResolution();
 
         // Write the ID 
         file.write(reinterpret_cast<const char*>(&p.id), sizeof(p.id));
+        // Write the resolution 
+        file.write(reinterpret_cast<const char*>(&pixRes), sizeof(pixRes));
         // Write the number of samples
         file.write(reinterpret_cast<const char*>(&p.nSamples), sizeof(p.nSamples));
 
@@ -520,17 +521,19 @@ void RayTracer::importRayTracedInfo(const std::string& filename) {
     pixels.reserve(nPix); 
 
     ui32_t id;         
+    double rayRes;
     size_t nSamples; 
     PixelData data;
 
     for (size_t k = 0; k < nPix; k++) {
 
-        // Retrieve pixel ID and number of samples
+        // Retrieve pixel ID, the ray resolution and number of samples
         file.read(reinterpret_cast<char*>(&id), sizeof(id)); 
+        file.read(reinterpret_cast<char*>(&rayRes), sizeof(rayRes));
         file.read(reinterpret_cast<char*>(&nSamples), sizeof(nSamples));
 
         // Retrieve the data of each sample
-        RenderedPixel pk(id, nSamples);
+        RenderedPixel pk(id, nSamples, rayRes);
 
         for (size_t j = 0; j < nSamples; j++) {
             file.read(reinterpret_cast<char*>(&data), sizeof(data));

@@ -26,9 +26,10 @@ class TaskedPixel {
          * @param id Pixel ID.
          * @param u Pixel horizontal coordinate on the image plane.
          * @param v Pixel vertical coordinate on the image plane.
+         * @param dt Resolution for the ray propagation.
          * @param nSamples Number of samples for this pixel.
          */
-        TaskedPixel(ui32_t id, double u, double v, size_t nSamples = 1);
+        TaskedPixel(ui32_t id, double u, double v, double dt, size_t nSamples = 1);
 
         /**
          * @brief Pixel ID.
@@ -39,6 +40,11 @@ class TaskedPixel {
          * @brief Number of samples taken for this pixel.
          */
         size_t nSamples;
+
+        /**
+         * @brief Ray propagation resolution.
+         */
+        double dt;
 
         /**
          * @brief Minimum ray distance for the rendering task.
@@ -100,7 +106,7 @@ class RenderedPixel {
          * @param id Rendered pixel ID.
          * @param nSamples Number of rendered samples for this pixel.
          */
-        RenderedPixel(ui32_t id, size_t nSamples);
+        RenderedPixel(ui32_t id, size_t nSamples, double dt);
 
         /**
          * @brief Automatically construct a new RenderedPixel object from a TaskedPixel. 
@@ -109,7 +115,9 @@ class RenderedPixel {
          * @note The new object automatically inherits the ID and the number of pixel 
          * samples from the input TaskedPixel.
          */
-        inline RenderedPixel(TaskedPixel pix) : RenderedPixel(pix.id, pix.nSamples) {};
+        inline RenderedPixel(TaskedPixel pix) : RenderedPixel(
+            pix.id, pix.nSamples, pix.dt
+        ) {};
 
         /**
          * @brief Update the number of samples taken for this pixel.
@@ -125,10 +133,15 @@ class RenderedPixel {
          */
         void addPixelData(const PixelData& d); 
 
-        // Return the distance of the first pixel sample (i.e., the ray from the center)
+        /**
+         * @brief Return the resolution used for the propagation of the ray of this pixel.
+         * 
+         * @return double Ray resolution.
+         */
+        inline double pixResolution() const { return res; }
 
         /**
-         * @brief Retun the distance of the first pixel sample (i.e., the ray from the 
+         * @brief Return the distance of the first pixel sample (i.e., the ray from the 
          * center of the aperture to the center of the pixel.)
          * 
          * @return double Ray distance.
@@ -156,6 +169,8 @@ class RenderedPixel {
         double pixMeanDistance() const; 
 
     private: 
+
+        double res;
 
         double tMin; 
         double tMax; 

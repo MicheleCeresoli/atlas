@@ -33,7 +33,9 @@ class RenderingOptions {
     public: 
 
         SSAAOptions ssaa;
-        size_t batchSize = 640; 
+        
+        size_t gridWidth = 128; 
+        size_t gridHeight = 128;
 
         LogLevel logLevel; 
 

@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "dem.h"
 #include "dom.h"
+#include "grid.h"
 #include "pixel.h"
 #include "ray.h"
 #include "settings.h"
@@ -20,11 +21,17 @@ class World {
         World(const WorldOptions& opts, ui32_t nThreads);
 
         PixelData traceRay(
-            const Ray& r, double tMin, double tMax, ui32_t threadid, double maxErr = -1.0
+            const Ray& r, double dt, double tMin, double tMax, ui32_t threadid, 
+            double maxErr = -1.0
     ); 
         
-        inline double sampleDEM(const point2& p) { return dem.getData(p, dt, 0); }; 
-        inline double sampleDOM(const point2& p) { return dom.getColor(p, dt, 0); };
+        inline double sampleDEM(const point2& p, double dt) { 
+            return dem.getData(p, dt, 0);
+        }; 
+
+        inline double sampleDOM(const point2& p, double dt) { 
+            return dom.getColor(p, dt, 0); 
+        };
 
         // DEM interface functions
         inline double maxRadius() const { return dem.maxRadius(); }
@@ -35,9 +42,7 @@ class World {
         inline double maxAltitude() const { return dem.maxAltitude(); }
 
         // Compute the distance at which points are evaluated along a ray
-        void computeRayResolution(const Camera* cam);
-        // Manually update the ray resolution
-        inline void setRayResolution(double res) { dt = res; }
+        void computeRayResolution(ScreenGrid& grid, const Camera* cam);
 
         // Removes both DEM and DOM unused files
         void cleanup(); 
@@ -46,12 +51,6 @@ class World {
         // Unloads unused DOM files to reduce memory consumption.
         inline void cleanupDOM() { dom.cleanupRasters(opts.rasterUsageThreshold); }
 
-        inline double getRayResolution() const { return dt; }; 
-
-        inline const std::vector<double>* getRayDistances() const { 
-            return &rayDistances; 
-        }
-
     private: 
     
         DEM dem;
@@ -59,15 +58,13 @@ class World {
 
         WorldOptions opts;
         
-        double dt;  
-        std::vector<double> rayDistances;
-        
         // True if DEM data should be interpolated because of resolution limitations.
         bool interp = false;
 
-        double computeGSD(const Camera* cam); 
+        double computeGSD(ScreenGrid& grid, const Camera* cam); 
         void findImpactLocation(
-            PixelData& data, const Ray& ray, double tk, ui32_t threadid, double maxErr = -1.0
+            PixelData& data, const Ray& ray, double dt, double tk, ui32_t threadid,
+            double maxErr = -1.0
         );
 
 };

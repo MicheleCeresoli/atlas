@@ -30,7 +30,8 @@ void init_settings(py::module_ &m) {
         .def(py::init<>())
 
         .def_readwrite("ssaa", &RenderingOptions::ssaa)
-        .def_readwrite("batchSize", &RenderingOptions::batchSize)
+        .def_readwrite("gridWidth", &RenderingOptions::gridWidth)
+        .def_readwrite("gridHeight", &RenderingOptions::gridHeight)
         .def_readwrite("logLevel", &RenderingOptions::logLevel)
         .def_readwrite("adaptiveTracing", &RenderingOptions::adaptiveTracing);
 

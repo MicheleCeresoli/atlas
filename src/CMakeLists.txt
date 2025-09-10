@@ -12,6 +12,7 @@ set(HEADER_LIST
     ${HEADER_DIR}/dcm.h
     ${HEADER_DIR}/dom.h
     ${HEADER_DIR}/dem.h
+    ${HEADER_DIR}/grid.h
     ${HEADER_DIR}/pixel.h
     ${HEADER_DIR}/pool.h
     ${HEADER_DIR}/ray.h
@@ -32,6 +33,7 @@ set(SOURCE_LIST
     dcm.cpp
     dem.cpp
     dom.cpp
+    grid.cpp
     pixel.cpp
     pool.cpp
     ray.cpp

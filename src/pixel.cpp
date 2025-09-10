@@ -9,8 +9,8 @@
                         TASKED PIXEL
 ---------------------------------------------------------- */
 
-TaskedPixel::TaskedPixel(ui32_t id, double u, double v, size_t nSamples) : 
-    id(id), nSamples(nSamples), tMin(0.0), tMax(inf) {
+TaskedPixel::TaskedPixel(ui32_t id, double u, double v, double dt, size_t nSamples) : 
+    id(id), nSamples(nSamples), dt(dt), tMin(0.0), tMax(inf) {
 
     this->u.reserve(nSamples);
     this->v.reserve(nSamples);
@@ -82,8 +82,8 @@ void updateSSAACoordinates(TaskedPixel& tp) {
                         RENDERED PIXEL
 ---------------------------------------------------------- */
 
-RenderedPixel::RenderedPixel(ui32_t id, size_t nSamples) : 
-    id(id), nSamples(nSamples), tMin(inf), tMax(-inf) {
+RenderedPixel::RenderedPixel(ui32_t id, size_t nSamples, double dt) : 
+    id(id), nSamples(nSamples), res(dt), tMin(inf), tMax(-inf) {
     data.reserve(nSamples); 
 }
 

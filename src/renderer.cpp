@@ -13,7 +13,7 @@ Renderer::Renderer(const RenderingOptions& opts, ui32_t nThreads) :
     pool(ThreadPool(nThreads)), opts(opts)
 {
     // Reserve enough space for the this task.
-    taskQueue.reserve(opts.batchSize); 
+    taskQueue.reserve(MIN(opts.gridHeight, opts.gridWidth)); 
 
     // Update status
     status = RenderingStatus::WAITING;
@@ -56,13 +56,15 @@ void Renderer::renderTask(
     double tStart = 0;
     // True if the ray should be shot from the pixel center (used only in Pinhole)
     bool center;
-    // Get ray resolution 
-    double dt = w.getRayResolution();
+    double dt;
 
     for (size_t j = 0; j < pixels.size(); j++)
     { 
         // Initialise the pixel to be rendered.
         RenderedPixel rPix(pixels[j]);
+
+        // Store the pixel resolution 
+        dt = pixels[j].dt;
 
         if (status == RenderingStatus::TRACING) {
 
@@ -88,7 +90,7 @@ void Renderer::renderTask(
             Ray ray = cam->getRay(pixels[j].u[k], pixels[j].v[k], center); 
             
             // Compute pixel data
-            rPix.addPixelData(w.traceRay(ray, tMin, tMax, wk.id())); 
+            rPix.addPixelData(w.traceRay(ray, dt, tMin, tMax, wk.id())); 
         }
 
         // Add the pixel to the list of computed pixels
@@ -117,7 +119,7 @@ void Renderer::updateTaskQueue(const TaskedPixel& tp, const Camera* cam, World& 
     
     // Update the task queue
     updateTaskQueue(tp);
-    if (taskQueue.size() >= opts.batchSize) {
+    if (taskQueue.size() >= MIN(opts.gridHeight, opts.gridWidth)) {
         releaseTaskQueue(cam, w); 
     }
     
@@ -132,28 +134,105 @@ void Renderer::releaseTaskQueue(const Camera* cam, World& w) {
 }
 
 void Renderer::generateRenderTasks(const Camera* cam, World& w) {
-    
+
     // Update current rendering status
     status = RenderingStatus::TRACING;
 
-    if (opts.adaptiveTracing) {
-        generateAdaptiveRenderTasks(cam, w);
-    } else {
-        generateBasicRenderTasks(cam, w);
-    } 
+    // Initialise the screen grids subdivision and get the max resolution
+    double maxRes = initializeGrids(cam, w);
+    
+    // Check whether something has to be rendered on screen
+    if (std::isinf(maxRes)) {
+        renderBlack(cam); 
+        return;
+    }
+
+    double minRes  = inf; 
+    double meanRes = 0; 
+    double dt; 
+
+    size_t nGrids = 0, nRows = 0, nCols = 0;
+
+    /* Iterate over each grid. */
+    for (ScreenGrid grid : grids) {
+
+        /* If a grid does not exhibit any interesection, we set its resolution to the 
+         * maximum used in the image. */
+        if (std::isinf(grid.getRayResolution())) {
+            grid.setRayResolution(maxRes);
+        }
+
+        if (opts.adaptiveTracing) {
+
+            // Dispatch adaptive rendering tasks.
+            if (grid.isRowAdaptiveRendering()) {
+                generateRowAdaptiveRenderTasks(grid, cam, w);
+                nRows += 1;
+            } 
+            else {
+                generateColAdaptiveRenderTasks(grid, cam, w);
+                nCols += 1;
+            }
+            
+        } 
+        else {
+            generateBasicRenderTasks(grid, cam, w);
+        }
+
+        // Update the resolution statistics
+        dt = grid.getRayResolution();
+        if (dt != inf) {
+            meanRes += dt;
+            nGrids += 1;
+
+            minRes = (dt < minRes) ? dt : minRes; 
+            maxRes = (dt > maxRes) ? dt : maxRes;
+        }
+    }
+
+    // Display the average ray resolution.
+    if (opts.logLevel >= LogLevel::DETAILED) {
+        displayTime(); 
+
+        if (nGrids == 0) {
+            std::clog << "No valid ray intersection detected." << std::endl; 
+            return;
+        } 
+        else {
+
+            meanRes /= nGrids;
+            std::clog << "Grid ray resolutions (min/mean/max): "
+                      << "\033[35m" << int(floor(minRes))  << "m" << "\033[0m/" 
+                      << "\033[35m" << int(floor(meanRes)) << "m" << "\033[0m/" 
+                      << "\033[35m" << int(floor(maxRes))  << "m" << "\033[0m" << std::endl;
+        }
+
+        if (opts.adaptiveTracing) {
+            displayTime(); 
+            std::clog << "Adaptive tracing with " << nRows << " rows and " 
+                      << nCols << " columns." << std::endl;
+        }
+    }
 
 }
 
 // This function generates all the tasks required to render an image.
-void Renderer::generateBasicRenderTasks(const Camera* cam, World& w) {
-    
-    // Assign all the pixels to a specific rendering task.
+void Renderer::generateBasicRenderTasks(
+    const ScreenGrid& grid, const Camera* cam, World& w
+) {
 
-    ui32_t u, v;
-    for (ui32_t id = 0; id < nPixels; id++) {
-        // Compute pixel coordinates and update rendering queue
-        cam->getPixelCoordinates(id, u, v);
-        updateTaskQueue(TaskedPixel(id, u, v), cam, w); 
+    // Retrieve the ray resolution 
+    double dt = grid.getRayResolution();
+
+    ui32_t id, u, v;
+    for (ui32_t gid = 0; gid < grid.nPixels(); gid++) {
+
+        // Compute pixel coordinates and ID with respect to the camera
+        grid.getGPixelCoordinates(gid, u, v);
+        grid.getGPixelId(gid);
+
+        updateTaskQueue(TaskedPixel(id, u, v, dt), cam, w); 
+
     }
 
     /* This could happen whenever the batch-size is not an exact multiple of the number
@@ -162,22 +241,25 @@ void Renderer::generateBasicRenderTasks(const Camera* cam, World& w) {
 
 }
 
-void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
+void Renderer::generateColAdaptiveRenderTasks(
+    const ScreenGrid& grid, const Camera* cam, World& w
+) {
 
-    if (opts.logLevel >= LogLevel::DETAILED) {
-        displayTime(); 
-        std::clog << "Selected Adaptive Column Tracing." << std::endl;
-    }
+    // Retrieve the ray distances and resolution
+    const std::vector<double>* pRayDistances = grid.getRayDistances();
+    double dt = grid.getRayResolution();
 
-    const std::vector<double>* pRayDistances = w.getRayDistances();
+    /* u, v are the coordinates of the pixel in the camera, ug and vg are the coordinates
+     * of the pixel with respect to the grid size. */
+    ui32_t u, v;
 
     ui32_t id;
-    for (size_t u = 0; u < cam->width(); u++) {
+    for (size_t ug = 0; ug < grid.width(); ug++) {
         
         ui32_t min_index = 0; 
-        for (size_t v = 1; v < cam->height(); v++) {
+        for (size_t vg = 1; vg < grid.height(); vg++) {
 
-            size_t vp = v - 1 + u*cam->height();
+            size_t vp = vg - 1 + ug*grid.height();
             size_t vn = vp + 1;
 
             // Update current minimum index value
@@ -192,19 +274,21 @@ void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
         if (min_index == 0) {
         
             // Here we generate a single task starting from the top of the column
-            for (size_t v = 0; v < cam->height(); v++) {
-                id = cam->getPixelId(u, v);
-                updateTaskQueue(TaskedPixel(id, u, v));
+            for (size_t vg = 0; vg < grid.height(); vg++) {
+                id = grid.getGPixelId(ug, vg);
+                cam->getPixelCoordinates(id, u, v);
+                updateTaskQueue(TaskedPixel(id, u, v, dt));
             }
 
             releaseTaskQueue(cam, w);
 
-        } else if (min_index == cam->height()-1) {
+        } else if (min_index == grid.height() - 1) {
 
             // Here we generate a single task starting from the bottom of the column
-            for (int v = cam->height()-1; v >= 0; v--) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v));
+            for (int vg = grid.height() - 1; vg >= 0; vg--) {
+                id = grid.getGPixelId(ug, vg); 
+                cam->getPixelCoordinates(id, u, v);
+                updateTaskQueue(TaskedPixel(id, u, v, dt));
             }
 
             releaseTaskQueue(cam, w);
@@ -215,16 +299,18 @@ void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
              * top of the column. The second one from the one after the min to the end 
              * of the column. */
             
-            for (int v = min_index; v >= 0; v--) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v)); 
+            for (int vg = min_index; vg >= 0; vg--) {
+                id = grid.getGPixelId(ug, vg); 
+                cam->getPixelCoordinates(id, u, v);
+                updateTaskQueue(TaskedPixel(id, u, v, dt)); 
             }
 
             releaseTaskQueue(cam, w);
 
-            for (size_t v = min_index + 1; v < cam->height(); v++) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v)); 
+            for (size_t vg = min_index + 1; vg < grid.height(); vg++) {
+                id = grid.getGPixelId(ug, vg);
+                cam->getPixelCoordinates(id, u, v); 
+                updateTaskQueue(TaskedPixel(id, u, v, dt)); 
             }
 
             releaseTaskQueue(cam, w);
@@ -233,23 +319,26 @@ void Renderer::generateColAdaptiveRenderTasks(const Camera* cam, World& w) {
 
 }
 
-void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
+void Renderer::generateRowAdaptiveRenderTasks(
+    const ScreenGrid& grid, const Camera* cam, World& w
+) {
 
-    if (opts.logLevel >= LogLevel::DETAILED) {
-        displayTime(); 
-        std::clog << "Selected Adaptive Row Tracing." << std::endl;
-    }
+    // Retrieve the ray distances and resolution
+    const std::vector<double>* pRayDistances = grid.getRayDistances();
+    double dt = grid.getRayResolution(); 
 
-    const std::vector<double>* pRayDistances = w.getRayDistances();
+    /* u, v are the coordinates of the pixel in the camera, ug and vg are the coordinates
+     * of the pixel with respect to the grid size. */
+    ui32_t u, v;
 
     ui32_t id;
-    for (size_t v = 0; v < cam->height(); v++) {
+    for (size_t vg = 0; vg < grid.height(); vg++) {
         
         ui32_t min_index = 0; 
-        for (size_t u = 1; u < cam->width(); u++) {
+        for (size_t ug = 1; ug < grid.width(); ug++) {
 
-            size_t up = v + (u-1)*cam->height();
-            size_t un = up + cam->height();
+            size_t up = vg + (ug-1)*grid.height();
+            size_t un = up + grid.height();
 
             // Update current minimum index value
             if ((pRayDistances->at(up) != inf) && 
@@ -263,19 +352,28 @@ void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
         if (min_index == 0) {
         
             // Here we generate a single task starting from the left of the row
-            for (size_t u = 0; u < cam->width(); u++) {
-                id = cam->getPixelId(u, v);
-                updateTaskQueue(TaskedPixel(id, u, v));
+            for (size_t ug = 0; ug < grid.width(); ug++) {
+                
+                // Retrieve the pixel ID and its coordinates
+                id = grid.getGPixelId(ug, vg);
+                cam->getPixelCoordinates(id, u, v);
+
+                updateTaskQueue(TaskedPixel(id, u, v, dt));
+            
             }
 
             releaseTaskQueue(cam, w);
 
-        } else if (min_index == cam->width()-1) {
+        } else if (min_index == grid.width() - 1) {
 
             // Here we generate a single task starting from the right of the row
-            for (int u = cam->width()-1; u >= 0; u--) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v));
+            for (int ug = grid.width() - 1; ug >= 0; ug--) {
+
+                // Retrieve the pixel ID and its coordinates
+                id = grid.getGPixelId(ug, vg); 
+                cam->getPixelCoordinates(id, u, v);
+
+                updateTaskQueue(TaskedPixel(id, u, v, dt));
             }
 
             releaseTaskQueue(cam, w);
@@ -286,16 +384,23 @@ void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
              * left of the row. The second one from the one after the min to the end 
              * of the row. */
             
-            for (int u = min_index; u >= 0; u--) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v)); 
+            for (int ug = min_index; ug >= 0; ug--) {
+
+                // Retrieve the pixel ID and coordinates
+                id = grid.getGPixelId(ug, vg);
+                cam->getPixelCoordinates(id, u, v); 
+
+                updateTaskQueue(TaskedPixel(id, u, v, dt)); 
             }
 
             releaseTaskQueue(cam, w);
 
-            for (size_t u = min_index + 1; u < cam->width(); u++) {
-                id = cam->getPixelId(u, v); 
-                updateTaskQueue(TaskedPixel(id, u, v)); 
+            for (size_t ug = min_index + 1; ug < grid.width(); ug++) {
+                
+                id = grid.getGPixelId(ug, vg);
+                cam->getPixelCoordinates(id, u, v); 
+
+                updateTaskQueue(TaskedPixel(id, u, v, dt)); 
             }
 
             releaseTaskQueue(cam, w);
@@ -303,76 +408,46 @@ void Renderer::generateRowAdaptiveRenderTasks(const Camera* cam, World& w) {
     }
 }
 
-// This function generates all the tasks required to render an image.
-void Renderer::generateAdaptiveRenderTasks(const Camera* cam, World& w) {
+double Renderer::initializeGrids(const Camera* cam, World& w) {
 
-    /* The idea is the following: we need to find out whether the variation along 
-     * the ray distances is greater along the rows or the columns. This allows to avoid 
-     * issues when all the pixels are at more or less the same distance causing the 
-     * actual closest pixel to be further from its neighbours when the DEM is used. */
+    // Compute the number of grids to be generated
+    ui32_t ngw = (cam->width() + opts.gridWidth - 1) / opts.gridWidth;
+    ui32_t ngh = (cam->height() + opts.gridHeight - 1) / opts.gridHeight; 
     
-    const std::vector<double>* pRayDistances = w.getRayDistances();
+    // Update the total amount of grid cells
+    ui32_t ng = ngw * ngh; 
 
-    double cMeanDist = 0, rMeanDist = 0; 
-    double dMin, dMax, dj;
-    
-    size_t u, v; 
+    grids.clear();
+    grids.reserve(ng);
 
-    // Check the average distance along the columns 
-    for (u = 0; u < cam->width(); u++) {
+    double res;
+    double maxRes = -inf;
 
-        dMin =  inf; 
-        dMax = -inf; 
-        
-        for (v = 0; v < cam->height(); v++) {
-            dj = pRayDistances->at(v + u*cam->height());
+    for (size_t j = 0; j < ngh; j++) {
+        for (size_t k = 0; k < ngw; k++) {
 
-            // Update the min\maximum distances 
-            if (dj != inf) {
-                dMin = dj < dMin ? dj : dMin; 
-                dMax = dj > dMax ? dj : dMax;
+            // Compute the coordinates of the grid top-left pixel
+            Pixel p0(k*opts.gridWidth, j*opts.gridHeight);
+
+            // Initialize each screen grid
+            ScreenGrid grid(p0, opts.gridWidth, opts.gridHeight, cam);
+
+            // Compute the grid resolution 
+            w.computeRayResolution(grid, cam);
+            
+            // Update the maximum ray resolution if different from infinity
+            res = grid.getRayResolution();
+            if (!std::isinf(res) && (res > maxRes)) {
+                maxRes = res;
             }
-        }
 
-        if (dMax > 0.0) {
-            cMeanDist += dMax - dMin; 
-        }
-    }
+            grids.push_back(grid);
 
-    // Check the average distance along the rows
-    for (v = 0; v < cam->height(); v++) {
-        
-        dMin =  inf; 
-        dMax = -inf; 
-
-        for (u = 0; u < cam->width(); u++) {
-            dj = pRayDistances->at(v + u*cam->height());
-
-            // Update the min\maximum distances 
-            if (dj != inf) {
-                dMin = dj < dMin ? dj : dMin; 
-                dMax = dj > dMax ? dj : dMax;
-            }
-        }
-
-        if (dMax > 0.0) {
-            rMeanDist += dMax - dMin; 
         }
     }
 
-    // Average the distance between the number of columns\rows
-    cMeanDist /= cam->width();
-    rMeanDist /= cam->height();
-
-    // User rows if the distance excursion along the rows is greater than along the columns
-    if (rMeanDist > cMeanDist) {
-        generateRowAdaptiveRenderTasks(cam, w);
-    } else {
-        generateColAdaptiveRenderTasks(cam, w);
-    }
-
+    return maxRes;
 }
-
 
 void Renderer::sortRenderOutput() {
     // Sort the rendered pixel vector to have increasing pixel IDs; 
@@ -462,6 +537,7 @@ void Renderer::setupRenderer(const Camera* cam, World& w) {
     // Reserve space for all pixels
     pixMinT.reserve(nPixels); 
     pixMaxT.reserve(nPixels);
+    pixRes.reserve(nPixels);
 
     // Update status
     status = RenderingStatus::INITIALISED;
@@ -532,8 +608,8 @@ void Renderer::renderBlack(const Camera* cam) {
 
     for (ui32_t id = 0; id < nPixels; id++) {
 
-        // Update all pixels with the same value.
-        RenderedPixel pix(id, 1); 
+        // Update all pixels with the same value (and infinite resolution)
+        RenderedPixel pix(id, 1, inf); 
         pix.addPixelData(data); 
         renderedPixels.push_back(pix); 
 
@@ -550,14 +626,14 @@ void Renderer::render(const Camera* cam, World& w) {
     // Setup the render output variable.
     setupRenderer(cam, w); 
 
-    // Check whether something has to be rendered on screen. 
-    if (std::isinf(w.getRayResolution())) {
-        renderBlack(cam);
-        return;
-    }
-
     // Generate the tasks and add them to the pool (i.e., the list of pixels to render)
     generateRenderTasks(cam, w); 
+    
+    /* If no intersection was found, the image is completely black and the rendering is 
+     * deemed to be terminated. As such, we exit immediately. */
+    if (status == RenderingStatus::COMPLETED) {
+        return;
+    }
 
     // Display the rendering status if required.
     displayRenderStatus(nPixels); 
@@ -580,9 +656,10 @@ void Renderer::render(const Camera* cam, World& w) {
 
 void Renderer::computePixelBoundaries(const Camera* cam, ui32_t s) {
     
-    // Clear the pixel boundaries
+    // Clear the pixel boundaries and resolutions
     pixMinT.clear();
     pixMaxT.clear(); 
+    pixRes.clear();
 
     int uMin, uMax; 
     int vMin, vMax; 
@@ -592,6 +669,7 @@ void Renderer::computePixelBoundaries(const Camera* cam, ui32_t s) {
 
     double t1, t2;
     double tMin, tMax;
+    double dt, dtMin;
 
     for (size_t id = 0; id < nPixels; id++) {
 
@@ -614,16 +692,18 @@ void Renderer::computePixelBoundaries(const Camera* cam, ui32_t s) {
         if (vMax > cam->height()-s)
             vMax = cam->height()-s;  
 
-        tMin = inf; tMax = -inf;
+        tMin = inf; tMax = -inf; dtMin = inf;
         for (size_t j = uMin; j < uMax; j++) {   
             for (size_t k = vMin; k < vMax; k++) {
 
                 // Retrieve new pixel id
                 idx = cam->getPixelId(j, k);
 
+                dt = renderedPixels[idx].pixResolution();
                 t1 = renderedPixels[idx].pixMinDistance(); 
                 t2 = renderedPixels[idx].pixMaxDistance();
                 
+                dtMin = dt < dtMin ? dt : dtMin;
                 tMin = t1 < tMin ? t1 : tMin; 
                 tMax = t2 > tMax ? t2 : tMax; 
             }
@@ -631,6 +711,7 @@ void Renderer::computePixelBoundaries(const Camera* cam, ui32_t s) {
 
         pixMinT.push_back(tMin); 
         pixMaxT.push_back(tMax); 
+        pixRes.push_back(dtMin);
 
     }
 
@@ -640,7 +721,7 @@ void Renderer::computePixelBoundaries(const Camera* cam, ui32_t s) {
 ui32_t Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
 
     // Retrieve current ray resolution.
-    double rayRes = w.getRayResolution(); 
+    double rayRes;
 
     ui32_t u, v; 
     ui32_t nAliased = 0;
@@ -650,10 +731,14 @@ ui32_t Renderer::generateAntiAliasingTasks(const Camera* cam, World& w) {
         // Retrieve pixel coordinates
         cam->getPixelCoordinates(id, u, v); 
 
+        // Retrieve the ray resolution for that pixel 
+        rayRes = pixRes[id];
+
         if ((pixMaxT[id] - pixMinT[id]) >= opts.ssaa.threshold*rayRes) {
 
             // Generate pixel
-            TaskedPixel tp(id, u, v, opts.ssaa.nSamples);
+            TaskedPixel tp(id, u, v, rayRes, opts.ssaa.nSamples);
+
             // Compute SSAA sampling points
             updateSSAACoordinates(tp);
 
@@ -681,8 +766,7 @@ ui32_t Renderer::generateDefocusBlurTasks(const Camera* cam, World& w) {
         // Retrieve pixel coordinates
         cam->getPixelCoordinates(id, u, v); 
 
-        // Generate pixel 
-        TaskedPixel tp(id, u, v, 9); 
+        TaskedPixel tp(id, u, v, pixRes[id], 9); 
 
         // Update pixel boundaries 
         tp.tMin = pixMinT[id];

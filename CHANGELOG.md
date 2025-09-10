@@ -1,7 +1,10 @@
 # All Releases 
 
-## v0.5.1 
+## v0.6.0
+- Added `ScreenGrid` to allow multiple ray resolutions over the same image.
+- Updated `RenderingOptions` with `gridWidth` and `gridHeight` parameters.
 - Added `minRes` parameter to `WorldOptions` to control the minimum ray resolution.
+- Fixed GSD computation when below the average planet radius.
 
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.
