@@ -416,7 +416,9 @@ double Renderer::initializeGrids(const Camera* cam, World& w) {
     
     // Update the total amount of grid cells
     ui32_t ng = ngw * ngh; 
-    grids.resize(ng);
+
+    grids.clear();
+    grids.reserve(ng);
 
     double res;
     double maxRes = -inf;
@@ -439,7 +441,7 @@ double Renderer::initializeGrids(const Camera* cam, World& w) {
                 maxRes = res;
             }
 
-            grids[j*ngw + k] = grid;
+            grids.push_back(grid);
 
         }
     }
