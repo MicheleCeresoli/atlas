@@ -210,7 +210,7 @@ void Renderer::generateRenderTasks(const Camera* cam, World& w) {
         if (opts.adaptiveTracing) {
             displayTime(); 
             std::clog << "Adaptive tracing with " << nRows << " rows and " 
-                      << nCols << " columns.";
+                      << nCols << " columns." << std::endl;
         }
     }
 
