@@ -6,15 +6,10 @@
 
 
 World::World(const WorldOptions& opts, ui32_t nThreads) : 
-    dem(opts, nThreads), dom(opts, nThreads), opts(opts) {
-
-    // This will be updated on the `computeRayResolution` call.
-    dt = dem.getMaxResolution();
-
-}
+    dem(opts, nThreads), dom(opts, nThreads), opts(opts) {}
 
 PixelData World::traceRay(
-    const Ray& ray, double tMin, double tMax, ui32_t threadid, double maxErr
+    const Ray& ray, double dt, double tMin, double tMax, ui32_t threadid, double maxErr
 ) 
 {
 
@@ -80,7 +75,7 @@ PixelData World::traceRay(
             hit = true;
 
             // Find the ray impact position minimising the localisation error.
-            findImpactLocation(data, ray, tk, threadid, maxErr);
+            findImpactLocation(data, ray, dt, tk, threadid, maxErr);
 
         } 
         else if (sph[0] < dem.minRadius()) {
@@ -98,7 +93,7 @@ PixelData World::traceRay(
 }
 
 void World::findImpactLocation(
-    PixelData& data, const Ray& ray, double tk, ui32_t threadid, double maxErr
+    PixelData& data, const Ray& ray, double dt, double tk, ui32_t threadid, double maxErr
 ) {
 
     // We had an intersection at tk, thus we move backwards along the ray.
@@ -164,7 +159,7 @@ void World::findImpactLocation(
 
 }
 
-void World::computeRayResolution(const Camera* cam) {
+void World::computeRayResolution(ScreenGrid& grid, const Camera* cam) {
 
     // Check whether at least one DEM raster is available, otherwise everything is pointless
     if (dem.nRasters() == 0) {
@@ -173,36 +168,19 @@ void World::computeRayResolution(const Camera* cam) {
 
     /* Compute the minimum GSD of the camera and halve the resolution to avoid aliasing 
      * errors. */
-    dt = 0.5*computeGSD(cam); 
+    double dt = 0.5*computeGSD(grid, cam); 
 
     /* Ensure the resolution does not go below the allowed minimum. */
     dt = MAX(dt, opts.minRes);
-    
-    // Display the new ray resolution
-    if (opts.logLevel >= LogLevel::DETAILED) {
-        displayTime(); 
-
-        if (std::isinf(dt)) {
-            std::clog << "No valid ray intersection detected." << std::endl;
-        } 
-        else {
-            std::clog << "Ray resolution set to: " 
-                    << "\033[35m" << int(floor(dt)) << "m" << "\033[0m" << std::endl;
-        }
-
-    }
+    grid.setRayResolution(dt);
 
 }
 
-double World::computeGSD(const Camera* cam) {
-
-    // Update the array with the distances of each pixel
-    rayDistances.clear(); 
-    rayDistances.reserve(cam->nPixels()); 
+double World::computeGSD(ScreenGrid& grid, const Camera* cam) {
 
     // Compute the intersection points of each ray 
-    std::vector<point3> fovPoints(cam->height()); 
-    std::vector<bool>   tagPoints(cam->height(), true);
+    std::vector<point3> fovPoints(grid.height()); 
+    std::vector<bool>   tagPoints(grid.height(), true);
 
     double tMin, tMax;
     double gsd = inf, gsd_jk; 
@@ -220,11 +198,14 @@ double World::computeGSD(const Camera* cam) {
         sphereRadius = dem.minRadius();
     }
 
-    for (size_t j = 0; j < cam->width(); j++) {
-        for (size_t k = 0; k < cam->height(); k++) {
+    // Retrieve the coordinates of the top-left grid pixel.
+    Pixel p0 = grid.topLeft();
+
+    for (size_t j = 0; j < grid.width(); j++) {
+        for (size_t k = 0; k < grid.height(); k++) {
             
             // Retrieve ray
-            Ray ray_k(cam->getRay(j, k, true)); 
+            Ray ray_k(cam->getRay(j + p0[0], k + p0[1], true));
 
             // Compute position at moon intersection 
             ray_k.getParameters(sphereRadius, tMin, tMax); 
@@ -234,7 +215,7 @@ double World::computeGSD(const Camera* cam) {
 
             if (ray_k.minDistance() > sphereRadius || tMin < 0) {
                 tagPoints[k] = false;
-                rayDistances.push_back(inf); 
+                grid.addRayDistance(inf); 
                 continue;
             }
 
@@ -262,7 +243,7 @@ double World::computeGSD(const Camera* cam) {
             fovPoints[k] = uk;
             tagPoints[k] = true; 
 
-            rayDistances.push_back(tMin);
+            grid.addRayDistance(tMin);
 
         } 
 
