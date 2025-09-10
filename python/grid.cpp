@@ -12,7 +12,7 @@ void init_grid(py::module_ &m) {
     py::class_<ScreenGrid>(m, "ScreenGrid") 
 
         .def(
-            py::init<Pixel, ui32_t, ui32_t, const Camera* cam>(), 
+            py::init<Pixel, ui32_t, ui32_t, const Camera*>(), 
             py::arg("p0"), py::arg("width"), py::arg("height"), py::arg("cam")
         )
 
