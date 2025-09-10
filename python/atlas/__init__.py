@@ -28,9 +28,12 @@ def RayTracerOptions(filename: str):
     if 'rendering' in config.keys(): 
         cfg_renderer = config['rendering'] 
         
-        if 'batch-size' in cfg_renderer.keys(): 
-            opts.optsRenderer.batchSize = cfg_renderer['batch-size']
-            
+        if 'grid-width' in cfg_renderer.keys(): 
+            opts.optsRenderer.gridWidth = cfg_renderer['grid-width']
+        
+        if 'grid-height' in cfg_renderer.keys(): 
+            opts.optsRenderer.gridheight = cfg_renderer['grid-height']    
+        
         if 'adaptive-tracing' in cfg_renderer.keys(): 
             opts.optsRenderer.adaptiveTracing = cfg_renderer['adaptive-tracing']
             
