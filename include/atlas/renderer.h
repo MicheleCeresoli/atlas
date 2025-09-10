@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "pixel.h"
 #include "pool.h"
+#include "grid.h"
 #include "settings.h"
 #include "types.h"
 #include "world.h"
@@ -57,8 +58,12 @@ class Renderer {
         // Vector used to compute the min\max boundaries of each pixel.
         std::vector<TaskedPixel> pixBorders; 
 
+        // Vector used to store screen grids 
+        std::vector<ScreenGrid> grids;
+
         std::vector<double> pixMaxT; 
         std::vector<double> pixMinT; 
+        std::vector<double> pixRes;
 
         // Keep track of the total number of pixels to render
         ui32_t nPixels;
@@ -86,11 +91,16 @@ class Renderer {
 
         // This function generates all the tasks required to render an image.
         void generateRenderTasks(const Camera* cam, World& w);
-        void generateBasicRenderTasks(const Camera* cam, World& w);
 
-        void generateAdaptiveRenderTasks(const Camera* cam, World& w);
-        void generateRowAdaptiveRenderTasks(const Camera* cam, World& w); 
-        void generateColAdaptiveRenderTasks(const Camera* cam, World& w); 
+        double initializeGrids(const Camera* cam, World& w);
+
+        void generateBasicRenderTasks(const ScreenGrid& grid, const Camera* cam, World& w);
+        void generateRowAdaptiveRenderTasks(
+            const ScreenGrid& grid, const Camera* cam, World& w
+        ); 
+        void generateColAdaptiveRenderTasks(
+            const ScreenGrid& grid, const Camera* cam, World& w
+        ); 
 
         // Run anti-aliasing on the pixels with a large difference in the distance
         ui32_t generateAntiAliasingTasks(const Camera* cam, World& w);
