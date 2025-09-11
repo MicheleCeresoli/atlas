@@ -20,6 +20,13 @@ class RayTracer {
 
         void run(); 
 
+        // World Settings Updates 
+        inline void updateMinRayResolution(double res) { world.setMinRayResolution(res); }
+        inline void updateMaxRayResolution(double res) { world.setMaxRayResolution(res); }
+
+        inline double getMinRayResolution() const { return world.getMinRayResolution(); }
+        inline double getMaxRayResolution() const { return world.getMaxRayResolution(); }
+
         // Renderer Update Routines 
         inline void updateRenderingOptions(const RenderingOptions& opts) {
             renderer.updateRenderingOptions(opts);

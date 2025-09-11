@@ -51,6 +51,14 @@ class World {
         // Unloads unused DOM files to reduce memory consumption.
         inline void cleanupDOM() { dom.cleanupRasters(opts.rasterUsageThreshold); }
 
+        // Update the minimum / maximum rendering resolutions
+        inline void setMinRayResolution(double res) { opts.minRes = res; }
+        inline void setMaxRayResolution(double res) { opts.maxRes = res; }
+
+        // Retrieve the min/max ray resolutions
+        inline double getMinRayResolution() const { return opts.minRes; }
+        inline double getMaxRayResolution() const { return opts.maxRes; }
+
     private: 
     
         DEM dem;
