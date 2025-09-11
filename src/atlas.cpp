@@ -102,6 +102,18 @@ cv::Mat RayTracer::createImageOptical(int type) {
 
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
+    /* For the DOM I should use the minimum pixel resolution, so that I ensure the
+     * lighting is consistent as much as possible across the image. So we iterate 
+     * across all pixels and retrieve the minimum ray resolution. */
+    auto it = std::min_element(
+        pixels->begin(), pixels->end(),
+        [](const RenderedPixel& a, const RenderedPixel& b) {
+            return a.pixResolution() < b.pixResolution();
+        }
+    );
+
+    double minRayRes = it->pixResolution();
+
     // Create a grayscale image (8-bit single-channel)
     cv::Mat image(cam->height(), cam->width(), type, cv::Scalar(0));
 
@@ -126,7 +138,7 @@ cv::Mat RayTracer::createImageOptical(int type) {
                 s[1] = rad2deg(p.data[k].s[2]); 
                 
                 // Sample the DOM at that location
-                c += world.sampleDOM(s, p.pixResolution());
+                c += world.sampleDOM(s, minRayRes);
             }
         }
 
