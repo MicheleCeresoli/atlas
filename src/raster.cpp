@@ -566,6 +566,11 @@ double RasterManager::getData(const point2& s, double res, ui32_t tid) {
     // Set the initial impact distance to -inf (i.e., no data available)
     double x = -inf;
 
+    // Ensure at least one raster is loaded, otherwise return infinity.
+    if (_nRasters == 0) {
+        return x;
+    }
+    
     // Find the last container with a resolution lower than the prescribed one.
     size_t cIdx = findLast(_resolutions, res); 
 
