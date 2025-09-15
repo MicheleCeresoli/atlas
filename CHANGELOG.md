@@ -5,6 +5,7 @@
 - Updated `RenderingOptions` with `gridWidth` and `gridHeight` parameters.
 - Added `minRes` parameter to `WorldOptions` to control the minimum ray resolution.
 - Fixed GSD computation when below the average planet radius.
+- Exposed world class via raytracer through `getWorld`.
 
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.

@@ -20,6 +20,10 @@ class World {
 
         World(const WorldOptions& opts, ui32_t nThreads);
 
+        /* Delete copy constructors and assignments */
+        World(const World&) = delete; 
+        World& operator=(const World&) = delete; 
+
         PixelData traceRay(
             const Ray& r, double dt, double tMin, double tMax, ui32_t threadid, 
             double maxErr = -1.0

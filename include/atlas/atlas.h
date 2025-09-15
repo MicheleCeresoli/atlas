@@ -60,6 +60,9 @@ class RayTracer {
             const point3& pos, const dcm& dcm, double dt, double maxErr = -1.0
         ); 
 
+        // Retrieve world settings
+        inline World* getWorld() { return &world; }
+
     private: 
 
         World world; 

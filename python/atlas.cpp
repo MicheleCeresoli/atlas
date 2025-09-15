@@ -94,7 +94,11 @@ void init_atlas(py::module_ &m) {
         .def("updateMaxRayResolution", &RayTracer::updateMaxRayResolution)
 
         .def("getMinRayResolution", &RayTracer::getMinRayResolution)
-        .def("getMaxRayResolution", &RayTracer::getMaxRayResolution);
-
+        .def("getMaxRayResolution", &RayTracer::getMaxRayResolution)
+        
+        // Retrieve the world class 
+        .def("getWorld", &RayTracer::getWorld, 
+            py::return_value_policy::reference_internal
+        );
 
 }
