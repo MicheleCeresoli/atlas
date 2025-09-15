@@ -568,7 +568,7 @@ double RasterManager::getData(const point2& s, double res, ui32_t tid) {
 
     // Ensure at least one raster is loaded, otherwise return infinity.
     if (_nRasters == 0) {
-        std::clog << "No rasters have been loaded in the container" << std::endl;
+        std::clog << "No rasters have been loaded in the container." << std::endl;
         return x;
     }
     
