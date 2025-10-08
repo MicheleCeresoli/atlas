@@ -310,8 +310,11 @@ cv::Mat RayTracer::createLIDARMap() {
     ui32_t u, v; 
     double d;
     int i;  
-    
+
     for (auto& p: *pixels) {
+
+        // Retrieve the pixel coordinates
+        cam->getPixelCoordinates(p.id, u, v); 
 
         // Compute the average pixel depth 
         d = 0.0; i = 0;
