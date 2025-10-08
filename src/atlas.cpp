@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "opencv2/imgcodecs.hpp"
+#include "opencv2/opencv.hpp"
 
 // Utility function to ensure images have the proper bits
 void checkImageBits(int type) {
@@ -291,6 +292,48 @@ cv::Mat RayTracer::createDepthMap(int type) {
     }
 
     return image; 
+
+}
+
+cv::Mat RayTracer::createLIDARMap() {
+
+    // Check camera pointer 
+    checkCamPointer();
+    // Check rendering status
+    checkRenderStatus();
+
+    const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
+
+    // Create a single channel floating point image
+    cv::Mat image(cam->height(), cam->width(), CV_64F, cv::Scalar(0));
+    
+    ui32_t u, v; 
+    double d;
+    int i;  
+    
+    for (auto& p: *pixels) {
+
+        // Compute the average pixel depth 
+        d = 0.0; i = 0;
+        for (size_t k = 0; k < p.nSamples; k++) {
+            if (p.data[k].t != inf) {
+                d += p.data[k].t;
+                i += 1;
+            }
+        }
+        
+        if (i > 0) {
+            // Average the distance through all the valid samples
+            image.at<double>(v, u) = d / i;
+
+        } else {
+
+            // Assign nan in that place 
+            image.at<double>(v, u) = std::numeric_limits<double>::quiet_NaN();
+        }
+    }
+
+    return image;
 
 }
 

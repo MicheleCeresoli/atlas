@@ -41,6 +41,7 @@ class RayTracer {
         cv::Mat createImageOptical(int type = CV_8UC1); 
         cv::Mat createImageDEM(int type = CV_8UC1, bool normalize = true); 
         cv::Mat createDepthMap(int type = CV_8UC1); 
+        cv::Mat createLIDARMap();
 
         bool saveImageOptical(const std::string& filename, int type = CV_8UC1);
         bool saveImageDEM(const std::string& filename, int type = CV_8UC1, bool normalize = true);

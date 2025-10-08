@@ -13,6 +13,8 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
     switch (mat.depth()) {
         case CV_8UC1: dtype = py::dtype::of<uint8_t>(); break; 
         case CV_16UC1: dtype = py::dtype::of<uint16_t>(); break;
+        case CV_32F: dtype = py::dtype::of<float>(); break;
+        case CV_64F: dtype = py::dtype::of<double>(); break; 
         default: 
             throw std::runtime_error("Unsupported image type.");
     }
@@ -69,6 +71,14 @@ void init_atlas(py::module_ &m) {
             return cvMatToNumpy(img);
 
         }, py::arg("type") = CV_8UC1, py::arg("normalize") = true)
+
+        .def("createLIDARMap", [](RayTracer& self) -> py::array {
+            
+            // Generate the image and convert it to a numpy array 
+            cv::Mat img = self.createLIDARMap(); 
+            return cvMatToNumpy(img);
+            
+        })
         
         .def("saveImageOptical", &RayTracer::saveImageOptical, 
             py::arg("filename"), py::arg("type") = CV_8UC1

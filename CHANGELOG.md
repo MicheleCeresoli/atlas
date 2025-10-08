@@ -1,6 +1,7 @@
 # All Releases 
 
 ## v0.6.0
+- Added `createLIDARMap` to export pixel depths as an image in physical units (meters).
 - Added `ScreenGrid` to allow multiple ray resolutions over the same image.
 - Updated `RenderingOptions` with `gridWidth` and `gridHeight` parameters.
 - Added `minRes` parameter to `WorldOptions` to control the minimum ray resolution.
