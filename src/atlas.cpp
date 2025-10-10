@@ -304,9 +304,10 @@ cv::Mat RayTracer::createLIDARMap() {
 
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
-    // Create a single channel floating point image
-    cv::Mat image(cam->height(), cam->width(), CV_64F, cv::Scalar(0, 0));
-    
+    // Create two single channel floating point images
+    cv::Mat lidar(cam->height(), cam->width(), CV_64F, cv::Scalar(0));
+    cv::Mat elev(cam->height(), cam->width(), CV_64F, cv::Scalar(0));
+
     ui32_t u, v; 
     double depth, elevation;
     int i;  
@@ -328,18 +329,20 @@ cv::Mat RayTracer::createLIDARMap() {
         
         if (i > 0) {
             // Average the distance through all the valid samples
-            image.at<cv::Vec2d>(v, u) = cv::Vec2d(depth / i, elevation / i);
+            lidar.at<double>(v, u) = depth / i;
+            elev.at<double>(v, u) = elevation / i;
 
         } else {
 
             // Assign nan in that place 
-            image.at<cv::Vec2d>(v, u) = cv::Vec2d(
-                std::numeric_limits<double>::quiet_NaN(), 
-                std::numeric_limits<double>::quiet_NaN()
-            );
+            lidar.at<double>(v, u) = std::numeric_limits<double>::quiet_NaN(); 
+            elev.at<double>(v, u) = std::numeric_limits<double>::quiet_NaN();
         }
     }
 
+    // Merge the two channels into a two-channel image
+    cv::Mat image;
+    cv::merge(std::vector<cv::Mat>{lidar, elev}, image);
     return image;
 
 }

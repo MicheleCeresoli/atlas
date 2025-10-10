@@ -32,10 +32,9 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
         // 3D image (rows, cols, channels)
         shape = {(size_t)mat.rows, (size_t)mat.cols, (size_t)mat.channels()};
         strides = {(size_t)mat.step[0], mat.elemSize1() * mat.channels(), mat.elemSize1()};  
-
     }
 
-    return py::array(dtype, shape, strides, mat.data, py::cast(mat));
+    return py::array(dtype, shape, strides, mat.data);
 
 }
 
