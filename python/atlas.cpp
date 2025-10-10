@@ -19,12 +19,23 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
             throw std::runtime_error("Unsupported image type.");
     }
 
-    return py::array(
-        dtype, 
-        {mat.rows, mat.cols}, 
-        {mat.step[0], mat.step[1]}, 
-        mat.data
-    );
+    // Build the matrices shape and size
+    std::vector<std::size_t> shape; 
+    std::vector<std::size_t> strides;
+
+    if (mat.channels() == 1) {
+        // 2D image (rows, cols) 
+        shape = {(size_t)mat.rows, (size_t)mat.cols}; 
+        strides = {(size_t)mat.step[0], (size_t)mat.step[1]};
+    } 
+    else {
+        // 3D image (rows, cols, channels)
+        shape = {(size_t)mat.rows, (size_t)mat.cols, (size_t)mat.channels()};
+        strides = {(size_t)mat.step[0], mat.elemSize1() * mat.channels(), mat.elemSize1()};  
+
+    }
+
+    return py::array(dtype, shape, strides, mat.data, py::cast(mat));
 
 }
 

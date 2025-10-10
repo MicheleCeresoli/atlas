@@ -305,10 +305,10 @@ cv::Mat RayTracer::createLIDARMap() {
     const std::vector<RenderedPixel>* pixels = renderer.getRenderedPixels();
 
     // Create a single channel floating point image
-    cv::Mat image(cam->height(), cam->width(), CV_64F, cv::Scalar(0));
+    cv::Mat image(cam->height(), cam->width(), CV_64F, cv::Scalar(0, 0));
     
     ui32_t u, v; 
-    double d;
+    double depth, elevation;
     int i;  
 
     for (auto& p: *pixels) {
@@ -317,22 +317,26 @@ cv::Mat RayTracer::createLIDARMap() {
         cam->getPixelCoordinates(p.id, u, v); 
 
         // Compute the average pixel depth 
-        d = 0.0; i = 0;
+        depth = 0.0; elevation = 0.0; i = 0;
         for (size_t k = 0; k < p.nSamples; k++) {
             if (p.data[k].t != inf) {
-                d += p.data[k].t;
+                depth += p.data[k].t;           // Update the depth distance
+                elevation += p.data[k].s[0];    // Update the elevation values
                 i += 1;
             }
         }
         
         if (i > 0) {
             // Average the distance through all the valid samples
-            image.at<double>(v, u) = d / i;
+            image.at<cv::Vec2d>(v, u) = cv::Vec2d(depth / i, elevation / i);
 
         } else {
 
             // Assign nan in that place 
-            image.at<double>(v, u) = std::numeric_limits<double>::quiet_NaN();
+            image.at<cv::Vec2d>(v, u) = cv::Vec2d(
+                std::numeric_limits<double>::quiet_NaN(), 
+                std::numeric_limits<double>::quiet_NaN()
+            );
         }
     }
 
