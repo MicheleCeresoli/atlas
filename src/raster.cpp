@@ -99,6 +99,7 @@ void RasterBand::loadData() {
     );
 
     if (err != CE_None) {
+        unloadData();
         throw std::runtime_error("failed to retrieve raster band data");
     } 
 
@@ -106,8 +107,13 @@ void RasterBand::loadData() {
 }
 
 void RasterBand::unloadData() {
+    
+    /* Frees the internal GDAL cache*/
+    pBand->FlushCache();
+
     nLoadedElements = 0; 
     data.reset();
+    
 }
 
 double RasterBand::getData(ui32_t i) const {

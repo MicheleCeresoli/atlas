@@ -8,6 +8,7 @@
 - Fixed GSD computation when below the average planet radius.
 - Exposed world class via raytracer through `getWorld`.
 - Fixed segmentation error with `getData` when no rasters are loaded.
+- Updated raster unloading.
 
 ## v0.5 
 - Renamed `LunarRayTracer` to `RayTracer`.
