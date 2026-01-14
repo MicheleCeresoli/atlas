@@ -1,4 +1,3 @@
-
 # ATLAS 
 
 _Ray Tracing Lunar DEM Images_
@@ -6,6 +5,14 @@ _Ray Tracing Lunar DEM Images_
 [![Build Status](https://github.com/MicheleCeresoli/atlas/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/MicheleCeresoli/atlas/actions/workflows/build.yml)
 
 ATLAS is a C++ library with Python bindings that allows to generate highly realistic optical images, DEM measurements and depth maps via ray-tracing techniques. It is able to support all Digital Terrain Models (DTMs) that come in a format supported by GDAL.
+
+<img src="https://github.com/user-attachments/assets/1808537a-022e-49d6-9ea9-934fa90b960e"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/8ffe92b7-0484-4cb7-828b-0d59e863b546" width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/2e9cfe61-cf4f-43a7-81df-8dc989299e58"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/fbf7ac54-b805-4473-b168-af897cc83890" width="23%">
+
+
+<img src="https://github.com/user-attachments/assets/2d2641df-f647-48d2-a5e1-61a5a530823e"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/cc3e1438-9b4b-4ec7-abd6-905517fc0bc8" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/fea763a5-1243-4a23-aa40-3946857181a5"  width="31%">
+<img src="https://github.com/user-attachments/assets/4e61235f-f71a-4ac9-9cba-de58365196df"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/98160c64-e917-4cb5-ac2f-7b7c56665b30" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/d9460e5f-a9e8-4d83-8b0b-ea3518d997c9"  width="31%">
+<img src="https://github.com/user-attachments/assets/cbd804f9-50ea-469a-bb94-74baff7b491e"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/d1f84100-4220-4e7a-a43e-7cc5ac41ebef" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/42310049-7570-491c-adfb-4e31e31a2ad9" width="31%">
+
 
 ## Installation 
 
