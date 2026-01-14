@@ -18,6 +18,8 @@ sudo apt install libgdal-dev
 sudo apt install libopencv-dev
 ```
 
+If access to `apt` is not available, please follow the manual installation instructions reported in `INSTALL.md`.
+
 ### From Conda Package 
 From the latest release, download the appropriate `.tar.bz2` package according to your python version and system build. Then, once the conda environment has been activated, run:
 
