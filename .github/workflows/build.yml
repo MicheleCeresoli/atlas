@@ -5,6 +5,9 @@ on:
     tags:   
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
+permissions:
+  contents: write  # Required to create releases and upload assets
+
 jobs: 
   build-package: 
     runs-on: ${{matrix.os}}
@@ -16,7 +19,7 @@ jobs:
 
     steps: 
       - name: Checkout code 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
     
       - name: Setup Python 
         uses: actions/setup-python@v4
@@ -73,18 +76,18 @@ jobs:
     runs-on: ubuntu-latest 
     steps: 
       - name: Checkout code 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create release 
-        uses: actions/create-release@v1
+        # uses: actions/create-release@v1
         env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
-        with: 
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          draft: false 
-          prerelease: false 
-          
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # with:
+        run: | 
+          gh release create ${{ github.ref_name }} \
+            --title "${{ github.ref_name }}" \
+            --notes "Automated build for version ${{ github.ref_name }}"
+
       - name: Download wheels 
         uses: actions/download-artifact@v4
         with: 
@@ -95,7 +98,7 @@ jobs:
 
       - name: Upload wheel to GitHub Release 
         env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: | 
           for file in wheels/*whl; do
             echo "Uploading $file"
@@ -112,7 +115,7 @@ jobs:
 
       - name: Upload conda-package to GitHub Release 
         env: 
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_ARCADIA }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: | 
           for file in conda-packages/*.conda; do
             echo "Uploading $file"
