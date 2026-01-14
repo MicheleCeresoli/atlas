@@ -4,7 +4,7 @@
 When manually installing the library on Linux without access to `apt`, please follow the instructions below.
 
 ## 1. Directory & Tool Setup
-Define your root directory and create the folder structure. Replace `<user>` with your actual username.
+Define your root directory and create the folder structure. Replace `<user>` with your actual username. This creates a local folder in which the libraries are installed. If an independent folder already exists, `LOCAL_ROOT` should be updated accordingly.
 
 ```bash
 export LOCAL_ROOT="/staff/<user>/local"
