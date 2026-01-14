@@ -20,6 +20,13 @@ class RayTracer {
 
         void run(); 
 
+        // World Settings Updates 
+        inline void updateMinRayResolution(double res) { world.setMinRayResolution(res); }
+        inline void updateMaxRayResolution(double res) { world.setMaxRayResolution(res); }
+
+        inline double getMinRayResolution() const { return world.getMinRayResolution(); }
+        inline double getMaxRayResolution() const { return world.getMaxRayResolution(); }
+
         // Renderer Update Routines 
         inline void updateRenderingOptions(const RenderingOptions& opts) {
             renderer.updateRenderingOptions(opts);
@@ -34,6 +41,7 @@ class RayTracer {
         cv::Mat createImageOptical(int type = CV_8UC1); 
         cv::Mat createImageDEM(int type = CV_8UC1, bool normalize = true); 
         cv::Mat createDepthMap(int type = CV_8UC1); 
+        cv::Mat createLIDARMap();
 
         bool saveImageOptical(const std::string& filename, int type = CV_8UC1);
         bool saveImageDEM(const std::string& filename, int type = CV_8UC1, bool normalize = true);
@@ -52,6 +60,9 @@ class RayTracer {
         double getAltitude(
             const point3& pos, const dcm& dcm, double dt, double maxErr = -1.0
         ); 
+
+        // Retrieve world settings
+        inline World* getWorld() { return &world; }
 
     private: 
 

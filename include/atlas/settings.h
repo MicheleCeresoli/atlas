@@ -63,6 +63,7 @@ class WorldOptions {
         ui16_t rasterUsageThreshold = 2;
 
         float minRes = 1;
+        float maxRes = 100;
 
 };
 

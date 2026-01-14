@@ -13,16 +13,28 @@ py::array cvMatToNumpy(const cv::Mat& mat) {
     switch (mat.depth()) {
         case CV_8UC1: dtype = py::dtype::of<uint8_t>(); break; 
         case CV_16UC1: dtype = py::dtype::of<uint16_t>(); break;
+        case CV_32F: dtype = py::dtype::of<float>(); break;
+        case CV_64F: dtype = py::dtype::of<double>(); break; 
         default: 
             throw std::runtime_error("Unsupported image type.");
     }
 
-    return py::array(
-        dtype, 
-        {mat.rows, mat.cols}, 
-        {mat.step[0], mat.step[1]}, 
-        mat.data
-    );
+    // Build the matrices shape and size
+    std::vector<std::size_t> shape; 
+    std::vector<std::size_t> strides;
+
+    if (mat.channels() == 1) {
+        // 2D image (rows, cols) 
+        shape = {(size_t)mat.rows, (size_t)mat.cols}; 
+        strides = {(size_t)mat.step[0], (size_t)mat.step[1]};
+    } 
+    else {
+        // 3D image (rows, cols, channels)
+        shape = {(size_t)mat.rows, (size_t)mat.cols, (size_t)mat.channels()};
+        strides = {(size_t)mat.step[0], mat.elemSize1() * mat.channels(), mat.elemSize1()};  
+    }
+
+    return py::array(dtype, shape, strides, mat.data);
 
 }
 
@@ -69,6 +81,14 @@ void init_atlas(py::module_ &m) {
             return cvMatToNumpy(img);
 
         }, py::arg("type") = CV_8UC1, py::arg("normalize") = true)
+
+        .def("createLIDARMap", [](RayTracer& self) -> py::array {
+            
+            // Generate the image and convert it to a numpy array 
+            cv::Mat img = self.createLIDARMap(); 
+            return cvMatToNumpy(img);
+            
+        })
         
         .def("saveImageOptical", &RayTracer::saveImageOptical, 
             py::arg("filename"), py::arg("type") = CV_8UC1
@@ -87,5 +107,18 @@ void init_atlas(py::module_ &m) {
         .def("generateGCPs", &RayTracer::generateGCPs)
         .def("getAltitude", &RayTracer::getAltitude, 
             py::arg("pos"), py::arg("dcm"), py::arg("dt"), py::arg("maxErr")=-1.0
+        )
+        
+        // Update and retrieve resolutions
+        .def("updateMinRayResolution", &RayTracer::updateMinRayResolution)
+        .def("updateMaxRayResolution", &RayTracer::updateMaxRayResolution)
+
+        .def("getMinRayResolution", &RayTracer::getMinRayResolution)
+        .def("getMaxRayResolution", &RayTracer::getMaxRayResolution)
+        
+        // Retrieve the world class 
+        .def("getWorld", &RayTracer::getWorld, 
+            py::return_value_policy::reference_internal
         );
+
 }

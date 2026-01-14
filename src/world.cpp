@@ -170,8 +170,9 @@ void World::computeRayResolution(ScreenGrid& grid, const Camera* cam) {
      * errors. */
     double dt = 0.5*computeGSD(grid, cam); 
 
-    /* Ensure the resolution does not go below the allowed minimum. */
+    /* Ensure the resolution does not go below or above the allowed boundaries. */
     dt = MAX(dt, opts.minRes);
+    dt = MIN(dt, opts.maxRes);
     grid.setRayResolution(dt);
 
 }

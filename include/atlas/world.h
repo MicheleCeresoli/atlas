@@ -20,6 +20,10 @@ class World {
 
         World(const WorldOptions& opts, ui32_t nThreads);
 
+        /* Delete copy constructors and assignments */
+        World(const World&) = delete; 
+        World& operator=(const World&) = delete; 
+
         PixelData traceRay(
             const Ray& r, double dt, double tMin, double tMax, ui32_t threadid, 
             double maxErr = -1.0
@@ -50,6 +54,14 @@ class World {
         inline void cleanupDEM() { dem.cleanupRasters(opts.rasterUsageThreshold); }
         // Unloads unused DOM files to reduce memory consumption.
         inline void cleanupDOM() { dom.cleanupRasters(opts.rasterUsageThreshold); }
+
+        // Update the minimum / maximum rendering resolutions
+        inline void setMinRayResolution(double res) { opts.minRes = res; }
+        inline void setMaxRayResolution(double res) { opts.maxRes = res; }
+
+        // Retrieve the min/max ray resolutions
+        inline double getMinRayResolution() const { return opts.minRes; }
+        inline double getMaxRayResolution() const { return opts.maxRes; }
 
     private: 
     

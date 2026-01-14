@@ -25,6 +25,12 @@ void init_world(py::module_ &m) {
         .def("cleanupDEM", &World::cleanupDEM)
         .def("cleanupDOM", &World::cleanupDOM)
         
-        .def("computeRayResolution", &World::computeRayResolution);
+        .def("computeRayResolution", &World::computeRayResolution)
+
+        .def("setMinRayResolution", &World::setMinRayResolution)
+        .def("setMaxRayResolution", &World::setMaxRayResolution)
+
+        .def("getMinRayResolution", &World::getMinRayResolution)
+        .def("getMaxRayResolution", &World::getMaxRayResolution);
 
 }
