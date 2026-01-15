@@ -6,13 +6,11 @@ _Ray Tracing Lunar DEM Images_
 
 ATLAS is a C++ library with Python bindings that allows to generate highly realistic optical images, DEM measurements and depth maps via ray-tracing techniques. It is able to support all Digital Terrain Models (DTMs) that come in a format supported by GDAL.
 
-<img src="https://github.com/user-attachments/assets/1808537a-022e-49d6-9ea9-934fa90b960e"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/8ffe92b7-0484-4cb7-828b-0d59e863b546" width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/2e9cfe61-cf4f-43a7-81df-8dc989299e58"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/fbf7ac54-b805-4473-b168-af897cc83890" width="23%">
+<img src="https://github.com/user-attachments/assets/c235520a-7486-4419-be99-f0688cbf3b87"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/9eca57f9-270e-4913-a783-2921b64fcf24" width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/9e6fafb5-2fad-4829-8f54-a3953949515f"  width="23%">&nbsp;<img src="https://github.com/user-attachments/assets/155a983a-1b5e-4b35-a8b0-e6bc2881e198" width="23%">
 
-
-<img src="https://github.com/user-attachments/assets/2d2641df-f647-48d2-a5e1-61a5a530823e"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/cc3e1438-9b4b-4ec7-abd6-905517fc0bc8" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/fea763a5-1243-4a23-aa40-3946857181a5"  width="31%">
-<img src="https://github.com/user-attachments/assets/4e61235f-f71a-4ac9-9cba-de58365196df"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/98160c64-e917-4cb5-ac2f-7b7c56665b30" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/d9460e5f-a9e8-4d83-8b0b-ea3518d997c9"  width="31%">
-<img src="https://github.com/user-attachments/assets/cbd804f9-50ea-469a-bb94-74baff7b491e"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/d1f84100-4220-4e7a-a43e-7cc5ac41ebef" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/42310049-7570-491c-adfb-4e31e31a2ad9" width="31%">
-
+<img src="https://github.com/user-attachments/assets/0ac6e429-f109-482a-b48b-27a7826651eb"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/07a458d1-7ae7-4ead-b19b-a7f9b4010117" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/945d8c8f-5718-4a16-a1b3-91e8c845a4f8"  width="31%">
+<img src="https://github.com/user-attachments/assets/d62ca0cd-f671-4400-883e-2bd7a8f5a235"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/f1c77f1c-a6bc-4a02-a934-5200013c9f7a" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/d997c856-c5fe-43bc-8917-b68ce64577ae"  width="31%">
+<img src="https://github.com/user-attachments/assets/b556a972-f2a7-4de4-8833-3c93c00bb112"  width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/86ca1a9b-2a1f-445c-9787-74ae604e74a4" width="31%">&nbsp;<img src="https://github.com/user-attachments/assets/ec8abc9f-5fc0-43e7-b44a-8b3594b99cf0" width="31%">
 
 ## Installation 
 
